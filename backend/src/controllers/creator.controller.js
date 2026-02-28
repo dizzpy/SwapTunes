@@ -9,3 +9,12 @@ export const setupCreator = async (req, res, next) => {
     next(err)
   }
 }
+
+export const updateCreatorProfile = async (req, res, next) => {
+  try {
+    const profile = await creatorService.updateCreatorProfile(req.user.id, req.body)
+    success(res, profile)
+  } catch (err) {
+    next(err)
+  }
+}

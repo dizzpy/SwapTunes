@@ -30,3 +30,19 @@ export const setupCreatorProfile = async (userId, data) => {
 
   return profile
 }
+
+export const updateCreatorProfile = async (userId, data) => {
+  const { data: profile, error } = await supabase
+    .from('creator_profiles')
+    .update(data)
+    .eq('user_id', userId)
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') throw { statusCode: 404, code: 'NOT_CREATOR', message: 'You are not a creator' }
+    throw { statusCode: 400, code: 'UPDATE_FAILED', message: error.message }
+  }
+
+  return profile
+}

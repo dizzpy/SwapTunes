@@ -9,4 +9,7 @@ const router = Router()
 // Upgrade to Creator
 router.post('/setup', requireAuth, validate(creatorSetupSchema), creatorController.setupCreator)
 
+// Update Creator Profile
+router.patch('/profile', requireAuth, creatorController.updateCreatorProfile)
+
 export default router
