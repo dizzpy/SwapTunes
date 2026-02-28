@@ -2,7 +2,7 @@ import { Router } from 'express'
 import * as creatorController from '../controllers/creator.controller.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
-import { creatorSetupSchema } from '../utils/validators/creator.schema.js'
+import { creatorSetupSchema } from '../validators/creator.schema.js'
 
 const router = Router()
 

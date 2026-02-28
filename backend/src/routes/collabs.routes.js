@@ -3,7 +3,7 @@ import * as collabsController from '../controllers/collabs.controller.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireCreator } from '../middleware/requireCreator.js'
 import { validate } from '../middleware/validate.js'
-import { collabSchema } from '../utils/validators/collabs.schema.js'
+import { collabSchema } from '../validators/collabs.schema.js'
 
 const router = Router()
 

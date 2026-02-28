@@ -2,7 +2,7 @@ import { Router } from 'express'
 import * as postsController from '../controllers/posts.controller.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
-import { postSchema, commentSchema, reportSchema } from '../utils/validators/posts.schema.js'
+import { postSchema, commentSchema, reportSchema } from '../validators/posts.schema.js'
 
 const router = Router()
 

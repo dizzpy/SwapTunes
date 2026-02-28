@@ -3,7 +3,7 @@ import * as authController from '../controllers/auth.controller.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireJwtAuth } from '../middleware/requireJwtAuth.js'
 import { validate } from '../middleware/validate.js'
-import { profileSetupSchema, spotifyConnectSchema } from '../utils/validators/auth.schema.js'
+import { profileSetupSchema, spotifyConnectSchema } from '../validators/auth.schema.js'
 
 const router = Router()
 
