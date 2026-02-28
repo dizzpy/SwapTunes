@@ -1,5 +1,5 @@
 import qs from 'qs'
-import { config } from '../config/env.js'
+import { env } from '../config/env.js'
 import { spotifyApi } from '../config/spotify.js'
 import axios from 'axios'
 import { supabase } from '../config/supabase.js'
@@ -15,7 +15,7 @@ export const getSpotifyTokens = async (code, redirect_uri) => {
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${Buffer.from(`${config.spotify.clientId}:${config.spotify.clientSecret}`).toString(
+        Authorization: `Basic ${Buffer.from(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`).toString(
           'base64'
         )}`
       }
@@ -36,7 +36,7 @@ export const refreshSpotifyToken = async (userId, refreshToken) => {
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${Buffer.from(`${config.spotify.clientId}:${config.spotify.clientSecret}`).toString(
+          Authorization: `Basic ${Buffer.from(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`).toString(
             'base64'
           )}`
         }
