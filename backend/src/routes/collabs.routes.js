@@ -9,6 +9,10 @@ const router = Router()
 
 // Publicly viewable collabs (assuming authenticated users)
 router.get('/', requireAuth, collabsController.getCollabs)
+
+// Creator only actions
+router.get('/me', requireAuth, requireCreator, collabsController.getMyCollabs)
+
 router.get('/:collabId', requireAuth, collabsController.getCollabById)
 
 // Creator only actions

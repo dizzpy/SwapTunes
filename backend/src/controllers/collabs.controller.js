@@ -45,3 +45,12 @@ export const deleteCollab = async (req, res, next) => {
     next(err)
   }
 }
+
+export const getMyCollabs = async (req, res, next) => {
+  try {
+    const collabs = await collabsService.getMyCollabs(req.user.id, req.query)
+    success(res, collabs)
+  } catch (err) {
+    next(err)
+  }
+}
