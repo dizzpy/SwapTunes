@@ -52,3 +52,21 @@ export const getAvailableSpotifyPlaylists = async (user) => {
     is_imported: existingIds.includes(item.id)
   }))
 }
+
+export const getUserPlaylists = async (userId) => {
+  const { data, error } = await supabase
+    .from('playlists')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_public', true)
+    .order('created_at', { ascending: false })
+
+  if (error) throw { statusCode: 400, code: 'FETCH_FAILED', message: error.message }
+  return data
+}
+
+export const deletePlaylist = async (userId, playlistId) => {
+  const { error } = await supabase.from('playlists').delete().match({ id: playlistId, user_id: userId })
+  if (error) throw { statusCode: 400, code: 'DELETE_FAILED', message: error.message }
+  return { success: true }
+}

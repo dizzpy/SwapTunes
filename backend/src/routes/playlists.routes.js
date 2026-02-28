@@ -9,4 +9,7 @@ const router = Router()
 router.get('/spotify/available', requireAuth, requireSpotify, playlistsController.getAvailablePlaylists)
 router.post('/import', requireAuth, requireSpotify, playlistsController.importPlaylists)
 
+router.get('/user/:userId', playlistsController.getUserPlaylists)
+router.delete('/:playlistId', requireAuth, playlistsController.deletePlaylist)
+
 export default router

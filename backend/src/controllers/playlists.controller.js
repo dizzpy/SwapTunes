@@ -22,3 +22,21 @@ export const importPlaylists = async (req, res, next) => {
     next(err)
   }
 }
+
+export const getUserPlaylists = async (req, res, next) => {
+  try {
+    const playlists = await playlistsService.getUserPlaylists(req.params.userId)
+    success(res, playlists)
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const deletePlaylist = async (req, res, next) => {
+  try {
+    const result = await playlistsService.deletePlaylist(req.user.id, req.params.playlistId)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
