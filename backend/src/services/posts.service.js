@@ -139,3 +139,9 @@ export const reportPost = async (userId, postId, reason) => {
   if (error) throw { statusCode: 400, code: 'REPORT_FAILED', message: error.message }
   return { success: true }
 }
+
+export const deletePost = async (userId, postId) => {
+  const { error } = await supabase.from('posts').delete().match({ id: postId, user_id: userId })
+  if (error) throw { statusCode: 400, code: 'DELETE_FAILED', message: error.message }
+  return { success: true }
+}

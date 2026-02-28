@@ -72,3 +72,12 @@ export const reportPost = async (req, res, next) => {
     next(err)
   }
 }
+
+export const deletePost = async (req, res, next) => {
+  try {
+    const result = await postsService.deletePost(req.user.id, req.params.postId)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}

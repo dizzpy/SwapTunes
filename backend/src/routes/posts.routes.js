@@ -9,6 +9,7 @@ const router = Router()
 // Feed & Create
 router.get('/feed', requireAuth, postsController.getFeed)
 router.post('/', requireAuth, validate(postSchema), postsController.createPost)
+router.delete('/:postId', requireAuth, postsController.deletePost)
 
 // Interact
 router.post('/:postId/like', requireAuth, postsController.likePost)
