@@ -4,24 +4,24 @@ import { getValidAccessToken, fetchSpotifyPlaylists } from './spotify.service.js
 export const importPlaylists = async (user, playlistIds) => {
   // Get spotify access token
   const token = await getValidAccessToken(user)
-  
+
   // Fetch from Spotify
   const items = await fetchSpotifyPlaylists(token)
-  
+
   // Filter selected
-  const toImport = items.filter(item => playlistIds.includes(item.id))
-  
+  const toImport = items.filter((item) => playlistIds.includes(item.id))
+
   if (toImport.length === 0) return []
 
   // Map to DB format
-  const dbPlaylists = toImport.map(item => ({
-     user_id: user.id,
-     spotify_playlist_id: item.id,
-     name: item.name,
-     description: item.description || null,
-     cover_image_url: item.images && item.images.length > 0 ? item.images[0].url : null,
-     track_count: item.tracks.total,
-     is_public: item.public === true,
+  const dbPlaylists = toImport.map((item) => ({
+    user_id: user.id,
+    spotify_playlist_id: item.id,
+    name: item.name,
+    description: item.description || null,
+    cover_image_url: item.images && item.images.length > 0 ? item.images[0].url : null,
+    track_count: item.tracks.total,
+    is_public: item.public === true
   }))
 
   // Insert or upsert
@@ -41,9 +41,9 @@ export const getAvailableSpotifyPlaylists = async (user) => {
 
   // fetch already imported
   const { data: existing } = await supabase.from('playlists').select('spotify_playlist_id').eq('user_id', user.id)
-  const existingIds = existing ? existing.map(e => e.spotify_playlist_id) : []
+  const existingIds = existing ? existing.map((e) => e.spotify_playlist_id) : []
 
-  return items.map(item => ({
+  return items.map((item) => ({
     id: item.id,
     name: item.name,
     track_count: item.tracks.total,

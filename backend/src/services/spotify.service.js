@@ -15,9 +15,9 @@ export const getSpotifyTokens = async (code, redirect_uri) => {
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${Buffer.from(
-          `${config.spotify.clientId}:${config.spotify.clientSecret}`
-        ).toString('base64')}`
+        Authorization: `Basic ${Buffer.from(`${config.spotify.clientId}:${config.spotify.clientSecret}`).toString(
+          'base64'
+        )}`
       }
     }
   )
@@ -36,9 +36,9 @@ export const refreshSpotifyToken = async (userId, refreshToken) => {
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${Buffer.from(
-            `${config.spotify.clientId}:${config.spotify.clientSecret}`
-          ).toString('base64')}`
+          Authorization: `Basic ${Buffer.from(`${config.spotify.clientId}:${config.spotify.clientSecret}`).toString(
+            'base64'
+          )}`
         }
       }
     )
@@ -46,10 +46,7 @@ export const refreshSpotifyToken = async (userId, refreshToken) => {
     const newAccessToken = response.data.access_token
 
     // Update the DB
-    await supabase
-      .from('users')
-      .update({ spotify_access_token: newAccessToken })
-      .eq('id', userId)
+    await supabase.from('users').update({ spotify_access_token: newAccessToken }).eq('id', userId)
 
     return newAccessToken
   } catch (error) {
@@ -61,9 +58,9 @@ export const refreshSpotifyToken = async (userId, refreshToken) => {
 export const getValidAccessToken = async (user) => {
   // Simplification: In a production app you'd store the token expiry timestamp.
   // Here we just try to use the access token; if it fails, we try to refresh it.
-  
+
   if (!user.spotify_access_token) {
-     throw new Error("No Spotify access token available")
+    throw new Error('No Spotify access token available')
   }
 
   // To be perfectly robust, you should check expiry logic here, but for brevity:
@@ -76,6 +73,6 @@ export const fetchSpotifyPlaylists = async (accessToken) => {
     headers: { Authorization: `Bearer ${accessToken}` },
     params: { limit: 50 }
   })
-  
+
   return data.items
 }

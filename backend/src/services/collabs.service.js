@@ -4,14 +4,16 @@ import { getPagination } from '../utils/pagination.js'
 export const createCollab = async (creatorId, data) => {
   const { data: collab, error } = await supabase
     .from('collaborations')
-    .insert([{
-      creator_id: creatorId,
-      title: data.title,
-      description: data.description,
-      looking_for: data.looking_for,
-      genre_style: data.genre_style,
-      payment_type: data.payment_type
-    }])
+    .insert([
+      {
+        creator_id: creatorId,
+        title: data.title,
+        description: data.description,
+        looking_for: data.looking_for,
+        genre_style: data.genre_style,
+        payment_type: data.payment_type
+      }
+    ])
     .select('*, creator:users(id, username, full_name, avatar_url, is_verified)')
     .single()
 
@@ -21,7 +23,7 @@ export const createCollab = async (creatorId, data) => {
 
 export const getCollabs = async (query) => {
   const { from, to } = getPagination(query.page, query.limit)
-  
+
   let qb = supabase
     .from('collaborations')
     .select('*, creator:users(id, username, full_name, avatar_url, is_verified)')
@@ -29,9 +31,9 @@ export const getCollabs = async (query) => {
     .order('created_at', { ascending: false })
 
   if (query.role) {
-     qb = qb.contains('looking_for', [query.role])
+    qb = qb.contains('looking_for', [query.role])
   }
-  
+
   const { data, error } = await qb.range(from, to)
 
   if (error) throw { statusCode: 400, code: 'FETCH_COLLABS_FAILED', message: error.message }
@@ -62,10 +64,7 @@ export const updateCollab = async (creatorId, collabId, updateData) => {
 }
 
 export const deleteCollab = async (creatorId, collabId) => {
-  const { error } = await supabase
-    .from('collaborations')
-    .delete()
-    .match({ id: collabId, creator_id: creatorId })
+  const { error } = await supabase.from('collaborations').delete().match({ id: collabId, creator_id: creatorId })
 
   if (error) throw { statusCode: 400, code: 'DELETE_COLLAB_FAILED', message: error.message }
   return { success: true }

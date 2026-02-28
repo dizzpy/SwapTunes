@@ -2,7 +2,7 @@ export const validate = (schema) => {
   return (req, res, next) => {
     try {
       const parsed = schema.safeParse(req.body)
-      
+
       if (!parsed.success) {
         return res.status(400).json({
           error: {
@@ -12,7 +12,7 @@ export const validate = (schema) => {
           }
         })
       }
-      
+
       req.validatedBody = parsed.data
       next()
     } catch (error) {

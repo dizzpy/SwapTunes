@@ -5,11 +5,13 @@ import { getPagination } from '../utils/pagination.js'
 export const createPost = async (userId, data) => {
   const { data: post, error } = await supabase
     .from('posts')
-    .insert([{
-      user_id: userId,
-      content: data.content,
-      image_url: data.image_url
-    }])
+    .insert([
+      {
+        user_id: userId,
+        content: data.content,
+        image_url: data.image_url
+      }
+    ])
     .select('*, user:users(id, username, full_name, avatar_url, is_verified)')
     .single()
 
@@ -22,12 +24,12 @@ export const getFeed = async (userId, query) => {
 
   // A real feed would combine followed users and suggested.
   // For now, we'll just get all posts not hidden by the user.
-  // To exclude hidden posts we'll do it locally or via a subquery. 
+  // To exclude hidden posts we'll do it locally or via a subquery.
   // Wait, Supabase lets us query posts and we can just get recent ones for the scope of mvp.
 
   // Fetch hidden post IDs
   const { data: hidden } = await supabase.from('hidden_posts').select('post_id').eq('user_id', userId)
-  const hiddenIds = hidden ? hidden.map(h => h.post_id) : []
+  const hiddenIds = hidden ? hidden.map((h) => h.post_id) : []
 
   let queryBuilder = supabase
     .from('posts')
@@ -36,7 +38,7 @@ export const getFeed = async (userId, query) => {
     .range(from, to)
 
   if (hiddenIds.length > 0) {
-     queryBuilder = queryBuilder.not('id', 'in', `(${hiddenIds.join(',')})`)
+    queryBuilder = queryBuilder.not('id', 'in', `(${hiddenIds.join(',')})`)
   }
 
   const { data: posts, error } = await queryBuilder
@@ -44,9 +46,9 @@ export const getFeed = async (userId, query) => {
   if (error) throw { statusCode: 400, code: 'FETCH_FEED_FAILED', message: error.message }
 
   // Check if current user liked each post
-  const mapped = posts.map(p => ({
+  const mapped = posts.map((p) => ({
     ...p,
-    is_liked: p.post_likes.some(like => like.user_id === userId),
+    is_liked: p.post_likes.some((like) => like.user_id === userId),
     post_likes: undefined // remove the array
   }))
 
@@ -55,7 +57,7 @@ export const getFeed = async (userId, query) => {
 
 export const likePost = async (userId, postId) => {
   const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId })
-  
+
   if (error) {
     if (error.code === '23505') throw { statusCode: 400, code: 'ALREADY_LIKED', message: 'You already liked this post' }
     throw { statusCode: 400, code: 'LIKE_FAILED', message: error.message }
@@ -67,8 +69,13 @@ export const likePost = async (userId, postId) => {
   // Get post owner for notification
   const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).single()
   if (post && post.user_id) {
-    const postOwnerId = post.user_id;
-    await notificationsService.createNotification({ userId: postOwnerId, actorId: userId, type: 'like', referenceId: postId })
+    const postOwnerId = post.user_id
+    await notificationsService.createNotification({
+      userId: postOwnerId,
+      actorId: userId,
+      type: 'like',
+      referenceId: postId
+    })
   }
 
   return { success: true }
@@ -95,8 +102,13 @@ export const addComment = async (userId, postId, content) => {
 
   const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).single()
   if (post && post.user_id) {
-    const postOwnerId = post.user_id;
-    await notificationsService.createNotification({ userId: postOwnerId, actorId: userId, type: 'comment', referenceId: postId })
+    const postOwnerId = post.user_id
+    await notificationsService.createNotification({
+      userId: postOwnerId,
+      actorId: userId,
+      type: 'comment',
+      referenceId: postId
+    })
   }
 
   return comment
@@ -104,7 +116,7 @@ export const addComment = async (userId, postId, content) => {
 
 export const getComments = async (postId, query) => {
   const { from, to } = getPagination(query.page, query.limit)
-  
+
   const { data, error } = await supabase
     .from('comments')
     .select('*, user:users(id, username, full_name, avatar_url)')

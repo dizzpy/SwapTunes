@@ -8,15 +8,15 @@ class NotificationsService {
   }
 
   async createNotification({ userId, actorId, type, referenceId }) {
-    if (userId === actorId) return; // Don't notify yourself
-    
+    if (userId === actorId) return // Don't notify yourself
+
     // We delegate the database interaction to the repository we injected
     await this.repository.createNotification({ userId, actorId, type, referenceId })
   }
 
   async getNotifications(userId, query) {
     const { from, to } = getPagination(query.page, query.limit)
-    
+
     // In a full OOP refactor, this query would also move into notificationsRepository
     const { data, error } = await supabase
       .from('notifications')
@@ -30,7 +30,10 @@ class NotificationsService {
   }
 
   async markAsRead(userId, notificationId) {
-    const { error } = await supabase.from('notifications').update({ is_read: true }).match({ id: notificationId, user_id: userId })
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .match({ id: notificationId, user_id: userId })
     if (error) throw { statusCode: 400, code: 'MARK_READ_FAILED', message: error.message }
     return { success: true }
   }

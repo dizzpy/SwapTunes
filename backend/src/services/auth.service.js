@@ -3,14 +3,10 @@ import { getSpotifyTokens } from './spotify.service.js'
 
 export const setupProfile = async (userId, profileData) => {
   // Check if setup already
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', userId)
-    .single()
+  const { data: existingUser } = await supabase.from('users').select('id').eq('id', userId).single()
 
   if (existingUser) {
-     throw { statusCode: 400, code: 'ALREADY_SETUP', message: 'Profile already setup' }
+    throw { statusCode: 400, code: 'ALREADY_SETUP', message: 'Profile already setup' }
   }
 
   // Insert to users
@@ -18,13 +14,13 @@ export const setupProfile = async (userId, profileData) => {
     .from('users')
     .insert([
       {
-         id: userId,
-         full_name: profileData.full_name,
-         username: profileData.username,
-         bio: profileData.bio,
-         avatar_url: profileData.avatar_url,
-         user_type: 'listener',
-         spotify_connected: false
+        id: userId,
+        full_name: profileData.full_name,
+        username: profileData.username,
+        bio: profileData.bio,
+        avatar_url: profileData.avatar_url,
+        user_type: 'listener',
+        spotify_connected: false
       }
     ])
     .select()
@@ -33,7 +29,7 @@ export const setupProfile = async (userId, profileData) => {
   if (userError) throw { statusCode: 400, code: 'SETUP_FAILED', message: userError.message }
 
   // Insert genres
-  const genresToInsert = profileData.genres.map(g => ({ user_id: userId, genre: g }))
+  const genresToInsert = profileData.genres.map((g) => ({ user_id: userId, genre: g }))
   const { error: genreError } = await supabase.from('user_genres').insert(genresToInsert)
 
   if (genreError) throw { statusCode: 400, code: 'GENRE_INSERT_FAILED', message: genreError.message }
@@ -44,14 +40,14 @@ export const setupProfile = async (userId, profileData) => {
 export const connectSpotify = async (userId, authCode, redirectUri) => {
   // get tokens
   const tokens = await getSpotifyTokens(authCode, redirectUri)
-  
+
   if (!tokens.access_token) {
     throw { statusCode: 400, code: 'SPOTIFY_CONN_FAILED', message: 'Could not get access token' }
   }
 
   const { data, error } = await supabase
     .from('users')
-    .update({ 
+    .update({
       spotify_connected: true,
       spotify_access_token: tokens.access_token,
       spotify_refresh_token: tokens.refresh_token

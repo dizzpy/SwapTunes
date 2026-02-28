@@ -11,7 +11,7 @@ export const startSpotifyTokenRefreshJob = () => {
       // 2. Refresh their access token via Spotify API
       // 3. Save new tokens back to database
       // This is a placeholder for the actual implementation
-      
+
       logger.info('✅ Spotify token refresh job completed successfully')
     } catch (error) {
       logger.error({ err: error }, '❌ Spotify token refresh job failed')

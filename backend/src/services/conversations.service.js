@@ -4,17 +4,19 @@ import { getPagination } from '../utils/pagination.js'
 
 export const getConversations = async (userId, query) => {
   const { from, to } = getPagination(query.page, query.limit)
-  
+
   // A user is either user_one or user_two
   const { data, error } = await supabase
     .from('conversations')
-    .select(`
+    .select(
+      `
       id,
       last_message_at,
       collab_id,
       user_one:users!conversations_user_one_id_fkey(id, username, full_name, avatar_url),
       user_two:users!conversations_user_two_id_fkey(id, username, full_name, avatar_url)
-    `)
+    `
+    )
     .or(`user_one_id.eq.${userId},user_two_id.eq.${userId}`)
     .order('last_message_at', { ascending: false, nullsFirst: false })
     .range(from, to)
@@ -34,16 +36,18 @@ export const sendMessage = async (userId, conversationId, content) => {
   if (error) throw { statusCode: 400, code: 'SEND_MSG_FAILED', message: error.message }
 
   // Update conversation last_message_at
-  await supabase
-    .from('conversations')
-    .update({ last_message_at: new Date().toISOString() })
-    .eq('id', conversationId)
+  await supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', conversationId)
 
   // Notify other user
   const { data: convo } = await supabase.from('conversations').select('*').eq('id', conversationId).single()
   if (convo) {
-     const otherId = convo.user_one_id === userId ? convo.user_two_id : convo.user_one_id
-     await notificationsService.createNotification({ userId: otherId, actorId: userId, type: 'message', referenceId: conversationId })
+    const otherId = convo.user_one_id === userId ? convo.user_two_id : convo.user_one_id
+    await notificationsService.createNotification({
+      userId: otherId,
+      actorId: userId,
+      type: 'message',
+      referenceId: conversationId
+    })
   }
 
   return message
@@ -51,11 +55,11 @@ export const sendMessage = async (userId, conversationId, content) => {
 
 export const getMessages = async (userId, conversationId, query) => {
   const { from, to } = getPagination(query.page, query.limit)
-  
+
   // Verify participant
   const { data: convo } = await supabase.from('conversations').select('*').eq('id', conversationId).single()
   if (!convo || (convo.user_one_id !== userId && convo.user_two_id !== userId)) {
-     throw { statusCode: 403, code: 'FORBIDDEN', message: 'Not a participant of this conversation' }
+    throw { statusCode: 403, code: 'FORBIDDEN', message: 'Not a participant of this conversation' }
   }
 
   const { data: messages, error } = await supabase
@@ -74,14 +78,14 @@ export const startConversation = async (userId, recipientId, collabId = null) =>
 
   const u1 = userId < recipientId ? userId : recipientId
   const u2 = userId < recipientId ? recipientId : userId
-  
+
   const { data: existing, error: errExisting } = await supabase
     .from('conversations')
     .select('*')
     .eq('user_one_id', u1)
     .eq('user_two_id', u2)
     .single()
-    
+
   if (existing) return existing
 
   const { data, error } = await supabase
