@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { env } from './env.js'
-import { logger } from '../utils/logger.js'
+import { logger } from '../shared/utils/logger.js'
 
 if (!env.SUPABASE_SERVICE_ROLE_KEY) {
   logger.warn('SUPABASE_SERVICE_ROLE_KEY is not defined in .env! Backend operations bypassing RLS might fail.')

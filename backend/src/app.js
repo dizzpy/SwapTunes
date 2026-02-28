@@ -3,16 +3,16 @@ import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
 import pinoHttp from 'pino-http'
-import { globalLimiter } from './middleware/rateLimiter.js'
-import { logger } from './utils/logger.js'
+import { globalLimiter } from './shared/middleware/rateLimiter.js'
+import { logger } from './shared/utils/logger.js'
 
-import { router } from './routes/index.js'
-import { errorHandler } from './middleware/errorHandler.js'
+import { router } from './router.js'
+import { errorHandler } from './shared/middleware/errorHandler.js'
 import dotenv from 'dotenv'
 
 // Initialize event listeners
-import './events/index.js'
-import { initializeJobs } from './jobs/index.js'
+import './shared/events/index.js'
+import { initializeJobs } from './shared/jobs/index.js'
 
 dotenv.config()
 

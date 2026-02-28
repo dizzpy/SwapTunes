@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import dotenv from 'dotenv'
-import { logger } from '../utils/logger.js'
+import { logger } from '../shared/utils/logger.js'
 
 // Load environment variables from .env file
 dotenv.config()
