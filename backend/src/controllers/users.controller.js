@@ -29,3 +29,32 @@ export const unfollowUser = async (req, res, next) => {
     next(err)
   }
 }
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const result = await usersService.updateProfile(req.user.id, req.body)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const getFollowers = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const data = await usersService.getFollowers(userId, req.query)
+    success(res, data)
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const getFollowing = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const data = await usersService.getFollowing(userId, req.query)
+    success(res, data)
+  } catch (err) {
+    next(err)
+  }
+}

@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase.js'
 import { notificationsService } from './notifications.service.js'
+import { getPagination } from '../utils/pagination.js'
 
 export const getProfile = async (username) => {
   const { data, error } = await supabase
@@ -91,4 +92,57 @@ export const unfollowUser = async (followerId, followingId) => {
     .match({ follower_id: followerId, following_id: followingId })
   if (error) throw { statusCode: 400, code: 'UNFOLLOW_FAILED', message: error.message }
   return { success: true }
+}
+
+export const updateProfile = async (userId, data) => {
+  const { genres, ...updates } = data
+
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase.from('users').update(updates).eq('id', userId)
+    if (error) throw { statusCode: 400, code: 'UPDATE_FAILED', message: error.message }
+  }
+
+  // Update genres if provided
+  if (genres && Array.isArray(genres)) {
+    // delete old ones
+    await supabase.from('user_genres').delete().eq('user_id', userId)
+    // insert new ones
+    if (genres.length > 0) {
+      const inserts = genres.map((g) => ({ user_id: userId, genre: g }))
+      const { error: genreErr } = await supabase.from('user_genres').insert(inserts)
+      if (genreErr) throw { statusCode: 400, code: 'GENRE_UPDATE_FAILED', message: genreErr.message }
+    }
+  }
+
+  return { success: true }
+}
+
+export const getFollowers = async (userId, query) => {
+  const { from, to } = getPagination(query.page, query.limit)
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select('follower:users!follows_follower_id_fkey(id, full_name, username, avatar_url)')
+    .eq('following_id', userId)
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw { statusCode: 400, code: 'FETCH_FAILED', message: error.message }
+
+  return data.map((d) => d.follower)
+}
+
+export const getFollowing = async (userId, query) => {
+  const { from, to } = getPagination(query.page, query.limit)
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select('following:users!follows_following_id_fkey(id, full_name, username, avatar_url)')
+    .eq('follower_id', userId)
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw { statusCode: 400, code: 'FETCH_FAILED', message: error.message }
+
+  return data.map((d) => d.following)
 }
