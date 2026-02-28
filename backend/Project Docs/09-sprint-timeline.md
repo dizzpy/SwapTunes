@@ -53,10 +53,10 @@ Running Express server connected to Supabase. All DB tables exist. Auth provider
 - [x] `requireAuth` middleware — verify Supabase JWT, attach user to req.user, return 401 if invalid
 - [x] `POST /auth/profile/setup` — create users row after first sign-in, validate full_name + username uniqueness + min 3 genres, insert user_genres
 - [x] `GET /users/me` — return full authenticated user profile with genres, stats, creator_profile if applicable
-- [ ] `PATCH /users/me` — update own profile (name, bio, avatar, genres), update user_genres atomically
+- [x] `PATCH /users/me` — update own profile (name, bio, avatar, genres), update user_genres atomically
 - [x] `GET /users/:username` — public profile by username with stats, genres, creator_profile, is_following flag
 - [x] `POST + DELETE /users/:id/follow` — follow/unfollow, handle UNIQUE conflict, prevent self-follow, return updated count
-- [ ] `GET /users/:id/followers + /following` — paginated lists with is_following flag per user
+- [x] `GET /users/:id/followers + /following` — paginated lists with is_following flag per user
 
 ### ✅ Sprint Deliverable
 Full auth system working. Can sign up, set up profile, view and edit profiles, follow/unfollow users. All endpoints tested in Postman/Bruno.
@@ -70,7 +70,7 @@ Full auth system working. Can sign up, set up profile, view and edit profiles, f
 
 ### Tasks
 - [x] `POST /posts` — create post with content + optional image_url
-- [ ] `DELETE /posts/:id` — delete own post with requireOwner middleware
+- [x] `DELETE /posts/:id` — delete own post with requireOwner middleware
 - [x] `GET /posts/feed` — cursor-paginated feed from followed users, exclude hidden posts, include is_liked flag
 - [x] `POST + DELETE /posts/:id/like` — like/unlike with UNIQUE guard, increment/decrement likes_count, trigger like notification
 - [x] `GET + POST /posts/:id/comments` — paginated comments + add comment, increment comments_count, trigger comment notification
@@ -94,8 +94,8 @@ Full social feed working. Users can post, like, comment, report, and hide. Feed 
 - [x] `requireSpotify` middleware — guard for playlist endpoints, returns 403 if Spotify not connected
 - [x] `GET /playlists/spotify/available` — fetch user's Spotify playlists via Spotify Web API, auto-refresh token if expired
 - [x] `POST /playlists/import` — accept array of spotify_playlist_ids, fetch from Spotify, UPSERT into playlists table
-- [ ] `GET /playlists/user/:userId` — return public playlists for any user
-- [ ] `DELETE /playlists/:id` — remove imported playlist from profile, requireOwner guard
+- [x] `GET /playlists/user/:userId` — return public playlists for any user
+- [x] `DELETE /playlists/:id` — remove imported playlist from profile, requireOwner guard
 
 ### ✅ Sprint Deliverable
 Full Spotify flow working. User can connect Spotify, fetch their playlists, import them to their profile. Tokens auto-refresh silently.
@@ -110,7 +110,7 @@ Full Spotify flow working. User can connect Spotify, fetch their playlists, impo
 ### Tasks
 - [x] `requireCreator` middleware — checks user_type === 'creator', returns 403 with clear message
 - [x] `POST /creator/setup` — atomically update users.user_type = 'creator' AND insert creator_profiles row
-- [ ] `PATCH /creator/profile` — update any creator profile field, all optional, partial updates
+- [x] `PATCH /creator/profile` — update any creator profile field, all optional, partial updates
 - [x] Update `GET /users/me` + `GET /users/:username` — include creator_profile data, collabs count in stats, platform links
 
 ### ✅ Sprint Deliverable
@@ -126,7 +126,7 @@ Creator mode fully functional. User can switch to creator, fill in creator profi
 ### Tasks
 - [x] `POST /collabs` — create collab post with requireCreator guard, validate title + description + looking_for + payment_type
 - [x] `GET /collabs` — paginated open collabs with role/genre/payment_type filters + creator info, cursor pagination
-- [ ] `GET /collabs/me` — all collabs posted by current user for manage view
+- [x] `GET /collabs/me` — all collabs posted by current user for manage view
 - [x] `GET /collabs/:id` — full collab details with creator's public profile
 - [x] `PATCH /collabs/:id` — edit own collab with requireOwner guard, partial updates, support status open/closed
 - [x] `DELETE /collabs/:id` — delete own collab, requireOwner guard, cascades to conversations (SET NULL)
@@ -146,7 +146,7 @@ Full Collab marketplace API complete. Creators can post, browse, filter, edit, a
 - [x] `GET /conversations` — inbox list sorted by last_message_at DESC, include other user info + last message + unread count
 - [x] `POST /conversations/:id/messages` — insert message, update last_message_at, trigger message notification, Realtime fires on INSERT
 - [x] `GET /conversations/:id/messages` — paginated history with `before` cursor for older messages
-- [ ] `PATCH /conversations/:id/read` — mark all messages as is_read = true, return updated count
+- [x] `PATCH /conversations/:id/read` — mark all messages as is_read = true, return updated count
 - [ ] Enable Realtime on `messages` + `conversations` tables via SQL publication
 - [x] Wire message notification in `notifications.service`
 
