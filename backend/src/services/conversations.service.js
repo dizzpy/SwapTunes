@@ -79,7 +79,7 @@ export const startConversation = async (userId, recipientId, collabId = null) =>
   const u1 = userId < recipientId ? userId : recipientId
   const u2 = userId < recipientId ? recipientId : userId
 
-  const { data: existing, error: errExisting } = await supabase
+  const { data: existing } = await supabase
     .from('conversations')
     .select('*')
     .eq('user_one_id', u1)

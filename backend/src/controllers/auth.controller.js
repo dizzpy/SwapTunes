@@ -1,6 +1,5 @@
 import * as authService from '../services/auth.service.js'
-import { success, fail } from '../utils/response.js'
-import { supabase } from '../config/supabase.js'
+import { success } from '../utils/response.js'
 
 export const getMe = async (req, res, next) => {
   try {
