@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase.js'
-import { createNotification } from './notifications.service.js'
+import { notificationsService } from './notifications.service.js'
 
 export const getProfile = async (username) => {
   const { data, error } = await supabase
@@ -57,7 +57,7 @@ export const followUser = async (followerId, followingId) => {
   }
 
   // Create notification
-  await createNotification({
+  await notificationsService.createNotification({
      userId: followingId,
      actorId: followerId,
      type: 'follow',

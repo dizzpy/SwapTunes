@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase.js'
-import { createNotification } from './notifications.service.js'
+import { notificationsService } from './notifications.service.js'
 import { getPagination } from '../utils/pagination.js'
 
 export const createPost = async (userId, data) => {
@@ -67,7 +67,8 @@ export const likePost = async (userId, postId) => {
   // Get post owner for notification
   const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).single()
   if (post && post.user_id) {
-    await createNotification({ userId: post.user_id, actorId: userId, type: 'like', referenceId: postId })
+    const postOwnerId = post.user_id;
+    await notificationsService.createNotification({ userId: postOwnerId, actorId: userId, type: 'like', referenceId: postId })
   }
 
   return { success: true }
@@ -94,7 +95,8 @@ export const addComment = async (userId, postId, content) => {
 
   const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).single()
   if (post && post.user_id) {
-    await createNotification({ userId: post.user_id, actorId: userId, type: 'comment', referenceId: postId })
+    const postOwnerId = post.user_id;
+    await notificationsService.createNotification({ userId: postOwnerId, actorId: userId, type: 'comment', referenceId: postId })
   }
 
   return comment

@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase.js'
-import { createNotification } from './notifications.service.js'
+import { notificationsService } from './notifications.service.js'
 import { getPagination } from '../utils/pagination.js'
 
 export const getConversations = async (userId, query) => {
@@ -43,7 +43,7 @@ export const sendMessage = async (userId, conversationId, content) => {
   const { data: convo } = await supabase.from('conversations').select('*').eq('id', conversationId).single()
   if (convo) {
      const otherId = convo.user_one_id === userId ? convo.user_two_id : convo.user_one_id
-     await createNotification({ userId: otherId, actorId: userId, type: 'message', referenceId: conversationId })
+     await notificationsService.createNotification({ userId: otherId, actorId: userId, type: 'message', referenceId: conversationId })
   }
 
   return message
