@@ -11,6 +11,8 @@ import notificationsRoutes from './notifications.routes.js'
 
 const router = Router()
 
+router.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() }))
+
 router.use('/auth', authRoutes)
 router.use('/users', usersRoutes)
 router.use('/creator', creatorRoutes)
