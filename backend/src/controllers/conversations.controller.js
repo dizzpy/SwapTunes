@@ -36,3 +36,12 @@ export const startConversation = async (req, res, next) => {
     next(err)
   }
 }
+
+export const markMessagesRead = async (req, res, next) => {
+  try {
+    const result = await conversationsService.markMessagesRead(req.user.id, req.params.conversationId)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}

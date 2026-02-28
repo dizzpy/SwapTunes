@@ -9,5 +9,6 @@ router.post('/', requireAuth, conversationsController.startConversation)
 
 router.get('/:conversationId/messages', requireAuth, conversationsController.getMessages)
 router.post('/:conversationId/messages', requireAuth, conversationsController.sendMessage)
+router.patch('/:conversationId/read', requireAuth, conversationsController.markMessagesRead)
 
 export default router

@@ -97,3 +97,22 @@ export const startConversation = async (userId, recipientId, collabId = null) =>
   if (error) throw { statusCode: 400, code: 'START_CONVO_FAILED', message: error.message }
   return data
 }
+
+export const markMessagesRead = async (userId, conversationId) => {
+  // Verify participant
+  const { data: convo } = await supabase.from('conversations').select('*').eq('id', conversationId).single()
+  if (!convo || (convo.user_one_id !== userId && convo.user_two_id !== userId)) {
+    throw { statusCode: 403, code: 'FORBIDDEN', message: 'Not a participant of this conversation' }
+  }
+
+  // Update messages sent by the *other* user in this conversation to read = true
+  const { error } = await supabase
+    .from('messages')
+    .update({ is_read: true })
+    .match({ conversation_id: conversationId })
+    .neq('sender_id', userId)
+
+  if (error) throw { statusCode: 400, code: 'MARK_READ_FAILED', message: error.message }
+
+  return { success: true }
+}
