@@ -1,32 +1,31 @@
-import { z } from 'zod';
-import dotenv from 'dotenv';
+import { z } from 'zod'
+import dotenv from 'dotenv'
+import { logger } from '../utils/logger.js'
 
-dotenv.config();
+// Load environment variables from .env file
+dotenv.config()
 
 const envSchema = z.object({
   PORT: z.string().default('3000'),
-  NODE_ENV: z.enum(['production', 'development', 'test']).default('development'),
-  SUPABASE_URL: z.string().min(1, 'Supabase URL is required'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Supabase Service Role Key is required'),
-  SPOTIFY_CLIENT_ID: z.string().min(1, 'Spotify Client ID is required').optional(),
-  SPOTIFY_CLIENT_SECRET: z.string().min(1, 'Spotify Client Secret is required').optional(),
-});
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  SUPABASE_URL: z.string().url('Must be a valid Supabase URL'),
+  SUPABASE_ANON_KEY: z.string().min(10, 'Supabase Anon Key is required'),
+  // Mark optional keys for now, they can be made required later as integration deepens
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SPOTIFY_CLIENT_ID: z.string().optional(),
+  SPOTIFY_CLIENT_SECRET: z.string().optional(),
+  SPOTIFY_REDIRECT_URI: z.string().optional()
+})
 
-const _env = envSchema.safeParse(process.env);
+const parseEnvVars = () => {
+  const parsedValue = envSchema.safeParse(process.env)
 
-if (!_env.success) {
-  console.warn(`Config validation error:`, _env.error.format());
+  if (!parsedValue.success) {
+    logger.fatal({ err: parsedValue.error.format() }, 'Environment variable validation failed')
+    process.exit(1)
+  }
+
+  return parsedValue.data
 }
 
-export const config = _env.success ? {
-  env: _env.data.NODE_ENV,
-  port: parseInt(_env.data.PORT, 10),
-  supabase: {
-    url: _env.data.SUPABASE_URL,
-    serviceRoleKey: _env.data.SUPABASE_SERVICE_ROLE_KEY,
-  },
-  spotify: {
-    clientId: _env.data.SPOTIFY_CLIENT_ID,
-    clientSecret: _env.data.SPOTIFY_CLIENT_SECRET,
-  }
-} : {};
+export const env = parseEnvVars()
