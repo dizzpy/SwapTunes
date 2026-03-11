@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:swaptune/core/constants/app_strings.dart';
-import 'package:swaptune/core/theme/app_colors.dart';
-import 'package:swaptune/core/theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/widgets/auth_guard.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/connect_spotify_widgets.dart';
 import 'welcome_success_screen.dart';
 
@@ -13,8 +17,7 @@ class ConnectSpotifyScreen extends StatefulWidget {
 }
 
 class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
-  // Connects the user's Spotify account and proceeds
-  void _onConnectTapped() {
+  void _navigateToSuccess() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -26,17 +29,40 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
     );
   }
 
+  // Connects the user's Spotify account and proceeds
+  void _onConnectTapped() async {
+    final auth = context.read<AuthViewmodel>();
+
+    // Pass dummy values here since actual OAuth code retrieval requires deep linking
+    final success = await auth.connectSpotify(
+      'dummy_code',
+      'swaptunes://spotify-callback',
+    );
+
+    if (success && mounted) {
+      _navigateToSuccess();
+    } else if (mounted) {
+      final error = auth.errorMessage;
+      if (error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
+      }
+    }
+  }
+
   // Skips the Spotify connection for now
   void _onSkipTapped() {
-    _onConnectTapped();
+    _navigateToSuccess();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
+    return AuthGuard(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          children: [
           Positioned(
             top: 0,
             left: 0,
@@ -96,6 +122,6 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

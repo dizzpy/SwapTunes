@@ -14,6 +14,7 @@ class InputBox extends StatelessWidget {
   final String? errorMessage;
   final String? warningMessage;
   final TextEditingController? controller;
+  final TextInputType? keyboardType;
 
   const InputBox({
     super.key,
@@ -27,6 +28,7 @@ class InputBox extends StatelessWidget {
     this.errorMessage,
     this.warningMessage,
     this.controller,
+    this.keyboardType,
   });
 
   @override
@@ -50,6 +52,7 @@ class InputBox extends StatelessWidget {
         TextField(
           controller: controller,
           obscureText: obscureText,
+          keyboardType: keyboardType,
           // Defines the height behavior for the Bio field
           minLines: isMultiLine ? 4 : 1,
           maxLines: isMultiLine ? 5 : 1,

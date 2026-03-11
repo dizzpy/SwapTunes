@@ -1,28 +1,66 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
-import '../../../profile/presentation/screens/profile_setup_screen.dart';
+import '../viewmodels/auth_viewmodel.dart';
+import 'magic_link_input.dart';
 
-class AuthBottomSheet extends StatelessWidget {
+/// Bottom sheet shown on the onboarding screen with social login options.
+///
+/// Connects to Supabase Auth via [AuthViewmodel] for Google OAuth,
+/// Spotify OAuth, and Magic Link (passwordless email) sign-in.
+class AuthBottomSheet extends StatefulWidget {
   const AuthBottomSheet({super.key});
 
-  // Closes the current bottom sheet and pushes to the profile setup screen
-  void _goToProfileSetup(BuildContext context) {
+  @override
+  State<AuthBottomSheet> createState() => _AuthBottomSheetState();
+}
+
+class _AuthBottomSheetState extends State<AuthBottomSheet> {
+  bool _isProcessing = false;
+
+  /// Handles Google sign-in via Supabase OAuth.
+  Future<void> _handleGoogleAuth() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    final auth = context.read<AuthViewmodel>();
+    await auth.signInWithGoogle();
+
+    if (mounted) {
+      // Close the bottom sheet — the OAuth browser opens externally.
+      // Auth state listener in AuthViewmodel handles the callback.
+      Navigator.of(context).pop();
+    }
+  }
+
+  /// Handles Spotify sign-in via Supabase OAuth.
+  Future<void> _handleSpotifyAuth() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    final auth = context.read<AuthViewmodel>();
+    await auth.signInWithSpotify();
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  /// Opens the magic link email input UI.
+  void _handleMagicLinkAuth() {
     Navigator.of(context).pop();
-    Navigator.of(context).push(
-      PageRouteBuilder<void>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const ProfileSetupScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const MagicLinkInput(),
     );
   }
 
@@ -66,7 +104,7 @@ class AuthBottomSheet extends StatelessWidget {
                 width: 24,
                 height: 24,
               ),
-              onPressed: () => _goToProfileSetup(context),
+              onPressed: _isProcessing ? () {} : _handleGoogleAuth,
             ),
             const SizedBox(height: 12),
 
@@ -80,14 +118,14 @@ class AuthBottomSheet extends StatelessWidget {
                 width: 24,
                 height: 24,
               ),
-              onPressed: () => _goToProfileSetup(context),
+              onPressed: _isProcessing ? () {} : _handleSpotifyAuth,
             ),
             const SizedBox(height: 12),
 
             // Email / Magic link fallback button
             OutlinedAppButton(
               text: AppStrings.onboarding.continueMagicLink,
-              onPressed: () => _goToProfileSetup(context),
+              onPressed: _isProcessing ? () {} : _handleMagicLinkAuth,
             ),
             const SizedBox(height: 20),
           ],
