@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import healthRoutes from './features/health/health.routes.js'
 import authRoutes from './features/auth/auth.routes.js'
 import usersRoutes from './features/users/users.routes.js'
 import creatorRoutes from './features/creator/creator.routes.js'
@@ -11,7 +12,7 @@ import notificationsRoutes from './features/notifications/notifications.routes.j
 
 const router = Router()
 
-router.get('/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() }))
+router.use('/health', healthRoutes)
 
 router.use('/auth', authRoutes)
 router.use('/users', usersRoutes)

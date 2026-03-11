@@ -20,7 +20,7 @@ process.on('unhandledRejection', (err) => {
   })
 })
 
-// Graceful shutdown on SIGTERM
+// shutdown on SIGTERM
 process.on('SIGTERM', () => {
   logger.info('👋 SIGTERM RECEIVED. Shutting down gracefully')
   server.close(() => {
