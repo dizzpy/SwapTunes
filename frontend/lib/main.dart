@@ -1,25 +1,65 @@
-// The entry point for SwapTunes frontend application.
-//
-// Manages application-wide setups, unified theme delegation, and root routing.
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 
-import 'core/theme/app_theme.dart';
-import 'features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'app/app.dart';
+import 'core/network/api_client.dart';
+import 'core/network/api_interceptor.dart';
+import 'core/services/storage_service.dart';
+import 'core/services/supabase_auth_service.dart';
+import 'features/auth/data/datasources/auth_remote_datasource.dart';
+import 'features/auth/data/repositories/auth_repository.dart';
+import 'features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'features/onboarding/data/repositories/onboarding_repository.dart';
+import 'features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
+import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+/// Entry point for the SwapTunes application.
+///
+/// Initializes core services (Supabase, storage, network)
+/// and wires up all providers before launching the app.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  await dotenv.load(fileName: '.env');
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'SwapTune',
-      theme: AppTheme.darkTheme,
-      home: const OnboardingScreen(),
-    );
+  // Initialize Supabase
+  final supabaseAuthService = SupabaseAuthService();
+  await supabaseAuthService.init();
+
+  // Initialize core services
+  final storageService = StorageService();
+  await storageService.init();
+
+  // Sync Supabase token to StorageService so the API client uses it
+  final currentToken = supabaseAuthService.accessToken;
+  if (currentToken != null) {
+    await storageService.saveToken(currentToken);
   }
+
+  // Build network layer
+  final interceptor = ApiInterceptor(storageService);
+  final apiClient = ApiClient(interceptor: interceptor);
+
+  // Build data layer
+  final authDatasource = AuthRemoteDatasource(apiClient);
+  final authRepository = AuthRepository(
+    datasource: authDatasource,
+    storage: storageService,
+    supabaseAuth: supabaseAuthService,
+  );
+  final onboardingRepository = OnboardingRepository(storageService);
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthViewmodel(authRepository)),
+        ChangeNotifierProvider(
+          create: (_) => OnboardingViewmodel(onboardingRepository),
+        ),
+        ChangeNotifierProvider(create: (_) => ProfileViewmodel(authRepository)),
+      ],
+      child: const SwapTuneApp(),
+    ),
+  );
 }
