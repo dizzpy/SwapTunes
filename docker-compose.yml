@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: dev         # uses the hot-reload dev stage
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app   # live code sync for hot-reload
+      - /app/node_modules  # anonymous volume keeps container node_modules intact
+    restart: unless-stopped

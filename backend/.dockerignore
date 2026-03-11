@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log*
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.vscode
+*.md
+Project Docs/
+coverage/
+.nyc_output
+.husky
+.eslintrc*
+.prettierrc*
+commitlint.config.js

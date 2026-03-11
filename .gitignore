@@ -1,0 +1,14 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/settings.json
+*.swp
+*.swo
+
+# Env files (each sub-project manages its own)
+.env
+.env.local
+.env.*.local
