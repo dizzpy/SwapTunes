@@ -10,7 +10,9 @@ import 'profile_image_picker_sheet.dart';
 /// Displays a circular avatar placeholder with a camera badge.
 /// Tapping the badge opens the [ProfileImagePickerSheet].
 class ProfileAvatarPicker extends StatelessWidget {
-  const ProfileAvatarPicker({super.key});
+  final String? avatarUrl;
+
+  const ProfileAvatarPicker({super.key, this.avatarUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -30,14 +32,22 @@ class ProfileAvatarPicker extends StatelessWidget {
                 color: AppColors.textWhite.withValues(alpha: 0.15),
                 width: 1,
               ),
+              image: avatarUrl != null && avatarUrl!.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(avatarUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedUser,
-                size: 50,
-                color: AppColors.textWhite.withValues(alpha: 0.3),
-              ),
-            ),
+            child: avatarUrl == null || avatarUrl!.isEmpty
+                ? Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedUser,
+                      size: 50,
+                      color: AppColors.textWhite.withValues(alpha: 0.3),
+                    ),
+                  )
+                : null,
           ),
 
           // ── Camera badge (tappable) ────────────────

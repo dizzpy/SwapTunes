@@ -18,7 +18,7 @@ class AuthGuard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthViewmodel>(
       builder: (context, auth, _) {
-        if (auth.isAuthenticated) {
+        if (auth.isLoggedIn) {
           return child;
         }
 

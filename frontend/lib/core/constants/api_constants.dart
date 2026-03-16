@@ -5,7 +5,7 @@ class ApiConstants {
   ApiConstants._();
 
   // ── Base ───────────────────────────────────────────────
-  static const String baseUrl = 'http://localhost:3000/api/v1';
+  static const String baseUrl = 'http://192.168.8.127:3000/api/v1';
 
   // ── Health ─────────────────────────────────────────────
   static const String health = '/health';

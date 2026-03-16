@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:swaptune/core/theme/app_colors.dart';
 import 'package:swaptune/features/auth/presentation/widgets/welcome_success_widgets.dart';
@@ -30,6 +31,33 @@ class _WelcomeSuccessScreenState extends State<WelcomeSuccessScreen> {
     super.dispose();
   }
 
+  // Plays a fast start haptic pattern that slowly fades out (~3s)
+  Future<void> _playCalmHapticPattern() async {
+    if (!mounted) return;
+
+    final pattern = <Future<void> Function()>[
+      () => HapticFeedback.selectionClick(),
+      () => HapticFeedback.selectionClick(),
+      () => HapticFeedback.lightImpact(),
+      () => HapticFeedback.selectionClick(),
+      () => HapticFeedback.lightImpact(),
+      () => HapticFeedback.mediumImpact(),
+      () => HapticFeedback.lightImpact(),
+      () => HapticFeedback.selectionClick(),
+      () => HapticFeedback.selectionClick(),
+      () => HapticFeedback.selectionClick(),
+    ];
+
+    final delays = [60, 80, 100, 130, 170, 220, 280, 340, 420, 520];
+
+    for (int i = 0; i < pattern.length; i++) {
+      if (!mounted) break;
+
+      await pattern[i]();
+      await Future.delayed(Duration(milliseconds: delays[i]));
+    }
+  }
+
   // Triggers the celebratory confetti effect
   void _triggerConfetti() {
     if (_isConfettiPlaying) return;
@@ -37,6 +65,8 @@ class _WelcomeSuccessScreenState extends State<WelcomeSuccessScreen> {
     setState(() {
       _isConfettiPlaying = true;
     });
+
+    _playCalmHapticPattern();
 
     Confetti.launch(
       context,

@@ -54,21 +54,26 @@ class ConnectSpotifyPrivacyInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.lock_outline,
-          color: AppColors.textSecondary,
-          size: 14,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          AppStrings.connectSpotify.privacyInfo,
-          style: AppTextStyles.caption.copyWith(fontSize: 11),
-          textAlign: TextAlign.center,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.lock_outline,
+            color: AppColors.textSecondary,
+            size: 14,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              AppStrings.connectSpotify.privacyInfo,
+              style: AppTextStyles.caption.copyWith(fontSize: 11),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

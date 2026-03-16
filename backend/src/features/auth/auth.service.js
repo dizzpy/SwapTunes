@@ -2,7 +2,7 @@ import { supabase } from '../../config/supabase.js'
 import { getSpotifyTokens } from '../../shared/services/spotify.service.js'
 
 // Setup profile service method interacting with the database.
-export const setupProfile = async (userId, profileData) => {
+export const setupProfile = async (userId, userEmail, profileData) => {
   // Check if setup already
   const { data: existingUser } = await supabase.from('users').select('id').eq('id', userId).single()
 
@@ -16,6 +16,7 @@ export const setupProfile = async (userId, profileData) => {
     .insert([
       {
         id: userId,
+        email: userEmail,
         full_name: profileData.full_name,
         username: profileData.username,
         bio: profileData.bio,

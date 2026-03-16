@@ -35,6 +35,46 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  String? _avatarUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preFillUserData();
+    });
+  }
+
+  void _preFillUserData() {
+    final auth = context.read<AuthViewmodel>();
+    final user = auth.supabaseUser;
+
+    if (user != null) {
+      final meta = user.userMetadata ?? {};
+      
+      final fullName = meta['full_name'] as String?;
+      if (fullName != null && fullName.isNotEmpty) {
+        _fullNameController.text = fullName;
+      }
+
+      final email = user.email;
+      if (email != null && email.isNotEmpty) {
+        final atIndex = email.indexOf('@');
+        if (atIndex != -1) {
+          _usernameController.text = email.substring(0, atIndex);
+        } else {
+          _usernameController.text = email;
+        }
+      }
+
+      final avatarUrl = meta['avatar_url'] as String?;
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        setState(() {
+          _avatarUrl = avatarUrl;
+        });
+      }
+    }
+  }
 
   Future<void> _handleCompleteProfile() async {
     final fullName = _fullNameController.text.trim();
@@ -59,6 +99,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       fullName: fullName,
       username: username,
       bio: bio.isNotEmpty ? bio : null,
+      avatarUrl: _avatarUrl,
       genres: _selectedGenres.toList(),
     );
 
@@ -121,7 +162,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              const Center(child: ProfileAvatarPicker()),
+              Center(child: ProfileAvatarPicker(avatarUrl: _avatarUrl)),
               const SizedBox(height: 40),
 
               // Text inputs for user details

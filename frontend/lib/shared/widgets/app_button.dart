@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -44,6 +45,11 @@ abstract class BaseButton extends StatelessWidget {
     );
   }
 
+  void _handlePressed() {
+    HapticFeedback.selectionClick();
+    onPressed();
+  }
+
   Widget buildChild(BuildContext context);
 
   @override
@@ -86,7 +92,7 @@ class PrimaryButton extends BaseButton {
   @override
   Widget buildChild(BuildContext context) => ElevatedButton(
     style: buildStyle(context),
-    onPressed: onPressed,
+    onPressed: _handlePressed,
     child: buildLabel(),
   );
 }
@@ -120,7 +126,7 @@ class OutlinedAppButton extends BaseButton {
   @override
   Widget buildChild(BuildContext context) => OutlinedButton(
     style: buildStyle(context),
-    onPressed: onPressed,
+    onPressed: _handlePressed,
     child: buildLabel(),
   );
 }
@@ -156,7 +162,7 @@ class SocialButton extends BaseButton {
   @override
   Widget buildChild(BuildContext context) => ElevatedButton(
     style: buildStyle(context),
-    onPressed: onPressed,
+    onPressed: _handlePressed,
     child: buildLabel(),
   );
 }
@@ -194,7 +200,7 @@ class GreenButton extends BaseButton {
   @override
   Widget buildChild(BuildContext context) => ElevatedButton(
     style: buildStyle(context),
-    onPressed: onPressed,
+    onPressed: _handlePressed,
     child: buildLabel(),
   );
 }

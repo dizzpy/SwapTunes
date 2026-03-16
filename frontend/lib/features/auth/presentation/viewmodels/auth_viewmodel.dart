@@ -48,6 +48,7 @@ class AuthViewmodel extends ChangeNotifier {
   // ── Getters ────────────────────────────────────────────
 
   UserModel? get currentUser => _currentUser;
+  User? get supabaseUser => _repository.supabaseUser;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   AuthStatus get status => _status;

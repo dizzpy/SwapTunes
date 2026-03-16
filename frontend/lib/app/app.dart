@@ -9,6 +9,7 @@ import '../core/services/navigation_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../features/auth/presentation/screens/welcome_success_screen.dart';
 import '../features/profile/presentation/screens/profile_setup_screen.dart';
 
 class SwapTuneApp extends StatelessWidget {
@@ -93,9 +94,9 @@ class _AuthGateState extends State<_AuthGate> {
 
       case AuthStatus.profileLoaded:
         // Returning user with profile.
-        // TODO: Navigate to Home shell when implemented.
+        // Once Home shell is implemented, navigate there instead.
         _lastHandledStatus = status;
-        NavigationService.pushAndRemoveAll(const ProfileSetupScreen());
+        NavigationService.pushAndRemoveAll(const WelcomeSuccessScreen());
         break;
 
       case AuthStatus.unauthenticated:
