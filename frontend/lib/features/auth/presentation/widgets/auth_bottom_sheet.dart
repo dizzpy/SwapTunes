@@ -100,7 +100,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
               backgroundColor: AppColors.cardFront,
               foregroundColor: AppColors.textWhite,
               icon: SvgPicture.asset(
-                AppAssets.icons.googleLogo,
+                AppAssets.img.googleLogo,
                 width: 24,
                 height: 24,
               ),
@@ -114,7 +114,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
               backgroundColor: AppColors.greenDarkBg,
               foregroundColor: AppColors.textWhite,
               icon: SvgPicture.asset(
-                AppAssets.icons.spotifyLogo,
+                AppAssets.img.spotifyLogo,
                 width: 24,
                 height: 24,
               ),

@@ -21,7 +21,7 @@ class DoubleSpotifyHeader extends StatelessWidget {
       ),
       child: Center(
         child: SvgPicture.asset(
-          AppAssets.icons.spotifyLogo,
+          AppAssets.img.spotifyLogo,
           width: iconSize * 0.6,
           height: iconSize * 0.6,
           colorFilter: const ColorFilter.mode(
@@ -100,7 +100,7 @@ class ConnectSpotifyActionBtn extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
-                AppAssets.icons.spotifyLogo,
+                AppAssets.img.spotifyLogo,
                 width: 22,
                 height: 22,
                 colorFilter: const ColorFilter.mode(

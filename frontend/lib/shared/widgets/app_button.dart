@@ -31,9 +31,10 @@ abstract class BaseButton extends StatelessWidget {
   Widget buildLabel() {
     final label = Text(
       text,
+      textAlign: TextAlign.center,
       style: AppTextStyles.bodyPrimary.copyWith(
         color: foregroundColor,
-        fontSize: 15,
+        fontSize: height < 40 ? 12 : 15,
       ),
     );
 
@@ -76,8 +77,8 @@ class PrimaryButton extends BaseButton {
     super.height,
     super.borderRadius,
     this.backgroundColor,
-    super.foregroundColor,
-  });
+    Color? foregroundColor,
+  }) : super(foregroundColor: foregroundColor ?? AppColors.background);
 
   @override
   ButtonStyle buildStyle(BuildContext context) => ElevatedButton.styleFrom(

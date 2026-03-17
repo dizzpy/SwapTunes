@@ -7,6 +7,7 @@ class AppStrings {
   static const onboarding = _OnboardingStrings();
   static const connectSpotify = _ConnectSpotifyStrings();
   static const welcomeSuccess = _WelcomeSuccessStrings();
+  static const feed = _FeedStrings();
 }
 
 class _ProfileSetupStrings {
@@ -66,4 +67,12 @@ class _WelcomeSuccessStrings {
   final String title = 'You\'re in!';
   final String subtitle = 'Let\'s turn your playlists\ninto connections.';
   final String continueBtn = 'Continue';
+}
+
+class _FeedStrings {
+  const _FeedStrings();
+
+  final String createPostTitle = 'Create post';
+  final String postHint = 'What’s on your mind ?';
+  final String publishBtn = 'Post';
 }
