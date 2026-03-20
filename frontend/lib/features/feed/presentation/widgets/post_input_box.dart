@@ -1,9 +1,14 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/services/navigation_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/services/navigation_service.dart';
+import '../../../../core/utils/app_haptics.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../screens/create_post_screen.dart';
 
 class PostInputBox extends StatelessWidget {
@@ -11,8 +16,14 @@ class PostInputBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrl =
+        context.watch<AuthViewmodel>().currentUser?.avatarUrl;
+
     return GestureDetector(
-      onTap: () => NavigationService.push(const CreatePostScreen()),
+      onTap: () {
+        AppHaptics.uiTap();
+        NavigationService.push(const CreatePostScreen());
+      },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(15),
@@ -27,32 +38,15 @@ class PostInputBox extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Left Section: Avatar + Placeholder
             Expanded(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Avatar with Hero
                   Hero(
                     tag: 'post_creator_avatar',
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: ShapeDecoration(
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            "https://i.pinimg.com/736x/d0/f7/85/d0f78534886dae30e4abad239214b999.jpg",
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                    ),
+                    child: _UserAvatar(avatarUrl: avatarUrl),
                   ),
                   const SizedBox(width: 12),
-                  // Dashed Placeholder Area with Hero for Avatar only
                   Expanded(
                     child: CustomPaint(
                       painter: DashedCapsulePainter(color: AppColors.outline),
@@ -62,7 +56,7 @@ class PostInputBox extends StatelessWidget {
                           vertical: 10,
                         ),
                         child: const Text(
-                          'What’s on your mind ?',
+                          'What\'s on your mind ?',
                           style: AppTextStyles.bodySecondaryWhite,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -72,10 +66,7 @@ class PostInputBox extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(width: 10),
-
-            // Right Section: Image Icon
             const Padding(
               padding: EdgeInsets.all(10),
               child: HugeIcon(
@@ -91,7 +82,48 @@ class PostInputBox extends StatelessWidget {
   }
 }
 
-/// Custom Painter for the Dashed border effect found in your design
+class _UserAvatar extends StatelessWidget {
+  final String? avatarUrl;
+
+  const _UserAvatar({this.avatarUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: ShapeDecoration(
+          image: DecorationImage(
+            image: NetworkImage(avatarUrl!),
+            fit: BoxFit.cover,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: ShapeDecoration(
+        color: AppColors.outline,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
+      ),
+      child: const Icon(
+        Icons.person,
+        color: AppColors.textSecondary,
+        size: 22,
+      ),
+    );
+  }
+}
+
+/// Custom painter for the dashed capsule border on the input placeholder.
 class DashedCapsulePainter extends CustomPainter {
   final Color color;
 

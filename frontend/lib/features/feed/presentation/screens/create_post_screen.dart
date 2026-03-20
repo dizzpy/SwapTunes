@@ -1,11 +1,17 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_haptics.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../viewmodels/feed_viewmodel.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -35,6 +41,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _pickImages() async {
+    AppHaptics.buttonTap();
     try {
       final List<XFile> images = await _picker.pickMultiImage();
       if (images.isNotEmpty) {
@@ -49,10 +56,31 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _removeImage(int index) {
+    AppHaptics.buttonTap();
     setState(() {
       _selectedImages.removeAt(index);
       _updateCanPost();
     });
+  }
+
+  void _publish() {
+    if (!_canPost) return;
+    AppHaptics.success();
+    final content = _captionController.text.trim();
+
+    final authVm = context.read<AuthViewmodel>();
+    final user = authVm.currentUser;
+
+    context.read<FeedViewmodel>().createPost(
+      content: content,
+      userId: user?.id ?? '',
+      authorUsername: user?.username ?? '',
+      authorFullName: user?.fullName ?? '',
+      authorAvatarUrl: user?.avatarUrl,
+      images: _selectedImages.isNotEmpty ? _selectedImages : null,
+    );
+
+    Navigator.pop(context);
   }
 
   @override
@@ -63,6 +91,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = context.watch<AuthViewmodel>().currentUser?.avatarUrl;
+    final displayName =
+        context.watch<AuthViewmodel>().currentUser?.fullName ?? '';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -85,12 +117,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
             child: TextButton(
-              onPressed: _canPost
-                  ? () {
-                      // TODO: Implement publishing
-                      Navigator.pop(context);
-                    }
-                  : null,
+              onPressed: _canPost ? _publish : null,
               style: TextButton.styleFrom(
                 backgroundColor: _canPost
                     ? AppColors.primary
@@ -125,19 +152,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     children: [
                       Hero(
                         tag: 'post_creator_avatar',
-                        child: const CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage(
-                            'https://i.pinimg.com/736x/d0/f7/85/d0f78534886dae30e4abad239214b999.jpg',
-                          ),
-                        ),
+                        child: _buildAvatar(avatarUrl),
                       ),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Dizzpy Sanchez',
+                            displayName,
                             style: AppTextStyles.bodyPrimary.copyWith(
                               fontSize: 15,
                             ),
@@ -222,7 +244,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
           ),
-          // Attachment Bar
+          // Attachment bar
           Container(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).padding.bottom + 10,
@@ -257,6 +279,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAvatar(String? avatarUrl) {
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      return CircleAvatar(radius: 20, backgroundImage: NetworkImage(avatarUrl));
+    }
+    return const CircleAvatar(
+      radius: 20,
+      backgroundColor: AppColors.outline,
+      child: Icon(Icons.person, color: AppColors.textSecondary, size: 22),
     );
   }
 }

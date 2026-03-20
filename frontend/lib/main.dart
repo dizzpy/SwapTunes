@@ -10,6 +10,9 @@ import 'core/services/supabase_auth_service.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'features/feed/data/datasources/feed_remote_datasource.dart';
+import 'features/feed/data/repositories/feed_repository.dart';
+import 'features/feed/presentation/viewmodels/feed_viewmodel.dart';
 import 'features/onboarding/data/repositories/onboarding_repository.dart';
 import 'features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
@@ -49,6 +52,9 @@ Future<void> main() async {
     supabaseAuth: supabaseAuthService,
   );
   final onboardingRepository = OnboardingRepository(storageService);
+  final feedRepository = FeedRepository(
+    FeedRemoteDatasource(apiClient, interceptor),
+  );
 
   runApp(
     MultiProvider(
@@ -58,6 +64,7 @@ Future<void> main() async {
           create: (_) => OnboardingViewmodel(onboardingRepository),
         ),
         ChangeNotifierProvider(create: (_) => ProfileViewmodel(authRepository)),
+        ChangeNotifierProvider(create: (_) => FeedViewmodel(feedRepository)),
       ],
       child: const SwapTuneApp(),
     ),

@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/constants/app_assets.dart';
+import '../../../../core/utils/app_haptics.dart';
 
 class PostOptionsSheet extends StatelessWidget {
   final bool isOwnPost;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final VoidCallback? onHide;
+  final VoidCallback? onReport;
 
-  const PostOptionsSheet({super.key, required this.isOwnPost});
+  const PostOptionsSheet({
+    super.key,
+    required this.isOwnPost,
+    this.onEdit,
+    this.onDelete,
+    this.onHide,
+    this.onReport,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +46,14 @@ class PostOptionsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 25),
 
-            // Post options
             if (!isOwnPost) ...[
               _OptionTile(
                 icon: AppAssets.icon.hide,
                 label: 'Hide this post',
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.pop(context);
+                  onHide?.call();
+                },
               ),
               const SizedBox(height: 8),
               _OptionTile(
@@ -46,15 +61,30 @@ class PostOptionsSheet extends StatelessWidget {
                 label: 'Report post',
                 iconColor: AppColors.danger,
                 textColor: AppColors.danger,
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.pop(context);
+                  onReport?.call();
+                },
               ),
             ] else ...[
+              _OptionTile(
+                icon: AppAssets.icon.edit,
+                label: 'Edit post',
+                onTap: () {
+                  Navigator.pop(context);
+                  onEdit?.call();
+                },
+              ),
+              const SizedBox(height: 8),
               _OptionTile(
                 icon: AppAssets.icon.delete,
                 label: 'Delete post',
                 iconColor: AppColors.danger,
                 textColor: AppColors.danger,
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.pop(context);
+                  onDelete?.call();
+                },
               ),
             ],
             const SizedBox(height: 10),
@@ -83,7 +113,10 @@ class _OptionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.buttonTap();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

@@ -234,3 +234,45 @@ CREATE POLICY "Users can delete own collaborations" ON collaborations FOR DELETE
 CREATE POLICY "Users read own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users update own notifications" ON notifications FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users delete own notifications" ON notifications FOR DELETE USING (auth.uid() = user_id);
+
+-- RPC functions for atomic counter updates on the posts table.
+
+CREATE OR REPLACE FUNCTION increment_likes(p_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE posts SET likes_count = likes_count + 1 WHERE id = p_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION decrement_likes(p_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE posts SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = p_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION increment_comments(p_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE posts SET comments_count = comments_count + 1 WHERE id = p_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION decrement_comments(p_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE posts SET comments_count = GREATEST(comments_count - 1, 0) WHERE id = p_id;
+END;
+$$;

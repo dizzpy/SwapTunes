@@ -81,10 +81,50 @@ export const reportPost = async (req, res, next) => {
   }
 }
 
+// Update post controller handler.
+export const updatePost = async (req, res, next) => {
+  try {
+    const post = await postsService.updatePost(req.user.id, req.params.postId, req.validatedBody)
+    success(res, post)
+  } catch (err) {
+    next(err)
+  }
+}
+
 // Delete post controller handler.
 export const deletePost = async (req, res, next) => {
   try {
     const result = await postsService.deletePost(req.user.id, req.params.postId)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Update comment controller handler.
+export const updateComment = async (req, res, next) => {
+  try {
+    const comment = await postsService.updateComment(req.user.id, req.params.commentId, req.validatedBody.content)
+    success(res, comment)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Delete comment controller handler.
+export const deleteComment = async (req, res, next) => {
+  try {
+    const result = await postsService.deleteComment(req.user.id, req.params.commentId, req.params.postId)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Get post likers controller handler.
+export const getLikers = async (req, res, next) => {
+  try {
+    const result = await postsService.getLikers(req.params.postId)
     success(res, result)
   } catch (err) {
     next(err)

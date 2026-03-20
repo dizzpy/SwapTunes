@@ -9,6 +9,7 @@ import playlistsRoutes from './features/playlists/playlists.routes.js'
 import collabsRoutes from './features/collabs/collabs.routes.js'
 import conversationsRoutes from './features/messaging/conversations.routes.js'
 import notificationsRoutes from './features/notifications/notifications.routes.js'
+import uploadsRoutes from './features/uploads/uploads.routes.js'
 
 const router = Router()
 
@@ -23,5 +24,6 @@ router.use('/playlists', playlistsRoutes)
 router.use('/collabs', collabsRoutes)
 router.use('/conversations', conversationsRoutes)
 router.use('/notifications', notificationsRoutes)
+router.use('/uploads', uploadsRoutes)
 
 export { router }

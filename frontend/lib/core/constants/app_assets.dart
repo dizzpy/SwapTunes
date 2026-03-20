@@ -30,6 +30,7 @@ class _Icons {
   final dynamic favoriteFilled = Icons.favorite;
   final dynamic comment = HugeIcons.strokeRoundedComment01;
   final dynamic more = HugeIcons.strokeRoundedMoreHorizontal;
+  final dynamic edit = HugeIcons.strokeRoundedEdit02;
   final dynamic delete = HugeIcons.strokeRoundedDelete02;
   final dynamic report = HugeIcons.strokeRoundedFlag01;
   final dynamic hide = HugeIcons.strokeRoundedViewOff;

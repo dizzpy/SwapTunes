@@ -1,75 +1,154 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:hugeicons/hugeicons.dart';
+import 'package:provider/provider.dart';
 import 'package:swaptune/features/profile/presentation/screens/user_profile_screen.dart';
+
+import '../../../../core/constants/app_assets.dart';
+import '../../../../core/services/navigation_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/constants/app_assets.dart';
+import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/utils/app_snackbar.dart';
+import '../../../../core/widgets/app_confirm_dialog.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../data/models/comment_model.dart';
+import '../viewmodels/feed_viewmodel.dart';
+import '../widgets/feed_skeleton.dart';
 import '../widgets/post_card.dart';
+import '../widgets/edit_content_sheet.dart';
 import '../widgets/post_options_sheet.dart';
-import '../../../../core/services/navigation_service.dart';
+import '../widgets/send_button.dart';
+import 'edit_post_screen.dart';
 
-class PostPreviewScreen extends StatelessWidget {
+class PostPreviewScreen extends StatefulWidget {
+  final String postId;
   final String userName;
   final String authorName;
   final bool isVerified;
   final String avatarUrl;
-  final String imageUrl;
+  final String? imageUrl;
   final String caption;
   final String likes;
   final String comments;
   final bool isLiked;
   final bool isOwnPost;
   final String? heroTag;
+  final String timeAgo;
 
   const PostPreviewScreen({
     super.key,
+    required this.postId,
     required this.userName,
     required this.authorName,
     required this.isVerified,
     required this.avatarUrl,
-    required this.imageUrl,
+    this.imageUrl,
     required this.caption,
     required this.likes,
     required this.comments,
     required this.isLiked,
     this.isOwnPost = false,
     this.heroTag,
+    this.timeAgo = '',
   });
 
   @override
+  State<PostPreviewScreen> createState() => _PostPreviewScreenState();
+}
+
+class _PostPreviewScreenState extends State<PostPreviewScreen> {
+  final TextEditingController _commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FeedViewmodel>().loadComments(widget.postId);
+    });
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirmDeletePost(BuildContext context) async {
+    final feedVm = context.read<FeedViewmodel>();
+    final nav = Navigator.of(context);
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: 'Delete post',
+      message: 'This will permanently remove your post.',
+      confirmLabel: 'Delete',
+      isDanger: true,
+    );
+    if (confirmed == true && mounted) {
+      await feedVm.deletePost(widget.postId);
+      AppSnackbar.success('Post deleted');
+      nav.pop();
+    }
+  }
+
+  void _openEditPost() {
+    final feedVm = context.read<FeedViewmodel>();
+    final post = feedVm.posts.where((p) => p.id == widget.postId).firstOrNull;
+    NavigationService.push(
+      EditPostScreen(
+        postId: widget.postId,
+        initialContent: post?.content ?? widget.caption,
+        initialImageUrl: post?.imageUrl ?? widget.imageUrl,
+      ),
+    );
+  }
+
+  void _submitComment() {
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+    AppHaptics.success();
+
+    final authVm = context.read<AuthViewmodel>();
+    final user = authVm.currentUser;
+
+    // UI Update First: Clear immediately
+    _commentController.clear();
+
+    // Scroll to bottom immediately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+
+    // Logic: Trigger addComment (which internally performs optimistic UI update)
+    context.read<FeedViewmodel>().addComment(
+      widget.postId,
+      text,
+      userId: user?.id ?? '',
+      authorUsername: user?.username ?? '',
+      authorFullName: user?.fullName ?? '',
+      authorAvatarUrl: user?.avatarUrl,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Mock comments for UI demonstration
-    final List<Map<String, String>> mockComments = [
-      {
-        'user': 'Julianna',
-        'avatar': 'https://i.pravatar.cc/150?u=10',
-        'text': 'This is such a vibe! Love the aesthetic. ✨',
-        'time': '2h',
-        'isOwn': 'false',
-      },
-      {
-        'user': 'Mike Ross',
-        'avatar': 'https://i.pravatar.cc/150?u=12',
-        'text': 'The lighting in this shot is incredible.',
-        'time': '1h',
-        'isOwn': 'false',
-      },
-      {
-        'user': 'Dizzpy Sanchez',
-        'avatar': 'https://i.pravatar.cc/150?img=3',
-        'text': 'Thanks for the love guys! ❤️',
-        'time': '15m',
-        'isOwn': 'true',
-      },
-      {
-        'user': 'Sarah',
-        'avatar': 'https://i.pravatar.cc/150?u=15',
-        'text': 'Can we get a BTS of this?',
-        'time': '5m',
-        'isOwn': 'false',
-      },
-    ];
+    final feedVm = context.watch<FeedViewmodel>();
+    final currentUserId = context.watch<AuthViewmodel>().currentUser?.id;
+
+    final postIndex = feedVm.posts.indexWhere((p) => p.id == widget.postId);
+    final livePost = postIndex != -1 ? feedVm.posts[postIndex] : null;
+    final liveLikes = livePost?.formattedLikes ?? widget.likes;
+    final liveComments = livePost?.formattedComments ?? widget.comments;
+    final liveIsLiked = livePost?.isLiked ?? widget.isLiked;
+    final liveTimeAgo = livePost?.timeAgo ?? widget.timeAgo;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -82,16 +161,23 @@ class PostPreviewScreen extends StatelessWidget {
             color: AppColors.textWhite,
             size: 24,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            AppHaptics.uiTap();
+            Navigator.pop(context);
+          },
         ),
         title: GestureDetector(
-          onTap: () =>
-              NavigationService.push(UserProfileScreen(userName: userName)),
+          onTap: () {
+            AppHaptics.uiTap();
+            NavigationService.push(
+              UserProfileScreen(userName: widget.userName),
+            );
+          },
           child: Row(
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundImage: NetworkImage(avatarUrl),
+                backgroundImage: NetworkImage(widget.avatarUrl),
               ),
               const SizedBox(width: 10),
               Column(
@@ -100,13 +186,13 @@ class PostPreviewScreen extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        userName,
+                        widget.userName,
                         style: AppTextStyles.bodyPrimary.copyWith(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (isVerified) ...[
+                      if (widget.isVerified) ...[
                         const SizedBox(width: 4),
                         const Icon(
                           Icons.verified,
@@ -116,7 +202,14 @@ class PostPreviewScreen extends StatelessWidget {
                       ],
                     ],
                   ),
-                  Text(authorName, style: AppTextStyles.caption),
+                  Row(
+                    children: [
+                      Text(widget.authorName, style: AppTextStyles.caption),
+                      if (liveTimeAgo.isNotEmpty) ...[
+                        Text(' · $liveTimeAgo', style: AppTextStyles.caption),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -130,11 +223,27 @@ class PostPreviewScreen extends StatelessWidget {
               size: 24,
             ),
             onPressed: () {
+              AppHaptics.sheetOpen();
               showModalBottomSheet(
                 context: context,
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
-                builder: (context) => PostOptionsSheet(isOwnPost: isOwnPost),
+                builder: (ctx) => PostOptionsSheet(
+                  isOwnPost: widget.isOwnPost,
+                  onEdit: _openEditPost,
+                  onDelete: () => _confirmDeletePost(context),
+                  onHide: () {
+                    final nav = Navigator.of(context);
+                    context
+                        .read<FeedViewmodel>()
+                        .hidePost(widget.postId)
+                        .then((_) => nav.pop());
+                  },
+                  onReport: () => context.read<FeedViewmodel>().reportPost(
+                    widget.postId,
+                    'inappropriate',
+                  ),
+                ),
               );
             },
           ),
@@ -145,96 +254,159 @@ class PostPreviewScreen extends StatelessWidget {
         children: [
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
                   const SizedBox(height: 10),
-                  // Post without Card Background and Header
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: PostCard(
-                      userName: userName,
-                      authorName: authorName,
-                      isVerified: isVerified,
-                      avatarUrl: avatarUrl,
-                      imageUrl: imageUrl,
-                      caption: caption,
-                      likes: likes,
-                      comments: comments,
-                      isLiked: isLiked,
-                      isOwnPost: isOwnPost,
+                      postId: widget.postId,
+                      userName: widget.userName,
+                      authorName: widget.authorName,
+                      isVerified: widget.isVerified,
+                      avatarUrl: widget.avatarUrl,
+                      imageUrl: widget.imageUrl,
+                      caption: widget.caption,
+                      likes: liveLikes,
+                      comments: liveComments,
+                      isLiked: liveIsLiked,
+                      isOwnPost: widget.isOwnPost,
                       showBackground: false,
-                      showHeader: false, // Moved to AppBar
-                      showActionsBorder: false, // Minimal Style
-                      isTappable: false, // FIXED: Disable infinite navigation
-                      heroTag: heroTag,
+                      showHeader: false,
+                      showActionsBorder: false,
+                      isTappable: false,
+                      heroTag: widget.heroTag,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Comments Section Header
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: Row(
                       children: [
                         Text('Comments', style: AppTextStyles.bodyPrimary),
                         const SizedBox(width: 8),
-                        Text(comments, style: AppTextStyles.bodySecondary70),
+                        Text(
+                          liveComments,
+                          style: AppTextStyles.bodySecondary70,
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 15),
-                  // Comments List
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 10,
-                    ),
-                    itemCount: mockComments.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 20),
-                    itemBuilder: (context, index) {
-                      final comment = mockComments[index];
-                      return _CommentTile(
-                        user: comment['user']!,
-                        avatar: comment['avatar']!,
-                        text: comment['text']!,
-                        time: comment['time']!,
-                        isOwn: comment['isOwn'] == 'true',
-                      );
-                    },
-                  ),
+                  _buildCommentsList(feedVm, currentUserId),
                   const SizedBox(height: 40),
                 ],
               ),
             ),
           ),
-          // Refined Comment Input Area
-          _CommentInputArea(),
+          _CommentInputArea(
+            controller: _commentController,
+            onSubmit: _submitComment,
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCommentsList(FeedViewmodel feedVm, String? currentUserId) {
+    if (feedVm.isCommentsLoading) {
+      return const CommentsLoadingSkeleton();
+    }
+
+    if (feedVm.commentError != null && feedVm.comments.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              feedVm.commentError!,
+              style: const TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => feedVm.loadComments(widget.postId),
+              child: const Text(
+                'Retry',
+                style: TextStyle(color: AppColors.primary),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (feedVm.comments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Text(
+          'No comments yet. Be the first!',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      itemCount: feedVm.comments.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 20),
+      itemBuilder: (context, index) {
+        final comment = feedVm.comments[index];
+        return _CommentTile(
+          comment: comment,
+          isOwn: comment.userId == currentUserId,
+        );
+      },
     );
   }
 }
 
 class _CommentTile extends StatelessWidget {
-  final String user;
-  final String avatar;
-  final String text;
-  final String time;
+  final CommentModel comment;
   final bool isOwn;
 
-  const _CommentTile({
-    required this.user,
-    required this.avatar,
-    required this.text,
-    required this.time,
-    required this.isOwn,
-  });
+  const _CommentTile({required this.comment, required this.isOwn});
+
+  Future<void> _confirmDeleteComment(BuildContext context) async {
+    final feedVm = context.read<FeedViewmodel>();
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: 'Delete comment',
+      message: 'This comment will be permanently removed.',
+      confirmLabel: 'Delete',
+      isDanger: true,
+    );
+    if (confirmed == true) {
+      await feedVm.deleteComment(comment.postId, comment.id);
+      AppSnackbar.success('Comment deleted');
+    }
+  }
+
+  void _showEditCommentSheet(BuildContext context) {
+    final feedVm = context.read<FeedViewmodel>();
+    showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => EditContentSheet(
+        initialContent: comment.content,
+        title: 'Edit comment',
+        maxLength: 500,
+      ),
+    ).then((newContent) {
+      if (newContent != null && newContent.isNotEmpty) {
+        feedVm.updateComment(comment.postId, comment.id, newContent);
+      }
+    });
+  }
 
   void _showOptions(BuildContext context) {
-    HapticFeedback.mediumImpact();
+    AppHaptics.longPress();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -259,13 +431,22 @@ class _CommentTile extends StatelessWidget {
               const SizedBox(height: 20),
               if (isOwn) ...[
                 _OptionTile(
+                  icon: AppAssets.icon.edit,
+                  label: 'Edit comment',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditCommentSheet(context);
+                  },
+                ),
+                const SizedBox(height: 8),
+                _OptionTile(
                   icon: AppAssets.icon.delete,
                   label: 'Delete comment',
                   iconColor: AppColors.danger,
                   textColor: AppColors.danger,
                   onTap: () {
-                    // TODO: Implement delete
                     Navigator.pop(context);
+                    _confirmDeleteComment(context);
                   },
                 ),
               ] else ...[
@@ -273,7 +454,8 @@ class _CommentTile extends StatelessWidget {
                   icon: Icons.copy,
                   label: 'Copy text',
                   onTap: () {
-                    Clipboard.setData(ClipboardData(text: text));
+                    AppHaptics.buttonTap();
+                    Clipboard.setData(ClipboardData(text: comment.content));
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -282,16 +464,6 @@ class _CommentTile extends StatelessWidget {
                         duration: Duration(seconds: 1),
                       ),
                     );
-                  },
-                ),
-                _OptionTile(
-                  icon: AppAssets.icon.report,
-                  label: 'Report comment',
-                  iconColor: AppColors.danger,
-                  textColor: AppColors.danger,
-                  onTap: () {
-                    // TODO: Implement report
-                    Navigator.pop(context);
                   },
                 ),
               ],
@@ -312,11 +484,17 @@ class _CommentTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () =>
-                NavigationService.push(UserProfileScreen(userName: user)),
+            onTap: () {
+              AppHaptics.uiTap();
+              NavigationService.push(
+                UserProfileScreen(userName: comment.authorUsername),
+              );
+            },
             child: CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage(avatar),
+              backgroundImage: comment.authorAvatarUrl != null
+                  ? NetworkImage(comment.authorAvatarUrl!)
+                  : null,
               backgroundColor: AppColors.cardFront,
             ),
           ),
@@ -328,20 +506,23 @@ class _CommentTile extends StatelessWidget {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => NavigationService.push(
-                        UserProfileScreen(userName: user),
-                      ),
+                      onTap: () {
+                        AppHaptics.uiTap();
+                        NavigationService.push(
+                          UserProfileScreen(userName: comment.authorUsername),
+                        );
+                      },
                       child: Text(
-                        user,
+                        comment.authorUsername,
                         style: AppTextStyles.bodyPrimary.copyWith(fontSize: 14),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(time, style: AppTextStyles.caption),
+                    Text(comment.timeAgo, style: AppTextStyles.caption),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(text, style: AppTextStyles.bodySecondaryWhite),
+                Text(comment.content, style: AppTextStyles.bodySecondaryWhite),
               ],
             ),
           ),
@@ -369,7 +550,10 @@ class _OptionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        AppHaptics.buttonTap();
+        onTap();
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         child: Row(
@@ -397,6 +581,11 @@ class _OptionTile extends StatelessWidget {
 }
 
 class _CommentInputArea extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onSubmit;
+
+  const _CommentInputArea({required this.controller, required this.onSubmit});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -420,6 +609,7 @@ class _CommentInputArea extends StatelessWidget {
           children: [
             Expanded(
               child: TextField(
+                controller: controller,
                 style: AppTextStyles.bodyPrimary.copyWith(fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'Write a message...',
@@ -431,21 +621,14 @@ class _CommentInputArea extends StatelessWidget {
                   disabledBorder: InputBorder.none,
                   isDense: true,
                 ),
+                onSubmitted: (_) => onSubmit(),
               ),
             ),
             const SizedBox(width: 10),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1B2B24), // Dark subtle green for the brand
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_upward,
-                color: AppColors.primary,
-                size: 20,
-              ),
+            SendButton(
+              isSubmitting:
+                  false, // Never show progress indicator as per user request
+              onTap: onSubmit,
             ),
           ],
         ),

@@ -5,6 +5,7 @@ class ApiConstants {
   ApiConstants._();
 
   // ── Base ───────────────────────────────────────────────
+  // TODO: load from environment variable / --dart-define for production builds.
   static const String baseUrl = 'http://192.168.8.127:3000/api/v1';
 
   // ── Health ─────────────────────────────────────────────
@@ -28,14 +29,23 @@ class ApiConstants {
   static const String creatorSetup = '/creator/setup';
   static const String creatorProfile = '/creator/profile';
 
+  // ── Uploads ────────────────────────────────────────────
+  static const String uploadImage = '/uploads/image';
+
   // ── Posts ───────────────────────────────────────────────
   static const String postsFeed = '/posts/feed';
   static const String postsCreate = '/posts';
+  static String postUpdate(String postId) => '/posts/$postId';
   static String postDelete(String postId) => '/posts/$postId';
   static String postLike(String postId) => '/posts/$postId/like';
   static String postHide(String postId) => '/posts/$postId/hide';
   static String postReport(String postId) => '/posts/$postId/report';
   static String postComments(String postId) => '/posts/$postId/comments';
+  static String postCommentUpdate(String postId, String commentId) =>
+      '/posts/$postId/comments/$commentId';
+  static String postCommentDelete(String postId, String commentId) =>
+      '/posts/$postId/comments/$commentId';
+  static String postLikers(String postId) => '/posts/$postId/likers';
 
   // ── Discover ───────────────────────────────────────────
   static const String discoverFeed = '/discover/feed';

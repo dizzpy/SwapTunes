@@ -1,21 +1,29 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:provider/provider.dart';
 import 'package:swaptune/features/profile/presentation/screens/user_profile_screen.dart';
+
+import '../../../../core/constants/app_assets.dart';
+import '../../../../core/services/navigation_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/constants/app_assets.dart';
-import 'post_options_sheet.dart';
-import 'post_likes_sheet.dart';
+import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/utils/app_snackbar.dart';
+import '../../../../core/widgets/app_confirm_dialog.dart';
+import '../../presentation/viewmodels/feed_viewmodel.dart';
 import '../screens/post_preview_screen.dart';
-import '../../../../core/services/navigation_service.dart';
+import '../screens/edit_post_screen.dart';
+import 'post_likes_sheet.dart';
+import 'post_options_sheet.dart';
 
 class PostCard extends StatefulWidget {
+  final String postId;
   final String userName;
   final String authorName;
   final bool isVerified;
   final String avatarUrl;
-  final String imageUrl;
+  final String? imageUrl;
   final String caption;
   final String likes;
   final String comments;
@@ -26,9 +34,11 @@ class PostCard extends StatefulWidget {
   final bool showActionsBorder;
   final bool isTappable;
   final String? heroTag;
+  final String timeAgo;
 
   const PostCard({
     super.key,
+    required this.postId,
     required this.userName,
     required this.authorName,
     required this.isVerified,
@@ -44,6 +54,7 @@ class PostCard extends StatefulWidget {
     this.showActionsBorder = true,
     this.isTappable = true,
     this.heroTag,
+    this.timeAgo = '',
   });
 
   @override
@@ -51,31 +62,40 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
-  late bool _isLiked;
-
-  @override
-  void initState() {
-    super.initState();
-    _isLiked = widget.isLiked;
+  void _toggleLike() {
+    AppHaptics.like();
+    context.read<FeedViewmodel>().toggleLike(widget.postId);
   }
 
-  @override
-  void didUpdateWidget(covariant PostCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isLiked != widget.isLiked) {
-      _isLiked = widget.isLiked;
+  Future<void> _confirmDeletePost(BuildContext context) async {
+    final feedVm = context.read<FeedViewmodel>();
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: 'Delete post',
+      message: 'This will permanently remove your post.',
+      confirmLabel: 'Delete',
+      isDanger: true,
+    );
+    if (confirmed == true && mounted) {
+      await feedVm.deletePost(widget.postId);
+      AppSnackbar.success('Post deleted');
     }
   }
 
-  void _toggleLike() {
-    setState(() {
-      _isLiked = !_isLiked;
-    });
+  void _openEditPost() {
+    NavigationService.push(
+      EditPostScreen(
+        postId: widget.postId,
+        initialContent: widget.caption,
+        initialImageUrl: widget.imageUrl,
+      ),
+    );
   }
 
   void _navigateToPreview() {
     NavigationService.push(
       PostPreviewScreen(
+        postId: widget.postId,
         userName: widget.userName,
         authorName: widget.authorName,
         isVerified: widget.isVerified,
@@ -84,9 +104,10 @@ class _PostCardState extends State<PostCard> {
         caption: widget.caption,
         likes: widget.likes,
         comments: widget.comments,
-        isLiked: _isLiked,
+        isLiked: widget.isLiked,
         isOwnPost: widget.isOwnPost,
         heroTag: widget.heroTag,
+        timeAgo: widget.timeAgo,
       ),
     );
   }
@@ -117,17 +138,22 @@ class _PostCardState extends State<PostCard> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => NavigationService.push(
-                        UserProfileScreen(userName: widget.userName),
-                      ),
+                      onTap: () {
+                        AppHaptics.uiTap();
+                        NavigationService.push(
+                          UserProfileScreen(userName: widget.userName),
+                        );
+                      },
                       child: _buildAvatar(),
                     ),
                     const SizedBox(width: 10),
-                    // User Info
                     GestureDetector(
-                      onTap: () => NavigationService.push(
-                        UserProfileScreen(userName: widget.userName),
-                      ),
+                      onTap: () {
+                        AppHaptics.uiTap();
+                        NavigationService.push(
+                          UserProfileScreen(userName: widget.userName),
+                        );
+                      },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -148,9 +174,20 @@ class _PostCardState extends State<PostCard> {
                             ],
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            widget.authorName,
-                            style: AppTextStyles.bodySecondary70,
+                          Row(
+                            children: [
+                              Text(
+                                widget.authorName,
+                                style: AppTextStyles.bodySecondary70,
+                              ),
+                              if (widget.timeAgo.isNotEmpty) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  '· ${widget.timeAgo}',
+                                  style: AppTextStyles.bodySecondary70,
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
@@ -159,12 +196,21 @@ class _PostCardState extends State<PostCard> {
                 ),
                 GestureDetector(
                   onTap: () {
+                    AppHaptics.sheetOpen();
                     showModalBottomSheet(
                       context: context,
                       backgroundColor: Colors.transparent,
                       isScrollControlled: true,
-                      builder: (context) =>
-                          PostOptionsSheet(isOwnPost: widget.isOwnPost),
+                      builder: (ctx) => PostOptionsSheet(
+                        isOwnPost: widget.isOwnPost,
+                        onEdit: _openEditPost,
+                        onDelete: () => _confirmDeletePost(context),
+                        onHide: () =>
+                            context.read<FeedViewmodel>().hidePost(widget.postId),
+                        onReport: () => context
+                            .read<FeedViewmodel>()
+                            .reportPost(widget.postId, 'inappropriate'),
+                      ),
                     );
                   },
                   child: Padding(
@@ -187,10 +233,10 @@ class _PostCardState extends State<PostCard> {
           Row(
             children: [
               _PostActionButton(
-                icon: _isLiked
+                icon: widget.isLiked
                     ? AppAssets.icon.favoriteFilled
                     : AppAssets.icon.favoriteOutline,
-                iconColor: _isLiked ? AppColors.danger : AppColors.textWhite,
+                iconColor: widget.isLiked ? AppColors.danger : AppColors.textWhite,
                 label: widget.likes,
                 showBorder: widget.showActionsBorder,
                 onTap: _toggleLike,
@@ -199,7 +245,8 @@ class _PostCardState extends State<PostCard> {
                     context: context,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
-                    builder: (context) => const PostLikesSheet(),
+                    builder: (context) =>
+                        PostLikesSheet(postId: widget.postId),
                   );
                 },
               ),
@@ -219,43 +266,76 @@ class _PostCardState extends State<PostCard> {
   }
 
   Widget _buildAvatar() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: ShapeDecoration(
-        image: DecorationImage(
-          image: NetworkImage(widget.avatarUrl),
-          fit: BoxFit.cover,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(9999),
-        ),
-      ),
+    final hasUrl = widget.avatarUrl.isNotEmpty;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(9999),
+      child: hasUrl
+          ? CachedNetworkImage(
+              imageUrl: widget.avatarUrl,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                width: 40,
+                height: 40,
+                color: AppColors.outline,
+              ),
+              errorWidget: (context, url, error) => Container(
+                width: 40,
+                height: 40,
+                color: AppColors.outline,
+                child: const Icon(
+                    Icons.person, color: AppColors.textSecondary, size: 22),
+              ),
+            )
+          : Container(
+              width: 40,
+              height: 40,
+              color: AppColors.outline,
+              child: const Icon(
+                  Icons.person, color: AppColors.textSecondary, size: 22),
+            ),
     );
   }
 
   Widget _buildPostContent() {
-    final imageWidget = Container(
-      width: double.infinity,
-      height: widget.showBackground ? 364 : null,
-      clipBehavior: Clip.antiAlias,
-      decoration: ShapeDecoration(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Image.network(
-        widget.imageUrl,
-        fit: widget.showBackground ? BoxFit.cover : BoxFit.fitWidth,
-      ),
-    );
+    final hasImage = widget.imageUrl != null && widget.imageUrl!.isNotEmpty;
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Hero(
-          tag: 'image_${widget.heroTag ?? widget.imageUrl}',
-          child: imageWidget,
-        ),
-        const SizedBox(height: 10),
+        if (hasImage)
+          Hero(
+            tag: 'image_${widget.heroTag ?? widget.imageUrl}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: widget.imageUrl!,
+                width: double.infinity,
+                height: widget.showBackground ? 364 : null,
+                fit: widget.showBackground ? BoxFit.cover : BoxFit.fitWidth,
+                placeholder: (context, url) => Container(
+                  width: double.infinity,
+                  height: widget.showBackground ? 364 : 200,
+                  decoration: BoxDecoration(
+                    color: AppColors.outline,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  width: double.infinity,
+                  height: widget.showBackground ? 364 : 200,
+                  color: AppColors.outline,
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.textSecondary,
+                    size: 40,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (hasImage) const SizedBox(height: 10),
         SizedBox(
           width: 217,
           child: Text(widget.caption, style: AppTextStyles.bodySecondary),
@@ -265,7 +345,10 @@ class _PostCardState extends State<PostCard> {
 
     if (widget.isTappable) {
       return GestureDetector(
-        onTap: _navigateToPreview,
+        onTap: () {
+          AppHaptics.uiTap();
+          _navigateToPreview();
+        },
         behavior: HitTestBehavior.opaque,
         child: content,
       );
@@ -296,7 +379,7 @@ class _PostActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (onTap != null) {
-          HapticFeedback.lightImpact();
+          AppHaptics.buttonTap();
           onTap!();
         }
       },
@@ -319,7 +402,12 @@ class _PostActionButton extends StatelessWidget {
             _buildIcon(),
             const SizedBox(width: 5),
             GestureDetector(
-              onTap: onLabelTap,
+              onTap: onLabelTap != null
+                  ? () {
+                      AppHaptics.sheetOpen();
+                      onLabelTap!();
+                    }
+                  : null,
               child: Text(label, style: AppTextStyles.bodySecondaryWhite),
             ),
           ],

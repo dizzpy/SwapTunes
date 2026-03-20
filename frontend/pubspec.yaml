@@ -44,6 +44,9 @@ dependencies:
   app_links: ^6.4.1
   flutter_dotenv: ^6.0.0
   image_picker: ^1.1.2
+  flutter_image_compress: ^2.4.0
+  cached_network_image: ^3.4.1
+  http_parser: ^4.1.2
 
 dev_dependencies:
   flutter_test:
