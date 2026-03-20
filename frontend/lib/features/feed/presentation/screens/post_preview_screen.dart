@@ -170,7 +170,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
           onTap: () {
             AppHaptics.uiTap();
             NavigationService.push(
-              UserProfileScreen(userName: widget.userName),
+              UserProfileScreen(username: widget.userName),
             );
           },
           child: Row(
@@ -487,7 +487,7 @@ class _CommentTile extends StatelessWidget {
             onTap: () {
               AppHaptics.uiTap();
               NavigationService.push(
-                UserProfileScreen(userName: comment.authorUsername),
+                UserProfileScreen(username: comment.authorUsername),
               );
             },
             child: CircleAvatar(
@@ -509,7 +509,7 @@ class _CommentTile extends StatelessWidget {
                       onTap: () {
                         AppHaptics.uiTap();
                         NavigationService.push(
-                          UserProfileScreen(userName: comment.authorUsername),
+                          UserProfileScreen(username: comment.authorUsername),
                         );
                       },
                       child: Text(

@@ -1,3 +1,4 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +6,7 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_icon_button.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../data/models/post_model.dart';
 import '../../presentation/viewmodels/feed_viewmodel.dart';
@@ -51,31 +53,23 @@ class _FeedScreenState extends State<FeedScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AppIconButton(
-                  icon: AppAssets.icon.menu,
-                  variant: AppIconButtonVariant.filled,
-                ),
-                AppIconButton(
-                  icon: AppAssets.icon.notification,
-                  variant: AppIconButtonVariant.filled,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        backgroundColor: AppColors.cardFront,
+      body: CustomMaterialIndicator(
         onRefresh: () => context.read<FeedViewmodel>().loadFeed(),
+        backgroundColor: AppColors.cardFront,
+        indicatorBuilder: (context, controller) {
+          return Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: WavyCircularIndicator(
+              size: 36,
+              strokeWidth: 3.0,
+              color: AppColors.primary,
+              waveCount: 14,
+              amplitudeFactor: 0.4,
+              arcFraction: 1.0,
+              showTrack: false,
+            ),
+          );
+        },
         child: _buildBody(feedVm, currentUserId),
       ),
     );
@@ -83,64 +77,117 @@ class _FeedScreenState extends State<FeedScreen> {
 
   Widget _buildBody(FeedViewmodel feedVm, String? currentUserId) {
     if (feedVm.isLoading) {
-      return const FeedLoadingSkeleton();
-    }
-
-    if (feedVm.feedError != null && feedVm.posts.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                feedVm.feedError!,
-                style: const TextStyle(color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => context.read<FeedViewmodel>().loadFeed(),
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(color: AppColors.primary),
-                ),
-              ),
-            ],
-          ),
-        ),
+      return CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          _buildSliverAppBar(),
+          const SliverFillRemaining(child: FeedLoadingSkeleton()),
+        ],
       );
     }
 
-    return ListView.builder(
+    if (feedVm.feedError != null && feedVm.posts.isEmpty) {
+      return CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          _buildSliverAppBar(),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      feedVm.feedError!,
+                      style: const TextStyle(color: AppColors.textSecondary),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => context.read<FeedViewmodel>().loadFeed(),
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return CustomScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      itemCount: feedVm.posts.length + 2, // +1 header (input box) +1 footer
-      itemBuilder: (context, index) {
-        // Header — post input box
-        if (index == 0) {
-          return const Column(
-            children: [
-              PostInputBox(),
-              SizedBox(height: 24),
-            ],
-          );
-        }
+      slivers: [
+        _buildSliverAppBar(),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                // Header — post input box
+                if (index == 0) {
+                  return const Column(
+                    children: [PostInputBox(), SizedBox(height: 24)],
+                  );
+                }
 
-        // Footer — loading skeleton or end padding
-        if (index == feedVm.posts.length + 1) {
-          if (feedVm.isLoadingMore) {
-            return const Padding(
-              padding: EdgeInsets.only(bottom: 16),
-              child: PostCardSkeleton(),
-            );
-          }
-          return const SizedBox(height: 80);
-        }
+                // Footer — loading skeleton or end padding
+                if (index == feedVm.posts.length + 1) {
+                  if (feedVm.isLoadingMore) {
+                    return const Padding(
+                      padding: EdgeInsets.only(bottom: 16),
+                      child: PostCardSkeleton(),
+                    );
+                  }
+                  return const SizedBox(height: 100);
+                }
 
-        final post = feedVm.posts[index - 1];
-        return _PostItem(post: post, currentUserId: currentUserId);
-      },
+                final post = feedVm.posts[index - 1];
+                return _PostItem(post: post, currentUserId: currentUserId);
+              },
+              childCount:
+                  feedVm.posts.length + 2, // +1 header (input box) +1 footer
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      floating: true,
+      snap: true,
+      backgroundColor: AppColors.background,
+      elevation: 0,
+      titleSpacing: 0,
+      toolbarHeight: 60,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            AppIconButton(
+              icon: AppAssets.icon.menu,
+              variant: AppIconButtonVariant.filled,
+              width: 44,
+              height: 44,
+            ),
+            AppIconButton(
+              icon: AppAssets.icon.notification,
+              variant: AppIconButtonVariant.filled,
+              width: 44,
+              height: 44,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -212,20 +259,28 @@ class _UploadingPostCard extends StatelessWidget {
                         : null,
                     backgroundColor: AppColors.outline,
                     child: post.authorAvatarUrl == null
-                        ? const Icon(Icons.person,
-                            color: AppColors.textSecondary, size: 22)
+                        ? const Icon(
+                            Icons.person,
+                            color: AppColors.textSecondary,
+                            size: 22,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(post.authorUsername,
-                          style: AppTextStyles.bodyPrimary),
+                      Text(
+                        post.authorUsername,
+                        style: AppTextStyles.bodyPrimary,
+                      ),
                       const SizedBox(height: 2),
-                      Text('Publishing...',
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.primary)),
+                      Text(
+                        'Publishing...',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -236,13 +291,12 @@ class _UploadingPostCard extends StatelessWidget {
                 Text(post.content, style: AppTextStyles.bodySecondary),
               const SizedBox(height: 12),
               // Progress indicator
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: const LinearProgressIndicator(
-                  backgroundColor: AppColors.outline,
-                  color: AppColors.primary,
-                  minHeight: 3,
-                ),
+              WavyProgressIndicator(
+                color: AppColors.primary,
+                backgroundColor: AppColors.outline,
+                height: 3,
+                amplitude: 5.5,
+                wavelength: 50,
               ),
             ],
           ),

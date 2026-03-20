@@ -141,7 +141,7 @@ class _PostCardState extends State<PostCard> {
                       onTap: () {
                         AppHaptics.uiTap();
                         NavigationService.push(
-                          UserProfileScreen(userName: widget.userName),
+                          UserProfileScreen(username: widget.userName),
                         );
                       },
                       child: _buildAvatar(),
@@ -151,7 +151,7 @@ class _PostCardState extends State<PostCard> {
                       onTap: () {
                         AppHaptics.uiTap();
                         NavigationService.push(
-                          UserProfileScreen(userName: widget.userName),
+                          UserProfileScreen(username: widget.userName),
                         );
                       },
                       child: Column(

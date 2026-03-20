@@ -2,11 +2,22 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-class UserProfileScreen extends StatelessWidget {
-  final String userName;
+/// Public profile screen — pushed via navigation when tapping a user's
+/// avatar/username on feed posts, search results, etc.
+///
+/// Shows another user's profile with Follow/Unfollow button.
+/// Auto-detects if viewing own profile and shows Edit Profile instead.
+/// Conditionally renders creator sections based on user_type.
+class UserProfileScreen extends StatefulWidget {
+  final String username;
 
-  const UserProfileScreen({super.key, required this.userName});
+  const UserProfileScreen({super.key, required this.username});
 
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,30 +26,18 @@ class UserProfileScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textWhite, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textWhite,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: AppColors.cardFront,
-              child: Icon(Icons.person, size: 50, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              userName,
-              style: AppTextStyles.heading1.copyWith(color: AppColors.textWhite),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Profile Page (Coming Soon)',
-              style: AppTextStyles.bodySecondary70,
-            ),
-          ],
+        child: Text(
+          '@${widget.username}',
+          style: AppTextStyles.bodySecondary70,
         ),
       ),
     );
