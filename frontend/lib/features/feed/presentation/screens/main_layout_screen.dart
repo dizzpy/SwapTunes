@@ -44,7 +44,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           }
           return false;
         },
-        child: _screens[_currentIndex],
+        // IndexedStack keeps all screens alive — prevents reload on tab switch
+        child: IndexedStack(index: _currentIndex, children: _screens),
       ),
       bottomNavigationBar: AnimatedSlide(
         duration: const Duration(milliseconds: 300),

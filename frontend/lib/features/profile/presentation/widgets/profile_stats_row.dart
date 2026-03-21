@@ -4,7 +4,8 @@ import '../../../../core/theme/app_text_styles.dart';
 
 /// Bordered card displaying profile statistics with vertical dividers.
 ///
-/// Shows Followers | Following | Posts | Collabs (creator) or Playlists (listener).
+/// Tapping Followers or Following fires the respective callback so
+/// the screen can show the follows bottom sheet.
 class ProfileStatsCard extends StatelessWidget {
   final int followers;
   final int following;
@@ -12,6 +13,8 @@ class ProfileStatsCard extends StatelessWidget {
   final int collabs;
   final int playlists;
   final bool isCreatorMode;
+  final VoidCallback? onFollowersTap;
+  final VoidCallback? onFollowingTap;
 
   const ProfileStatsCard({
     super.key,
@@ -21,6 +24,8 @@ class ProfileStatsCard extends StatelessWidget {
     required this.collabs,
     required this.playlists,
     required this.isCreatorMode,
+    this.onFollowersTap,
+    this.onFollowingTap,
   });
 
   @override
@@ -35,9 +40,17 @@ class ProfileStatsCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _StatItem(value: _formatCount(followers), label: 'Followers'),
+          GestureDetector(
+            onTap: onFollowersTap,
+            child: _StatItem(
+                value: _formatCount(followers), label: 'Followers'),
+          ),
           const _VerticalDivider(),
-          _StatItem(value: _formatCount(following), label: 'Following'),
+          GestureDetector(
+            onTap: onFollowingTap,
+            child: _StatItem(
+                value: _formatCount(following), label: 'Following'),
+          ),
           const _VerticalDivider(),
           _StatItem(value: posts.toString(), label: 'Posts'),
           const _VerticalDivider(),

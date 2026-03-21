@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/input_box.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/auth_guard.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../widgets/genre_selection_wrap.dart';
 import '../widgets/profile_avatar_picker.dart';
 
@@ -239,8 +240,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(
+                            child: WavyCircularIndicator(
                               color: AppColors.primary,
+                              size: 20,
                               strokeWidth: 2,
                             ),
                           )

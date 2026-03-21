@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:swaptune/features/profile/presentation/screens/user_profile_screen.dart';
+import 'package:swaptune/features/profile/presentation/screens/own_profile_screen.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/services/navigation_service.dart';
@@ -11,6 +12,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../presentation/viewmodels/feed_viewmodel.dart';
 import '../screens/post_preview_screen.dart';
 import '../screens/edit_post_screen.dart';
@@ -29,6 +31,7 @@ class PostCard extends StatefulWidget {
   final String comments;
   final bool isLiked;
   final bool isOwnPost;
+  final void Function(String postId)? onPostDeleted;
   final bool showBackground;
   final bool showHeader;
   final bool showActionsBorder;
@@ -49,6 +52,7 @@ class PostCard extends StatefulWidget {
     required this.comments,
     required this.isLiked,
     this.isOwnPost = false,
+    this.onPostDeleted,
     this.showBackground = true,
     this.showHeader = true,
     this.showActionsBorder = true,
@@ -62,6 +66,17 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
+  void _navigateToAuthorProfile() {
+    AppHaptics.uiTap();
+    final myUsername =
+        context.read<AuthViewmodel>().currentUser?.username;
+    if (myUsername != null && myUsername == widget.userName) {
+      NavigationService.push(const OwnProfileScreen());
+    } else {
+      NavigationService.push(UserProfileScreen(username: widget.userName));
+    }
+  }
+
   void _toggleLike() {
     AppHaptics.like();
     context.read<FeedViewmodel>().toggleLike(widget.postId);
@@ -78,6 +93,7 @@ class _PostCardState extends State<PostCard> {
     );
     if (confirmed == true && mounted) {
       await feedVm.deletePost(widget.postId);
+      widget.onPostDeleted?.call(widget.postId);
       AppSnackbar.success('Post deleted');
     }
   }
@@ -138,22 +154,12 @@ class _PostCardState extends State<PostCard> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        AppHaptics.uiTap();
-                        NavigationService.push(
-                          UserProfileScreen(username: widget.userName),
-                        );
-                      },
+                      onTap: _navigateToAuthorProfile,
                       child: _buildAvatar(),
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: () {
-                        AppHaptics.uiTap();
-                        NavigationService.push(
-                          UserProfileScreen(username: widget.userName),
-                        );
-                      },
+                      onTap: _navigateToAuthorProfile,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

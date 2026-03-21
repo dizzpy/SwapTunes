@@ -15,6 +15,8 @@ import 'features/feed/data/repositories/feed_repository.dart';
 import 'features/feed/presentation/viewmodels/feed_viewmodel.dart';
 import 'features/onboarding/data/repositories/onboarding_repository.dart';
 import 'features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
+import 'features/profile/data/datasources/profile_remote_datasource.dart';
+import 'features/profile/data/repositories/profile_repository.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
 
 /// Entry point for the SwapTunes application.
@@ -55,6 +57,10 @@ Future<void> main() async {
   final feedRepository = FeedRepository(
     FeedRemoteDatasource(apiClient, interceptor),
   );
+  final profileRepository = ProfileRepository(
+    apiClient,
+    ProfileRemoteDatasource(apiClient, interceptor),
+  );
 
   runApp(
     MultiProvider(
@@ -65,6 +71,7 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(create: (_) => ProfileViewmodel(authRepository)),
         ChangeNotifierProvider(create: (_) => FeedViewmodel(feedRepository)),
+        Provider<ProfileRepository>.value(value: profileRepository),
       ],
       child: const SwapTuneApp(),
     ),

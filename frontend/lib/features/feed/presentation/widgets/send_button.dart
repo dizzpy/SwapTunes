@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 
 /// Animated circular send button that smoothly transitions between
 /// an arrow icon and a sending indicator.
@@ -37,10 +38,10 @@ class SendButton extends StatelessWidget {
                   key: ValueKey('sending'),
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(
+                  child: WavyCircularIndicator(
                     color: AppColors.primary,
+                    size: 18,
                     strokeWidth: 2.0,
-                    strokeCap: StrokeCap.round,
                   ),
                 )
               : const Icon(

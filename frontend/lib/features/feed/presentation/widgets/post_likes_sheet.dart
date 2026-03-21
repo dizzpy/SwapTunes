@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../data/models/liker_model.dart';
 import '../viewmodels/feed_viewmodel.dart';
@@ -72,7 +73,7 @@ class _PostLikesSheetState extends State<PostLikesSheet> {
           Expanded(
             child: feedVm.isLikersLoading
                 ? const Center(
-                    child: CircularProgressIndicator(
+                    child: WavyCircularIndicator(
                       color: AppColors.primary,
                       strokeWidth: 2,
                     ),

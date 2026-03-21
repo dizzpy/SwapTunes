@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
+import '../../../feed/data/models/post_model.dart';
+import '../../../feed/presentation/widgets/post_card.dart';
 
 /// Animated content area that switches based on the selected tab.
-///
-/// Displays placeholder text for Posts, Playlists, Songs tabs and a
-/// sample collab card for the Collabs tab.
 class ProfileTabContent extends StatelessWidget {
   final int selectedIndex;
   final bool isCreatorMode;
+  final bool isOwnProfile;
+
+  // Posts tab data — passed from screen to avoid coupling with viewmodel
+  final List<PostModel> posts;
+  final bool isPostsLoading;
+  final void Function(String postId)? onPostDeleted;
 
   const ProfileTabContent({
     super.key,
     required this.selectedIndex,
     required this.isCreatorMode,
+    this.isOwnProfile = false,
+    this.posts = const [],
+    this.isPostsLoading = false,
+    this.onPostDeleted,
   });
 
   @override
@@ -21,7 +31,7 @@ class ProfileTabContent extends StatelessWidget {
     Widget content;
 
     if (selectedIndex == 0) {
-      content = _buildPlaceholder('Posts', 'Posts will appear here');
+      content = _buildPostsTab(context);
     } else if (!isCreatorMode && selectedIndex == 1) {
       content = _buildPlaceholder('Playlists', 'Playlists will appear here');
     } else if (isCreatorMode && selectedIndex == 2) {
@@ -44,6 +54,44 @@ class ProfileTabContent extends StatelessWidget {
         );
       },
       child: content,
+    );
+  }
+
+  Widget _buildPostsTab(BuildContext context) {
+    if (isPostsLoading) {
+      return const Center(
+        key: ValueKey('PostsLoading'),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: WavyCircularIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+    if (posts.isEmpty) {
+      return _buildPlaceholder('Posts', 'No posts yet');
+    }
+    return Column(
+      key: const ValueKey('Posts'),
+      children: posts.map((post) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: PostCard(
+            postId: post.id,
+            userName: post.authorUsername,
+            authorName: post.authorFullName,
+            isVerified: post.authorIsVerified,
+            avatarUrl: post.authorAvatarUrl ?? '',
+            imageUrl: post.imageUrl,
+            caption: post.content,
+            likes: post.formattedLikes,
+            comments: post.formattedComments,
+            isLiked: post.isLiked,
+            isOwnPost: isOwnProfile,
+            timeAgo: post.timeAgo,
+            onPostDeleted: isOwnProfile ? onPostDeleted : null,
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -86,10 +134,7 @@ class ProfileTabContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Need Mixing Engineer',
-                  style: AppTextStyles.bodyPrimary,
-                ),
+                Text('Need Mixing Engineer', style: AppTextStyles.bodyPrimary),
                 const SizedBox(height: 4),
                 Text(
                   'I need a mixing engine...',
