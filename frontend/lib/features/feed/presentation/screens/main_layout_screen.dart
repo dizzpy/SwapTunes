@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:swaptune/features/feed/presentation/screens/feed_screen.dart';
 import 'package:swaptune/features/profile/presentation/screens/own_profile_screen.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_assets.dart';
-import 'package:hugeicons/hugeicons.dart';
+import '../../../../core/services/navigation_service.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class MainLayoutScreen extends StatefulWidget {
-  const MainLayoutScreen({super.key});
+  static final GlobalKey<_MainLayoutScreenState> _key = GlobalKey();
+
+  MainLayoutScreen() : super(key: _key);
+
+  /// Pop every pushed screen and switch to the Profile tab (index 3).
+  /// This is the only way to "navigate to own profile" — never push a
+  /// standalone OwnProfileScreen.
+  static void switchToProfile() {
+    final nav = NavigationService.navigatorKey.currentState;
+    nav?.popUntil((route) => route.isFirst);
+    _key.currentState?._switchTab(3);
+  }
 
   @override
   State<MainLayoutScreen> createState() => _MainLayoutScreenState();
@@ -16,6 +28,13 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentIndex = 0;
   bool _isBottomNavVisible = true;
+
+  void _switchTab(int index) {
+    setState(() {
+      _currentIndex = index;
+      _isBottomNavVisible = true;
+    });
+  }
 
   final List<Widget> _screens = [
     const FeedScreen(),
@@ -36,11 +55,13 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       body: NotificationListener<UserScrollNotification>(
         onNotification: (notification) {
           if (notification.direction == ScrollDirection.forward) {
-            if (!_isBottomNavVisible)
+            if (!_isBottomNavVisible) {
               setState(() => _isBottomNavVisible = true);
+            }
           } else if (notification.direction == ScrollDirection.reverse) {
-            if (_isBottomNavVisible)
+            if (_isBottomNavVisible) {
               setState(() => _isBottomNavVisible = false);
+            }
           }
           return false;
         },
@@ -59,13 +80,13 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
               topRight: Radius.circular(24),
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12.0),
               child: BottomNavigationBar(
                 currentIndex: _currentIndex,
                 onTap: (index) {

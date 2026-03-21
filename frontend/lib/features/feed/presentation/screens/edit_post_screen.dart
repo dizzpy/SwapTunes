@@ -124,8 +124,9 @@ class _EditPostScreenState extends State<EditPostScreen> {
             child: TextButton(
               onPressed: _hasChanges ? _save : null,
               style: TextButton.styleFrom(
-                backgroundColor:
-                    _hasChanges ? AppColors.primary : AppColors.cardFront,
+                backgroundColor: _hasChanges
+                    ? AppColors.primary
+                    : AppColors.cardFront,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

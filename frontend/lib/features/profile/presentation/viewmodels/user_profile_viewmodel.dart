@@ -53,8 +53,7 @@ class UserProfileViewmodel extends ChangeNotifier {
   /// Silent refresh — bypasses cache, keeps existing data visible.
   Future<void> refresh(String username) async {
     try {
-      _profile = await _repository.getUserProfile(username,
-          forceRefresh: true);
+      _profile = await _repository.getUserProfile(username, forceRefresh: true);
       _postsLoaded = false;
     } catch (_) {
       // Silent — stale data stays on screen
@@ -168,7 +167,9 @@ class UserProfileViewmodel extends ChangeNotifier {
 
   String _parseError(Object e) {
     if (e is ApiException) return e.message;
-    if (e is UnauthorizedException) return 'Session expired. Please log in again.';
+    if (e is UnauthorizedException) {
+      return 'Session expired. Please log in again.';
+    }
     if (e is NetworkException) return e.message;
     return 'Something went wrong. Please try again.';
   }

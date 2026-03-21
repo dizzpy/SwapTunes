@@ -138,11 +138,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     isCreatorMode: profile.isCreator,
                     onAvatarTap: profile.avatarUrl != null
                         ? () => ProfileImageViewer.show(
-                            context, profile.avatarUrl!)
+                            context,
+                            profile.avatarUrl!,
+                          )
                         : null,
                     onCoverTap: profile.coverUrl != null
-                        ? () =>
-                            ProfileImageViewer.show(context, profile.coverUrl!)
+                        ? () => ProfileImageViewer.show(
+                            context,
+                            profile.coverUrl!,
+                          )
                         : null,
                   ),
                   const SizedBox(height: 64),
@@ -196,8 +200,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         // Genres
                         if (profile.genres.isNotEmpty)
                           ProfileHashtags(
-                            hashtags:
-                                profile.genres.map((g) => '#$g').toList(),
+                            hashtags: profile.genres.map((g) => '#$g').toList(),
                             isCreatorMode: profile.isCreator,
                           ),
                         const SizedBox(height: 24),
@@ -244,7 +247,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   builder: (context, _) {
                                     final following =
                                         _viewmodel.profile?.isFollowing ??
-                                            false;
+                                        false;
                                     return PrimaryButton(
                                       text: following ? 'Following' : 'Follow',
                                       backgroundColor: following
@@ -306,8 +309,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           isOwnProfile: isOwn,
                           posts: _viewmodel.posts,
                           isPostsLoading: _viewmodel.isPostsLoading,
-                          onPostDeleted:
-                              isOwn ? _viewmodel.removePost : null,
+                          onPostDeleted: isOwn ? _viewmodel.removePost : null,
                         ),
                         const SizedBox(height: 32),
                       ],

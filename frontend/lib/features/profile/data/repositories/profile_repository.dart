@@ -82,41 +82,41 @@ class ProfileRepository {
   }
 
   Map<String, dynamic> _serializeProfile(FullProfileModel p) => {
-        'id': p.id,
-        'full_name': p.fullName,
-        'username': p.username,
-        'bio': p.bio,
-        'avatar_url': p.avatarUrl,
-        'cover_url': p.coverUrl,
-        'user_type': p.userType,
-        'is_verified': p.isVerified,
-        'spotify_connected': p.spotifyConnected,
-        'created_at': p.createdAt.toIso8601String(),
-        'username_changed_at': p.usernameChangedAt?.toIso8601String(),
-        'genres': p.genres,
-        'stats': {
-          'followers': p.stats.followers,
-          'following': p.stats.following,
-          'posts': p.stats.posts,
-          'playlists': p.stats.playlists,
-          'collabs': p.stats.collabs,
-        },
-        'is_following': p.isFollowing,
-        'creator_profiles': p.creatorProfile == null
-            ? []
-            : [
-                {
-                  'role_title': p.creatorProfile!.roleTitle,
-                  'location': p.creatorProfile!.location,
-                  'specializations': p.creatorProfile!.specializations,
-                  'soundcloud_url': p.creatorProfile!.soundcloudUrl,
-                  'youtube_url': p.creatorProfile!.youtubeUrl,
-                  'spotify_artist_url': p.creatorProfile!.spotifyArtistUrl,
-                  'apple_music_url': p.creatorProfile!.appleMusicUrl,
-                  'portfolio_url': p.creatorProfile!.portfolioUrl,
-                }
-              ],
-      };
+    'id': p.id,
+    'full_name': p.fullName,
+    'username': p.username,
+    'bio': p.bio,
+    'avatar_url': p.avatarUrl,
+    'cover_url': p.coverUrl,
+    'user_type': p.userType,
+    'is_verified': p.isVerified,
+    'spotify_connected': p.spotifyConnected,
+    'created_at': p.createdAt.toIso8601String(),
+    'username_changed_at': p.usernameChangedAt?.toIso8601String(),
+    'genres': p.genres,
+    'stats': {
+      'followers': p.stats.followers,
+      'following': p.stats.following,
+      'posts': p.stats.posts,
+      'playlists': p.stats.playlists,
+      'collabs': p.stats.collabs,
+    },
+    'is_following': p.isFollowing,
+    'creator_profiles': p.creatorProfile == null
+        ? []
+        : [
+            {
+              'role_title': p.creatorProfile!.roleTitle,
+              'location': p.creatorProfile!.location,
+              'specializations': p.creatorProfile!.specializations,
+              'soundcloud_url': p.creatorProfile!.soundcloudUrl,
+              'youtube_url': p.creatorProfile!.youtubeUrl,
+              'spotify_artist_url': p.creatorProfile!.spotifyArtistUrl,
+              'apple_music_url': p.creatorProfile!.appleMusicUrl,
+              'portfolio_url': p.creatorProfile!.portfolioUrl,
+            },
+          ],
+  };
 
   // ── Update profile ─────────────────────────────────────
 
@@ -201,21 +201,21 @@ class ProfileRepository {
   }
 
   Map<String, dynamic> _serializePost(PostModel p) => {
-        'id': p.id,
-        'user_id': p.userId,
-        'content': p.content,
-        'image_url': p.imageUrl,
-        'likes_count': p.likesCount,
-        'comments_count': p.commentsCount,
-        'is_liked': p.isLiked,
-        'created_at': p.createdAt.toIso8601String(),
-        'user': {
-          'username': p.authorUsername,
-          'full_name': p.authorFullName,
-          'avatar_url': p.authorAvatarUrl,
-          'is_verified': p.authorIsVerified,
-        },
-      };
+    'id': p.id,
+    'user_id': p.userId,
+    'content': p.content,
+    'image_url': p.imageUrl,
+    'likes_count': p.likesCount,
+    'comments_count': p.commentsCount,
+    'is_liked': p.isLiked,
+    'created_at': p.createdAt.toIso8601String(),
+    'user': {
+      'username': p.authorUsername,
+      'full_name': p.authorFullName,
+      'avatar_url': p.authorAvatarUrl,
+      'is_verified': p.authorIsVerified,
+    },
+  };
 
   // ── Image upload ───────────────────────────────────────
 

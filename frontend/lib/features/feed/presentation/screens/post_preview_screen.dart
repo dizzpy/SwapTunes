@@ -4,6 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:swaptune/features/profile/presentation/screens/user_profile_screen.dart';
 
+import 'main_layout_screen.dart';
+
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/services/navigation_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -60,6 +62,16 @@ class PostPreviewScreen extends StatefulWidget {
 class _PostPreviewScreenState extends State<PostPreviewScreen> {
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  void _navigateToProfile(String username) {
+    AppHaptics.uiTap();
+    final myUsername = context.read<AuthViewmodel>().currentUser?.username;
+    if (myUsername != null && myUsername == username) {
+      MainLayoutScreen.switchToProfile();
+    } else {
+      NavigationService.push(UserProfileScreen(username: username));
+    }
+  }
 
   @override
   void initState() {
@@ -167,12 +179,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
           },
         ),
         title: GestureDetector(
-          onTap: () {
-            AppHaptics.uiTap();
-            NavigationService.push(
-              UserProfileScreen(username: widget.userName),
-            );
-          },
+          onTap: () => _navigateToProfile(widget.userName),
           child: Row(
             children: [
               CircleAvatar(
@@ -372,6 +379,16 @@ class _CommentTile extends StatelessWidget {
 
   const _CommentTile({required this.comment, required this.isOwn});
 
+  void _navigateToProfile(BuildContext context, String username) {
+    AppHaptics.uiTap();
+    final myUsername = context.read<AuthViewmodel>().currentUser?.username;
+    if (myUsername != null && myUsername == username) {
+      MainLayoutScreen.switchToProfile();
+    } else {
+      NavigationService.push(UserProfileScreen(username: username));
+    }
+  }
+
   Future<void> _confirmDeleteComment(BuildContext context) async {
     final feedVm = context.read<FeedViewmodel>();
     final confirmed = await AppConfirmDialog.show(
@@ -484,12 +501,7 @@ class _CommentTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () {
-              AppHaptics.uiTap();
-              NavigationService.push(
-                UserProfileScreen(username: comment.authorUsername),
-              );
-            },
+            onTap: () => _navigateToProfile(context, comment.authorUsername),
             child: CircleAvatar(
               radius: 18,
               backgroundImage: comment.authorAvatarUrl != null
@@ -506,12 +518,8 @@ class _CommentTile extends StatelessWidget {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        AppHaptics.uiTap();
-                        NavigationService.push(
-                          UserProfileScreen(username: comment.authorUsername),
-                        );
-                      },
+                      onTap: () =>
+                          _navigateToProfile(context, comment.authorUsername),
                       child: Text(
                         comment.authorUsername,
                         style: AppTextStyles.bodyPrimary.copyWith(fontSize: 14),

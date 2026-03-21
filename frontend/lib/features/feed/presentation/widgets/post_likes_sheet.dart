@@ -79,23 +79,23 @@ class _PostLikesSheetState extends State<PostLikesSheet> {
                     ),
                   )
                 : feedVm.likers.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No likes yet',
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
-                        itemCount: feedVm.likers.length,
-                        physics: const BouncingScrollPhysics(),
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 20),
-                        itemBuilder: (context, index) {
-                          final liker = feedVm.likers[index];
-                          return _LikerRow(liker: liker);
-                        },
-                      ),
+                ? const Center(
+                    child: Text(
+                      'No likes yet',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+                    itemCount: feedVm.likers.length,
+                    physics: const BouncingScrollPhysics(),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 20),
+                    itemBuilder: (context, index) {
+                      final liker = feedVm.likers[index];
+                      return _LikerRow(liker: liker);
+                    },
+                  ),
           ),
         ],
       ),
@@ -109,8 +109,7 @@ class _LikerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAvatar =
-        liker.avatarUrl != null && liker.avatarUrl!.isNotEmpty;
+    final hasAvatar = liker.avatarUrl != null && liker.avatarUrl!.isNotEmpty;
 
     return Row(
       children: [

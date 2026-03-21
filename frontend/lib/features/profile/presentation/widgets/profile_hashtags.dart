@@ -23,8 +23,9 @@ class ProfileHashtags extends StatelessWidget {
         : AppTextStyles.bodySecondary.copyWith(color: AppColors.primary);
 
     return Row(
-      mainAxisAlignment:
-          isCreatorMode ? MainAxisAlignment.start : MainAxisAlignment.center,
+      mainAxisAlignment: isCreatorMode
+          ? MainAxisAlignment.start
+          : MainAxisAlignment.center,
       children: hashtags.map((tag) {
         return Padding(
           padding: EdgeInsets.only(

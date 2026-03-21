@@ -34,8 +34,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
   void initState() {
     super.initState();
     _viewmodel = UserProfileViewmodel(context.read<ProfileRepository>());
-    final username =
-        context.read<AuthViewmodel>().currentUser?.username ?? '';
+    final username = context.read<AuthViewmodel>().currentUser?.username ?? '';
     if (username.isNotEmpty) {
       _viewmodel.loadProfile(username).then((_) => _viewmodel.loadUserPosts());
     }
@@ -48,8 +47,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
   }
 
   Future<void> _onRefresh() async {
-    final username =
-        context.read<AuthViewmodel>().currentUser?.username ?? '';
+    final username = context.read<AuthViewmodel>().currentUser?.username ?? '';
     if (username.isNotEmpty) await _viewmodel.refresh(username);
   }
 
@@ -105,32 +103,43 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
             const SizedBox(height: 16),
             if (hasImage)
               ListTile(
-                leading: const Icon(Icons.image_outlined,
-                    color: AppColors.textWhite),
-                title:
-                    Text('View photo', style: AppTextStyles.bodyPrimary),
+                leading: const Icon(
+                  Icons.image_outlined,
+                  color: AppColors.textWhite,
+                ),
+                title: Text('View photo', style: AppTextStyles.bodyPrimary),
                 onTap: () {
                   Navigator.pop(ctx);
                   onView();
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined,
-                  color: AppColors.primary),
-              title: Text('Choose from library',
-                  style: AppTextStyles.bodyPrimary
-                      .copyWith(color: AppColors.primary)),
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.primary,
+              ),
+              title: Text(
+                'Choose from library',
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 onPick(ImageSource.gallery);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined,
-                  color: AppColors.primary),
-              title: Text('Take a photo',
-                  style: AppTextStyles.bodyPrimary
-                      .copyWith(color: AppColors.primary)),
+              leading: const Icon(
+                Icons.camera_alt_outlined,
+                color: AppColors.primary,
+              ),
+              title: Text(
+                'Take a photo',
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 onPick(ImageSource.camera);
@@ -138,11 +147,16 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
             ),
             if (hasImage)
               ListTile(
-                leading:
-                    const Icon(Icons.delete_outline, color: AppColors.danger),
-                title: Text('Remove photo',
-                    style: AppTextStyles.bodyPrimary
-                        .copyWith(color: AppColors.danger)),
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.danger,
+                ),
+                title: Text(
+                  'Remove photo',
+                  style: AppTextStyles.bodyPrimary.copyWith(
+                    color: AppColors.danger,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   onDelete();
@@ -155,8 +169,10 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     );
   }
 
-  Future<void> _pickAndUpload(ImageSource source,
-      {required bool isAvatar}) async {
+  Future<void> _pickAndUpload(
+    ImageSource source, {
+    required bool isAvatar,
+  }) async {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: source, imageQuality: 90);
     if (file == null || !mounted) return;
@@ -223,9 +239,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -239,9 +253,12 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                     Text('Edit Bio', style: AppTextStyles.bodyPrimary),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: Text('Save',
-                          style: AppTextStyles.bodyPrimary
-                              .copyWith(color: AppColors.primary)),
+                      child: Text(
+                        'Save',
+                        style: AppTextStyles.bodyPrimary.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -259,18 +276,18 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                     fillColor: AppColors.background,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          const BorderSide(color: AppColors.outline),
+                      borderSide: const BorderSide(color: AppColors.outline),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          const BorderSide(color: AppColors.outline),
+                      borderSide: const BorderSide(color: AppColors.outline),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: const BorderSide(
-                          color: AppColors.primary, width: 1.5),
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
                     ),
                     contentPadding: const EdgeInsets.all(14),
                   ),
@@ -282,8 +299,12 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
       ),
     );
 
+    // Capture text before disposing — the sheet may still hold a reference
+    // to the controller during its exit animation.
+    final newBio = ctrl.text.trim();
+    WidgetsBinding.instance.addPostFrameCallback((_) => ctrl.dispose());
+
     if (saved == true && mounted) {
-      final newBio = ctrl.text.trim();
       final repo = context.read<ProfileRepository>();
       final username =
           context.read<AuthViewmodel>().currentUser?.username ?? '';
@@ -298,7 +319,6 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
         AppSnackbar.error('Failed to save bio.');
       }
     }
-    ctrl.dispose();
   }
 
   @override
@@ -349,8 +369,10 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                               ? MainAxisAlignment.start
                               : MainAxisAlignment.center,
                           children: [
-                            Text(profile.fullName,
-                                style: AppTextStyles.heading2),
+                            Text(
+                              profile.fullName,
+                              style: AppTextStyles.heading2,
+                            ),
                             if (profile.isVerified) ...[
                               const SizedBox(width: 8),
                               Icon(
@@ -366,8 +388,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                         // Bio — tappable to edit inline
                         GestureDetector(
                           onTap: _onBioTap,
-                          child: profile.bio != null &&
-                                  profile.bio!.isNotEmpty
+                          child: profile.bio != null && profile.bio!.isNotEmpty
                               ? Text(
                                   profile.bio!,
                                   style: AppTextStyles.bodySecondary70,
@@ -377,8 +398,9 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                                 )
                               : Text(
                                   '+ Add a description',
-                                  style: AppTextStyles.bodySecondary70
-                                      .copyWith(color: AppColors.primary),
+                                  style: AppTextStyles.bodySecondary70.copyWith(
+                                    color: AppColors.primary,
+                                  ),
                                   textAlign: profile.isCreator
                                       ? TextAlign.start
                                       : TextAlign.center,
@@ -389,17 +411,14 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                         // Creator Tags/Links
                         if (profile.isCreator &&
                             profile.creatorProfile != null) ...[
-                          CreatorInfoSection(
-                              creator: profile.creatorProfile!),
+                          CreatorInfoSection(creator: profile.creatorProfile!),
                           const SizedBox(height: 16),
                         ],
 
                         // Genres as hashtags
                         if (profile.genres.isNotEmpty)
                           ProfileHashtags(
-                            hashtags: profile.genres
-                                .map((g) => '#$g')
-                                .toList(),
+                            hashtags: profile.genres.map((g) => '#$g').toList(),
                             isCreatorMode: profile.isCreator,
                           ),
                         const SizedBox(height: 24),
@@ -416,15 +435,13 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                             context,
                             userId: profile.id,
                             initialTab: FollowsTab.followers,
-                            repository:
-                                context.read<ProfileRepository>(),
+                            repository: context.read<ProfileRepository>(),
                           ),
                           onFollowingTap: () => FollowsSheet.show(
                             context,
                             userId: profile.id,
                             initialTab: FollowsTab.following,
-                            repository:
-                                context.read<ProfileRepository>(),
+                            repository: context.read<ProfileRepository>(),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -437,7 +454,8 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                           borderRadius: 24,
                           height: 48,
                           onPressed: () async {
-                            final username = context
+                            final username =
+                                context
                                     .read<AuthViewmodel>()
                                     .currentUser
                                     ?.username ??
@@ -449,7 +467,8 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                                     EditProfileScreen(profile: profile),
                               ),
                             );
-                            if (saved == true && username.isNotEmpty &&
+                            if (saved == true &&
+                                username.isNotEmpty &&
                                 mounted) {
                               await _viewmodel.refresh(username);
                             }
@@ -551,9 +570,11 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message,
-                style: AppTextStyles.bodySecondary70,
-                textAlign: TextAlign.center),
+            Text(
+              message,
+              style: AppTextStyles.bodySecondary70,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
             PrimaryButton(
               text: 'Retry',
@@ -562,11 +583,8 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
               borderRadius: 24,
               height: 48,
               onPressed: () {
-                final username = context
-                        .read<AuthViewmodel>()
-                        .currentUser
-                        ?.username ??
-                    '';
+                final username =
+                    context.read<AuthViewmodel>().currentUser?.username ?? '';
                 if (username.isNotEmpty) _viewmodel.loadProfile(username);
               },
             ),

@@ -19,11 +19,7 @@ class IsarService {
     if (_instance != null && _instance!.isOpen) return _instance!;
     final dir = await getApplicationDocumentsDirectory();
     _instance = await Isar.open(
-      [
-        CachedPostSchema,
-        CachedProfileSchema,
-        CachedUserPostSchema,
-      ],
+      [CachedPostSchema, CachedProfileSchema, CachedUserPostSchema],
       name: 'swaptunes',
       directory: dir.path,
     );

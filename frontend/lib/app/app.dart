@@ -132,7 +132,7 @@ class _AuthGateState extends State<_AuthGate> {
         }
 
         // Returning user with an existing profile — go straight to home.
-        NavigationService.pushAndRemoveAll(const MainLayoutScreen());
+        NavigationService.pushAndRemoveAll(MainLayoutScreen());
         break;
 
       default:

@@ -45,10 +45,12 @@ class ProfileRemoteDatasource {
     int page = 1,
     int limit = 20,
   }) async {
-    final data = await _client.get(
-      ApiConstants.followers(userId),
-      queryParams: {'page': '$page', 'limit': '$limit'},
-    ) as List;
+    final data =
+        await _client.get(
+              ApiConstants.followers(userId),
+              queryParams: {'page': '$page', 'limit': '$limit'},
+            )
+            as List;
     return data
         .map((e) => FollowUserModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -60,10 +62,12 @@ class ProfileRemoteDatasource {
     int page = 1,
     int limit = 20,
   }) async {
-    final data = await _client.get(
-      ApiConstants.following(userId),
-      queryParams: {'page': '$page', 'limit': '$limit'},
-    ) as List;
+    final data =
+        await _client.get(
+              ApiConstants.following(userId),
+              queryParams: {'page': '$page', 'limit': '$limit'},
+            )
+            as List;
     return data
         .map((e) => FollowUserModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -75,10 +79,12 @@ class ProfileRemoteDatasource {
     int page = 1,
     int limit = 20,
   }) async {
-    final data = await _client.get(
-      ApiConstants.userPosts(userId),
-      queryParams: {'page': '$page', 'limit': '$limit'},
-    ) as List;
+    final data =
+        await _client.get(
+              ApiConstants.userPosts(userId),
+              queryParams: {'page': '$page', 'limit': '$limit'},
+            )
+            as List;
     return data
         .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
         .toList();

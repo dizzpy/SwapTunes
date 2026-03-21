@@ -70,10 +70,7 @@ class FeedRepository {
 
   /// Returns stale page-1 posts regardless of TTL (used as silent fallback).
   Future<List<PostModel>?> _getStalePage1() async {
-    final rows = await _isar.cachedPosts
-        .filter()
-        .pageEqualTo(1)
-        .findAll();
+    final rows = await _isar.cachedPosts.filter().pageEqualTo(1).findAll();
     if (rows.isEmpty) return null;
     return rows.map(_deserialize).toList();
   }
@@ -103,21 +100,21 @@ class FeedRepository {
   }
 
   Map<String, dynamic> _serialize(PostModel p) => {
-        'id': p.id,
-        'user_id': p.userId,
-        'content': p.content,
-        'image_url': p.imageUrl,
-        'likes_count': p.likesCount,
-        'comments_count': p.commentsCount,
-        'is_liked': p.isLiked,
-        'created_at': p.createdAt.toIso8601String(),
-        'user': {
-          'username': p.authorUsername,
-          'full_name': p.authorFullName,
-          'avatar_url': p.authorAvatarUrl,
-          'is_verified': p.authorIsVerified,
-        },
-      };
+    'id': p.id,
+    'user_id': p.userId,
+    'content': p.content,
+    'image_url': p.imageUrl,
+    'likes_count': p.likesCount,
+    'comments_count': p.commentsCount,
+    'is_liked': p.isLiked,
+    'created_at': p.createdAt.toIso8601String(),
+    'user': {
+      'username': p.authorUsername,
+      'full_name': p.authorFullName,
+      'avatar_url': p.authorAvatarUrl,
+      'is_verified': p.authorIsVerified,
+    },
+  };
 
   // ── Create ─────────────────────────────────────────────
 

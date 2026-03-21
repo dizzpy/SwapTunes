@@ -43,13 +43,17 @@ class ProfileStatsCard extends StatelessWidget {
           GestureDetector(
             onTap: onFollowersTap,
             child: _StatItem(
-                value: _formatCount(followers), label: 'Followers'),
+              value: _formatCount(followers),
+              label: 'Followers',
+            ),
           ),
           const _VerticalDivider(),
           GestureDetector(
             onTap: onFollowingTap,
             child: _StatItem(
-                value: _formatCount(following), label: 'Following'),
+              value: _formatCount(following),
+              label: 'Following',
+            ),
           ),
           const _VerticalDivider(),
           _StatItem(value: posts.toString(), label: 'Posts'),

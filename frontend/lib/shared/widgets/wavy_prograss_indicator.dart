@@ -106,7 +106,8 @@ class _WavyProgressIndicatorState extends State<WavyProgressIndicator>
   @override
   Widget build(BuildContext context) {
     final activeColor = widget.color ?? Theme.of(context).colorScheme.primary;
-    final trackColor = widget.backgroundColor ?? activeColor.withOpacity(0.2);
+    final trackColor =
+        widget.backgroundColor ?? activeColor.withValues(alpha: 0.2);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -230,10 +231,10 @@ class _WavyPainter extends CustomPainter {
         // Fade in/out at edges using a shader.
         final shader = LinearGradient(
           colors: [
-            activeColor.withOpacity(0.0),
+            activeColor.withValues(alpha: 0.0),
             activeColor,
             activeColor,
-            activeColor.withOpacity(0.0),
+            activeColor.withValues(alpha: 0.0),
           ],
           stops: const [0.0, 0.15, 0.85, 1.0],
         ).createShader(Rect.fromLTWH(startX, 0, endX - startX, size.height));
@@ -347,14 +348,15 @@ class _WavyCircularIndicatorState extends State<WavyCircularIndicator>
   @override
   Widget build(BuildContext context) {
     final activeColor = widget.color ?? Theme.of(context).colorScheme.primary;
-    final trackColor = widget.backgroundColor ?? activeColor.withOpacity(0.2);
+    final trackColor =
+        widget.backgroundColor ?? activeColor.withValues(alpha: 0.2);
 
     return SizedBox(
       width: widget.size,
       height: widget.size,
       child: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => CustomPaint(
+        builder: (context, child) => CustomPaint(
           painter: _WavyCircularPainter(
             animationValue: _controller.value,
             activeColor: activeColor,

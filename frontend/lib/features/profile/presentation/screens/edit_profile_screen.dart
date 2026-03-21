@@ -34,9 +34,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late List<String> _genres;
 
   static const _commonGenres = [
-    'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Jazz', 'Classical',
-    'Electronic', 'Indie', 'Dubstep', 'House', 'Techno',
-    'Soul', 'Blues', 'Country', 'Reggae', 'Metal', 'Folk',
+    'Pop',
+    'Rock',
+    'Hip-Hop',
+    'R&B',
+    'Jazz',
+    'Classical',
+    'Electronic',
+    'Indie',
+    'Dubstep',
+    'House',
+    'Techno',
+    'Soul',
+    'Blues',
+    'Country',
+    'Reggae',
+    'Metal',
+    'Folk',
   ];
 
   @override
@@ -61,8 +75,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool get _isBusy => _isSaving || _isUploadingAvatar;
 
-  int get _usernameCooldownDays =>
-      widget.profile.usernameChangeCooldownDays;
+  int get _usernameCooldownDays => widget.profile.usernameChangeCooldownDays;
 
   Future<void> _onAvatarTap() async {
     await showModalBottomSheet(
@@ -87,32 +100,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             if (_effectiveAvatarUrl.isNotEmpty)
               ListTile(
-                leading: const Icon(Icons.image_outlined,
-                    color: AppColors.textWhite),
-                title: Text('View photo',
-                    style: AppTextStyles.bodyPrimary),
+                leading: const Icon(
+                  Icons.image_outlined,
+                  color: AppColors.textWhite,
+                ),
+                title: Text('View photo', style: AppTextStyles.bodyPrimary),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showFullImage();
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined,
-                  color: AppColors.primary),
-              title: Text('Choose from library',
-                  style: AppTextStyles.bodyPrimary
-                      .copyWith(color: AppColors.primary)),
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.primary,
+              ),
+              title: Text(
+                'Choose from library',
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickAndUpload(ImageSource.gallery);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined,
-                  color: AppColors.primary),
-              title: Text('Take a photo',
-                  style: AppTextStyles.bodyPrimary
-                      .copyWith(color: AppColors.primary)),
+              leading: const Icon(
+                Icons.camera_alt_outlined,
+                color: AppColors.primary,
+              ),
+              title: Text(
+                'Take a photo',
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickAndUpload(ImageSource.camera);
@@ -135,10 +159,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           backgroundColor: Colors.black,
           body: Center(
             child: _effectiveAvatarUrl.isNotEmpty
-                ? InteractiveViewer(
-                    child: Image.network(_effectiveAvatarUrl))
-                : const Icon(Icons.person,
-                    color: AppColors.textSecondary, size: 80),
+                ? InteractiveViewer(child: Image.network(_effectiveAvatarUrl))
+                : const Icon(
+                    Icons.person,
+                    color: AppColors.textSecondary,
+                    size: 80,
+                  ),
           ),
         ),
       ),
@@ -184,12 +210,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     final newUsername = _usernameCtrl.text.trim();
-    final usernameChanged = newUsername != widget.profile.username &&
-        newUsername.isNotEmpty;
+    final usernameChanged =
+        newUsername != widget.profile.username && newUsername.isNotEmpty;
 
     if (usernameChanged && _usernameCooldownDays > 0) {
-      setState(() => _errorMessage =
-          'Username can be changed in $_usernameCooldownDays day${_usernameCooldownDays == 1 ? '' : 's'}.');
+      setState(
+        () => _errorMessage =
+            'Username can be changed in $_usernameCooldownDays day${_usernameCooldownDays == 1 ? '' : 's'}.',
+      );
       return;
     }
 
@@ -200,19 +228,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       await context.read<ProfileRepository>().updateProfile(
-            fullName:
-                name != widget.profile.fullName ? name : null,
-            bio: _bioCtrl.text.trim() != (widget.profile.bio ?? '')
-                ? _bioCtrl.text.trim()
-                : null,
-            avatarUrl: _pendingAvatarUrl,
-            username: usernameChanged ? newUsername : null,
-            genres: _genres != widget.profile.genres ? _genres : null,
-          );
+        fullName: name != widget.profile.fullName ? name : null,
+        bio: _bioCtrl.text.trim() != (widget.profile.bio ?? '')
+            ? _bioCtrl.text.trim()
+            : null,
+        avatarUrl: _pendingAvatarUrl,
+        username: usernameChanged ? newUsername : null,
+        genres: _genres != widget.profile.genres ? _genres : null,
+      );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        final msg = e is Map ? (e['message'] ?? 'Save failed.') : 'Save failed. Try again.';
+        final msg = e is Map
+            ? (e['message'] ?? 'Save failed.')
+            : 'Save failed. Try again.';
         setState(() => _errorMessage = msg.toString());
         AppSnackbar.error(msg.toString());
       }
@@ -242,7 +271,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     width: 18,
                     height: 18,
                     child: WavyCircularIndicator(
-                        color: AppColors.primary, size: 18),
+                      color: AppColors.primary,
+                      size: 18,
+                    ),
                   )
                 : Text(
                     'Save',
@@ -272,8 +303,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.cardFront,
-                      border:
-                          Border.all(color: AppColors.outline, width: 2),
+                      border: Border.all(color: AppColors.outline, width: 2),
                       image: _effectiveAvatarUrl.isNotEmpty
                           ? DecorationImage(
                               image: NetworkImage(_effectiveAvatarUrl),
@@ -283,11 +313,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     child: _isUploadingAvatar
                         ? const WavyCircularIndicator(
-                            color: AppColors.primary, size: 40)
+                            color: AppColors.primary,
+                            size: 40,
+                          )
                         : _effectiveAvatarUrl.isEmpty
-                            ? const Icon(Icons.person,
-                                color: AppColors.textSecondary, size: 48)
-                            : null,
+                        ? const Icon(
+                            Icons.person,
+                            color: AppColors.textSecondary,
+                            size: 48,
+                          )
+                        : null,
                   ),
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -295,16 +330,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt,
-                        color: Colors.white, size: 14),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 8),
-            Text('Tap to change photo',
-                style: AppTextStyles.caption
-                    .copyWith(color: AppColors.textSecondary)),
+            Text(
+              'Tap to change photo',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 32),
 
             // Error
@@ -313,12 +354,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: AppColors.danger.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(_errorMessage!,
-                    style: AppTextStyles.bodySecondary70
-                        .copyWith(color: Colors.redAccent)),
+                child: Text(
+                  _errorMessage!,
+                  style: AppTextStyles.bodySecondary70.copyWith(
+                    color: AppColors.danger,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
@@ -355,9 +399,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Genre Tags
             Align(
               alignment: Alignment.centerLeft,
-              child: Text('Genres',
-                  style: AppTextStyles.bodySecondary70
-                      .copyWith(color: AppColors.textSecondary)),
+              child: Text(
+                'Genres',
+                style: AppTextStyles.bodySecondary70.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -370,16 +417,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: selected
                           ? AppColors.primary.withValues(alpha: 0.15)
                           : AppColors.cardFront,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.outline,
+                        color: selected ? AppColors.primary : AppColors.outline,
                         width: selected ? 1.5 : 1,
                       ),
                     ),
@@ -413,9 +460,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: AppTextStyles.bodySecondary70
-                .copyWith(color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: AppTextStyles.bodySecondary70.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -428,8 +478,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             hintText: hint,
             hintStyle: AppTextStyles.bodySecondary70,
             suffixText: suffixText,
-            suffixStyle: AppTextStyles.caption
-                .copyWith(color: AppColors.textSecondary),
+            suffixStyle: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
             filled: true,
             fillColor: enabled ? AppColors.cardFront : AppColors.outline,
             border: OutlineInputBorder(
@@ -446,11 +497,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide:
-                  const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 14),
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
         ),
       ],

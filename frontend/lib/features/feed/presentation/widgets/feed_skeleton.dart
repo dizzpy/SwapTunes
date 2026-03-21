@@ -27,9 +27,9 @@ class _ShimmerState extends State<_Shimmer>
   late AnimationController _controller;
 
   // Base & highlight colours
-  static const _base = Color(0xFF222627);
-  static const _highlight = Color(0xFF2F3535);
-  static const _peak = Color(0xFF353D3B); // very subtle green-grey tint
+  static const _base = AppColors.skeletonBase;
+  static const _highlight = AppColors.skeletonHighlight;
+  static const _peak = AppColors.skeletonPeak;
 
   LinearGradient get gradient => LinearGradient(
     colors: const [_base, _highlight, _peak, _highlight, _base],
@@ -89,7 +89,11 @@ class _SkeletonBox extends StatelessWidget {
     final paint =
         shimmer?.gradient ??
         const LinearGradient(
-          colors: [Color(0xFF222627), Color(0xFF2F3535), Color(0xFF222627)],
+          colors: [
+            AppColors.skeletonBase,
+            AppColors.skeletonHighlight,
+            AppColors.skeletonBase,
+          ],
         );
 
     return Container(

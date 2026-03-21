@@ -37,7 +37,10 @@ class FeedRemoteDatasource {
 
   // ── Feed ───────────────────────────────────────────────
 
-  Future<List<PostModel>> getFeed({int page = 1, int limit = kFeedPageSize}) async {
+  Future<List<PostModel>> getFeed({
+    int page = 1,
+    int limit = kFeedPageSize,
+  }) async {
     final data =
         await _client.get(
               ApiConstants.postsFeed,
@@ -132,11 +135,18 @@ class FeedRemoteDatasource {
 
   // ── Moderation ─────────────────────────────────────────
 
-  Future<PostModel> updatePost(String postId, {String? content, String? imageUrl}) async {
+  Future<PostModel> updatePost(
+    String postId, {
+    String? content,
+    String? imageUrl,
+  }) async {
     final body = <String, dynamic>{};
     if (content != null) body['content'] = content;
     if (imageUrl != null) body['image_url'] = imageUrl;
-    final data = await _client.patch(ApiConstants.postUpdate(postId), body: body);
+    final data = await _client.patch(
+      ApiConstants.postUpdate(postId),
+      body: body,
+    );
     return PostModel.fromJson(data as Map<String, dynamic>);
   }
 
@@ -181,7 +191,11 @@ class FeedRemoteDatasource {
     return CommentModel.fromJson(data as Map<String, dynamic>);
   }
 
-  Future<CommentModel> updateComment(String postId, String commentId, String content) async {
+  Future<CommentModel> updateComment(
+    String postId,
+    String commentId,
+    String content,
+  ) async {
     final data = await _client.patch(
       ApiConstants.postCommentUpdate(postId, commentId),
       body: {'content': content},

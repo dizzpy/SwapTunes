@@ -28,8 +28,7 @@ class ProfileCoverHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
-      alignment:
-          isCreatorMode ? Alignment.bottomLeft : Alignment.bottomCenter,
+      alignment: isCreatorMode ? Alignment.bottomLeft : Alignment.bottomCenter,
       children: [
         // Cover image
         _maybeTappable(

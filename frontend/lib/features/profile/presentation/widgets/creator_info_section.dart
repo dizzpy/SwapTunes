@@ -30,8 +30,9 @@ class CreatorInfoSection extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 creator.roleTitle!,
-                style: AppTextStyles.bodySecondary
-                    .copyWith(color: AppColors.primary),
+                style: AppTextStyles.bodySecondary.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ],
             if (creator.roleTitle != null && creator.location != null)
@@ -45,8 +46,9 @@ class CreatorInfoSection extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 creator.location!,
-                style: AppTextStyles.bodySecondary
-                    .copyWith(color: AppColors.primary),
+                style: AppTextStyles.bodySecondary.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ],
           ],
@@ -64,15 +66,15 @@ class CreatorInfoSection extends StatelessWidget {
               Expanded(
                 child: Text(
                   firstLink,
-                  style: AppTextStyles.bodySecondary
-                      .copyWith(color: AppColors.primary),
+                  style: AppTextStyles.bodySecondary.copyWith(
+                    color: AppColors.primary,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               GestureDetector(
                 onTap: () => _showLinksBottomSheet(context),
-                child:
-                    Text('See More', style: AppTextStyles.bodySecondary70),
+                child: Text('See More', style: AppTextStyles.bodySecondary70),
               ),
             ],
           ),
@@ -111,8 +113,7 @@ class CreatorInfoSection extends StatelessWidget {
       ),
       builder: (context) {
         return Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

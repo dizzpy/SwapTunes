@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 /// Convenience extensions on [BuildContext].
 extension BuildContextExtensions on BuildContext {
@@ -22,18 +23,13 @@ extension BuildContextExtensions on BuildContext {
 
   /// Shows a simple SnackBar with a message.
   void showSnack(String message) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Shows an error SnackBar with red background.
   void showErrorSnack(String message) {
     ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.redAccent,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.danger),
     );
   }
 }

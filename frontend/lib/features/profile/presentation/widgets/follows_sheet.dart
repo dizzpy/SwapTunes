@@ -221,8 +221,11 @@ class _UserTile extends StatelessWidget {
                 ? NetworkImage(user.avatarUrl!)
                 : null,
             child: user.avatarUrl == null
-                ? const Icon(Icons.person,
-                    color: AppColors.textSecondary, size: 22)
+                ? const Icon(
+                    Icons.person,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  )
                 : null,
           ),
           const SizedBox(width: 12),
@@ -230,8 +233,7 @@ class _UserTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(user.fullName, style: AppTextStyles.bodyPrimary),
-              Text('@${user.username}',
-                  style: AppTextStyles.bodySecondary70),
+              Text('@${user.username}', style: AppTextStyles.bodySecondary70),
             ],
           ),
         ],

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:swaptune/features/profile/presentation/screens/user_profile_screen.dart';
-import 'package:swaptune/features/profile/presentation/screens/own_profile_screen.dart';
+
+import '../screens/main_layout_screen.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/services/navigation_service.dart';
@@ -68,10 +69,9 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   void _navigateToAuthorProfile() {
     AppHaptics.uiTap();
-    final myUsername =
-        context.read<AuthViewmodel>().currentUser?.username;
+    final myUsername = context.read<AuthViewmodel>().currentUser?.username;
     if (myUsername != null && myUsername == widget.userName) {
-      NavigationService.push(const OwnProfileScreen());
+      MainLayoutScreen.switchToProfile();
     } else {
       NavigationService.push(UserProfileScreen(username: widget.userName));
     }
@@ -211,8 +211,9 @@ class _PostCardState extends State<PostCard> {
                         isOwnPost: widget.isOwnPost,
                         onEdit: _openEditPost,
                         onDelete: () => _confirmDeletePost(context),
-                        onHide: () =>
-                            context.read<FeedViewmodel>().hidePost(widget.postId),
+                        onHide: () => context.read<FeedViewmodel>().hidePost(
+                          widget.postId,
+                        ),
                         onReport: () => context
                             .read<FeedViewmodel>()
                             .reportPost(widget.postId, 'inappropriate'),
@@ -242,7 +243,9 @@ class _PostCardState extends State<PostCard> {
                 icon: widget.isLiked
                     ? AppAssets.icon.favoriteFilled
                     : AppAssets.icon.favoriteOutline,
-                iconColor: widget.isLiked ? AppColors.danger : AppColors.textWhite,
+                iconColor: widget.isLiked
+                    ? AppColors.danger
+                    : AppColors.textWhite,
                 label: widget.likes,
                 showBorder: widget.showActionsBorder,
                 onTap: _toggleLike,
@@ -251,8 +254,7 @@ class _PostCardState extends State<PostCard> {
                     context: context,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
-                    builder: (context) =>
-                        PostLikesSheet(postId: widget.postId),
+                    builder: (context) => PostLikesSheet(postId: widget.postId),
                   );
                 },
               ),
@@ -281,17 +283,17 @@ class _PostCardState extends State<PostCard> {
               width: 40,
               height: 40,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: 40,
-                height: 40,
-                color: AppColors.outline,
-              ),
+              placeholder: (context, url) =>
+                  Container(width: 40, height: 40, color: AppColors.outline),
               errorWidget: (context, url, error) => Container(
                 width: 40,
                 height: 40,
                 color: AppColors.outline,
                 child: const Icon(
-                    Icons.person, color: AppColors.textSecondary, size: 22),
+                  Icons.person,
+                  color: AppColors.textSecondary,
+                  size: 22,
+                ),
               ),
             )
           : Container(
@@ -299,7 +301,10 @@ class _PostCardState extends State<PostCard> {
               height: 40,
               color: AppColors.outline,
               child: const Icon(
-                  Icons.person, color: AppColors.textSecondary, size: 22),
+                Icons.person,
+                color: AppColors.textSecondary,
+                size: 22,
+              ),
             ),
     );
   }
