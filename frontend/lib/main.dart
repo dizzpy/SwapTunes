@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'app/app.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_interceptor.dart';
+import 'core/services/isar_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/supabase_auth_service.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -46,6 +47,9 @@ Future<void> main() async {
   final interceptor = ApiInterceptor(storageService);
   final apiClient = ApiClient(interceptor: interceptor);
 
+  // Open Isar database
+  final isar = await IsarService.open();
+
   // Build data layer
   final authDatasource = AuthRemoteDatasource(apiClient);
   final authRepository = AuthRepository(
@@ -56,10 +60,12 @@ Future<void> main() async {
   final onboardingRepository = OnboardingRepository(storageService);
   final feedRepository = FeedRepository(
     FeedRemoteDatasource(apiClient, interceptor),
+    isar,
   );
   final profileRepository = ProfileRepository(
     apiClient,
     ProfileRemoteDatasource(apiClient, interceptor),
+    isar,
   );
 
   runApp(

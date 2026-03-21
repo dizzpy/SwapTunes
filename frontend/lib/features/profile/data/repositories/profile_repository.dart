@@ -1,46 +1,125 @@
+import 'dart:convert';
+
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:isar/isar.dart';
+
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../datasources/profile_remote_datasource.dart';
+import '../models/cached_profile.dart';
+import '../models/cached_user_post.dart';
 import '../models/full_profile_model.dart';
 import '../models/follow_user_model.dart';
 import '../../../feed/data/models/post_model.dart';
 
 /// Repository for all profile-related operations.
 ///
-/// Keeps [ApiClient] for the existing `updateProfile` PATCH call.
-/// All fetch / follow operations delegate to [ProfileRemoteDatasource].
-/// In-memory cache (5-min TTL) prevents redundant network calls when
-/// navigating back to recently visited profiles.
+/// Replaces the previous in-memory cache with a persistent Isar disk cache
+/// (5-min TTL) so profile data survives app restarts.
+/// User posts (profile tab) are also cached per userId.
 class ProfileRepository {
   final ApiClient _client;
   final ProfileRemoteDatasource _datasource;
+  final Isar _isar;
 
-  ProfileRepository(this._client, this._datasource);
-
-  // ── In-memory profile cache ──────────────────────────────────────
-  final _cache = <String, (FullProfileModel, DateTime)>{};
   static const _cacheTtl = Duration(minutes: 5);
 
+  ProfileRepository(this._client, this._datasource, this._isar);
+
+  // ── Profile ────────────────────────────────────────────
+
   /// Returns a cached profile if fresh, otherwise fetches from network.
-  Future<FullProfileModel> getUserProfile(String username,
-      {bool forceRefresh = false}) async {
+  ///
+  /// [forceRefresh] bypasses the cache — use this for pull-to-refresh.
+  Future<FullProfileModel> getUserProfile(
+    String username, {
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh) {
-      final cached = _cache[username];
-      if (cached != null &&
-          DateTime.now().difference(cached.$2) < _cacheTtl) {
-        return cached.$1;
-      }
+      final cached = await _getCachedProfile(username);
+      if (cached != null) return cached;
     }
+
     final profile = await _datasource.getUserProfile(username);
-    _cache[username] = (profile, DateTime.now());
+    await _cacheProfile(username, profile);
     return profile;
   }
 
-  /// Invalidate a specific profile from the cache (call after editing).
-  void invalidateCache(String username) => _cache.remove(username);
+  /// Invalidates a specific profile from the Isar cache (call after editing).
+  Future<void> invalidateCache(String username) async {
+    await _isar.writeTxn(() async {
+      await _isar.cachedProfiles.filter().usernameEqualTo(username).deleteAll();
+    });
+  }
 
-  // ── PATCH /users/me — update own profile fields ─────────────────
+  // ── Profile cache helpers ──────────────────────────────
+
+  Future<FullProfileModel?> _getCachedProfile(String username) async {
+    final cutoff = DateTime.now().subtract(_cacheTtl);
+    final row = await _isar.cachedProfiles
+        .filter()
+        .usernameEqualTo(username)
+        .cachedAtGreaterThan(cutoff)
+        .findFirst();
+    if (row == null) return null;
+    return _deserializeProfile(row);
+  }
+
+  Future<void> _cacheProfile(String username, FullProfileModel profile) async {
+    final row = CachedProfile()
+      ..username = username
+      ..contentJson = jsonEncode(_serializeProfile(profile))
+      ..cachedAt = DateTime.now();
+    await _isar.writeTxn(() async {
+      await _isar.cachedProfiles.put(row);
+    });
+  }
+
+  FullProfileModel _deserializeProfile(CachedProfile row) {
+    return FullProfileModel.fromJson(
+      jsonDecode(row.contentJson) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic> _serializeProfile(FullProfileModel p) => {
+        'id': p.id,
+        'full_name': p.fullName,
+        'username': p.username,
+        'bio': p.bio,
+        'avatar_url': p.avatarUrl,
+        'cover_url': p.coverUrl,
+        'user_type': p.userType,
+        'is_verified': p.isVerified,
+        'spotify_connected': p.spotifyConnected,
+        'created_at': p.createdAt.toIso8601String(),
+        'username_changed_at': p.usernameChangedAt?.toIso8601String(),
+        'genres': p.genres,
+        'stats': {
+          'followers': p.stats.followers,
+          'following': p.stats.following,
+          'posts': p.stats.posts,
+          'playlists': p.stats.playlists,
+          'collabs': p.stats.collabs,
+        },
+        'is_following': p.isFollowing,
+        'creator_profiles': p.creatorProfile == null
+            ? []
+            : [
+                {
+                  'role_title': p.creatorProfile!.roleTitle,
+                  'location': p.creatorProfile!.location,
+                  'specializations': p.creatorProfile!.specializations,
+                  'soundcloud_url': p.creatorProfile!.soundcloudUrl,
+                  'youtube_url': p.creatorProfile!.youtubeUrl,
+                  'spotify_artist_url': p.creatorProfile!.spotifyArtistUrl,
+                  'apple_music_url': p.creatorProfile!.appleMusicUrl,
+                  'portfolio_url': p.creatorProfile!.portfolioUrl,
+                }
+              ],
+      };
+
+  // ── Update profile ─────────────────────────────────────
+
   Future<void> updateProfile({
     String? fullName,
     String? bio,
@@ -60,24 +139,85 @@ class ProfileRepository {
     await _client.patch(ApiConstants.updateMe(), body: body);
   }
 
-  /// POST /users/:userId/follow
+  // ── Follow / Unfollow ──────────────────────────────────
+
   Future<void> followUser(String userId) => _datasource.followUser(userId);
 
-  /// DELETE /users/:userId/unfollow
   Future<void> unfollowUser(String userId) => _datasource.unfollowUser(userId);
 
-  /// GET /users/:userId/followers (paginated)
+  // ── Followers / Following ─────────────────────────────
+
   Future<List<FollowUserModel>> getFollowers(String userId, {int page = 1}) =>
       _datasource.getFollowers(userId, page: page);
 
-  /// GET /users/:userId/following (paginated)
   Future<List<FollowUserModel>> getFollowing(String userId, {int page = 1}) =>
       _datasource.getFollowing(userId, page: page);
 
-  /// GET /users/:userId/posts (paginated)
-  Future<List<PostModel>> getUserPosts(String userId, {int page = 1}) =>
-      _datasource.getUserPosts(userId, page: page);
+  // ── User posts (profile tab) ───────────────────────────
 
-  /// Upload an image and return its CDN URL.
+  /// Returns cached user posts if fresh, otherwise fetches from network.
+  ///
+  /// [forceRefresh] bypasses the cache — use this for pull-to-refresh.
+  Future<List<PostModel>> getUserPosts(
+    String userId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    if (page == 1 && !forceRefresh) {
+      final cached = await _getCachedUserPosts(userId);
+      if (cached != null) return cached;
+    }
+
+    final posts = await _datasource.getUserPosts(userId, page: page);
+    if (page == 1) await _cacheUserPosts(userId, posts);
+    return posts;
+  }
+
+  // ── User posts cache helpers ───────────────────────────
+
+  Future<List<PostModel>?> _getCachedUserPosts(String userId) async {
+    final cutoff = DateTime.now().subtract(_cacheTtl);
+    final row = await _isar.cachedUserPosts
+        .filter()
+        .userIdEqualTo(userId)
+        .cachedAtGreaterThan(cutoff)
+        .findFirst();
+    if (row == null) return null;
+    final list = jsonDecode(row.contentJson) as List;
+    return list
+        .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> _cacheUserPosts(String userId, List<PostModel> posts) async {
+    final serialized = posts.map(_serializePost).toList();
+    final row = CachedUserPost()
+      ..userId = userId
+      ..contentJson = jsonEncode(serialized)
+      ..cachedAt = DateTime.now();
+    await _isar.writeTxn(() async {
+      await _isar.cachedUserPosts.put(row);
+    });
+  }
+
+  Map<String, dynamic> _serializePost(PostModel p) => {
+        'id': p.id,
+        'user_id': p.userId,
+        'content': p.content,
+        'image_url': p.imageUrl,
+        'likes_count': p.likesCount,
+        'comments_count': p.commentsCount,
+        'is_liked': p.isLiked,
+        'created_at': p.createdAt.toIso8601String(),
+        'user': {
+          'username': p.authorUsername,
+          'full_name': p.authorFullName,
+          'avatar_url': p.authorAvatarUrl,
+          'is_verified': p.authorIsVerified,
+        },
+      };
+
+  // ── Image upload ───────────────────────────────────────
+
   Future<String> uploadImage(XFile image) => _datasource.uploadImage(image);
 }
