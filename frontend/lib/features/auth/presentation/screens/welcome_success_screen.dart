@@ -108,7 +108,7 @@ class _WelcomeSuccessScreenState extends State<WelcomeSuccessScreen> {
   // Handles the finalize action to enter the app shell
   void _onContinueTapped() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const MainLayoutScreen()),
+      MaterialPageRoute(builder: (context) => MainLayoutScreen()),
       (route) => false,
     );
   }

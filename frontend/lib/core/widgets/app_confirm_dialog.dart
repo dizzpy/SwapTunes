@@ -103,7 +103,10 @@ class AppConfirmDialog extends StatelessWidget {
                         ),
                       ),
                       alignment: Alignment.center,
-                      child: Text(cancelLabel, style: AppTextStyles.bodyPrimary),
+                      child: Text(
+                        cancelLabel,
+                        style: AppTextStyles.bodyPrimary,
+                      ),
                     ),
                   ),
                 ),

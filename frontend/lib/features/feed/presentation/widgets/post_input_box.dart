@@ -16,8 +16,7 @@ class PostInputBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarUrl =
-        context.watch<AuthViewmodel>().currentUser?.avatarUrl;
+    final avatarUrl = context.watch<AuthViewmodel>().currentUser?.avatarUrl;
 
     return GestureDetector(
       onTap: () {
@@ -110,15 +109,9 @@ class _UserAvatar extends StatelessWidget {
       height: 40,
       decoration: ShapeDecoration(
         color: AppColors.outline,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
-      child: const Icon(
-        Icons.person,
-        color: AppColors.textSecondary,
-        size: 22,
-      ),
+      child: const Icon(Icons.person, color: AppColors.textSecondary, size: 22),
     );
   }
 }

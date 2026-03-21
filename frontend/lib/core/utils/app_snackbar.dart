@@ -15,30 +15,29 @@ class AppSnackbar {
   AppSnackbar._();
 
   static void success(String message) => _show(
-        message: message,
-        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-        iconColor: AppColors.primary,
-      );
+    message: message,
+    icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+    iconColor: AppColors.primary,
+  );
 
   static void error(String message) => _show(
-        message: message,
-        icon: HugeIcons.strokeRoundedAlert02,
-        iconColor: AppColors.danger,
-      );
+    message: message,
+    icon: HugeIcons.strokeRoundedAlert02,
+    iconColor: AppColors.danger,
+  );
 
   static void info(String message) => _show(
-        message: message,
-        icon: HugeIcons.strokeRoundedInformationCircle,
-        iconColor: AppColors.textSecondary,
-      );
+    message: message,
+    icon: HugeIcons.strokeRoundedInformationCircle,
+    iconColor: AppColors.textSecondary,
+  );
 
   static void _show({
     required String message,
     required dynamic icon,
     required Color iconColor,
   }) {
-    final context =
-        NavigationService.navigatorKey.currentContext;
+    final context = NavigationService.navigatorKey.currentContext;
     if (context == null) return;
 
     ScaffoldMessenger.of(context)
@@ -62,10 +61,7 @@ class AppSnackbar {
                 HugeIcon(icon: icon, color: iconColor, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    message,
-                    style: AppTextStyles.bodySecondaryWhite,
-                  ),
+                  child: Text(message, style: AppTextStyles.bodySecondaryWhite),
                 ),
               ],
             ),

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../viewmodels/feed_viewmodel.dart';
@@ -123,8 +124,9 @@ class _EditPostScreenState extends State<EditPostScreen> {
             child: TextButton(
               onPressed: _hasChanges ? _save : null,
               style: TextButton.styleFrom(
-                backgroundColor:
-                    _hasChanges ? AppColors.primary : AppColors.cardFront,
+                backgroundColor: _hasChanges
+                    ? AppColors.primary
+                    : AppColors.cardFront,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -234,7 +236,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
                     placeholder: (_, _) => Container(
                       color: AppColors.cardFront,
                       child: const Center(
-                        child: CircularProgressIndicator(
+                        child: WavyCircularIndicator(
                           strokeWidth: 2,
                           color: AppColors.primary,
                         ),

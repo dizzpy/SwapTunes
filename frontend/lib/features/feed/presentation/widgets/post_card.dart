@@ -4,6 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:swaptune/features/profile/presentation/screens/user_profile_screen.dart';
 
+import '../screens/main_layout_screen.dart';
+
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/services/navigation_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,6 +13,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../presentation/viewmodels/feed_viewmodel.dart';
 import '../screens/post_preview_screen.dart';
 import '../screens/edit_post_screen.dart';
@@ -29,6 +32,7 @@ class PostCard extends StatefulWidget {
   final String comments;
   final bool isLiked;
   final bool isOwnPost;
+  final void Function(String postId)? onPostDeleted;
   final bool showBackground;
   final bool showHeader;
   final bool showActionsBorder;
@@ -49,6 +53,7 @@ class PostCard extends StatefulWidget {
     required this.comments,
     required this.isLiked,
     this.isOwnPost = false,
+    this.onPostDeleted,
     this.showBackground = true,
     this.showHeader = true,
     this.showActionsBorder = true,
@@ -62,6 +67,16 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
+  void _navigateToAuthorProfile() {
+    AppHaptics.uiTap();
+    final myUsername = context.read<AuthViewmodel>().currentUser?.username;
+    if (myUsername != null && myUsername == widget.userName) {
+      MainLayoutScreen.switchToProfile();
+    } else {
+      NavigationService.push(UserProfileScreen(username: widget.userName));
+    }
+  }
+
   void _toggleLike() {
     AppHaptics.like();
     context.read<FeedViewmodel>().toggleLike(widget.postId);
@@ -78,6 +93,7 @@ class _PostCardState extends State<PostCard> {
     );
     if (confirmed == true && mounted) {
       await feedVm.deletePost(widget.postId);
+      widget.onPostDeleted?.call(widget.postId);
       AppSnackbar.success('Post deleted');
     }
   }
@@ -138,22 +154,12 @@ class _PostCardState extends State<PostCard> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        AppHaptics.uiTap();
-                        NavigationService.push(
-                          UserProfileScreen(userName: widget.userName),
-                        );
-                      },
+                      onTap: _navigateToAuthorProfile,
                       child: _buildAvatar(),
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: () {
-                        AppHaptics.uiTap();
-                        NavigationService.push(
-                          UserProfileScreen(userName: widget.userName),
-                        );
-                      },
+                      onTap: _navigateToAuthorProfile,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -205,8 +211,9 @@ class _PostCardState extends State<PostCard> {
                         isOwnPost: widget.isOwnPost,
                         onEdit: _openEditPost,
                         onDelete: () => _confirmDeletePost(context),
-                        onHide: () =>
-                            context.read<FeedViewmodel>().hidePost(widget.postId),
+                        onHide: () => context.read<FeedViewmodel>().hidePost(
+                          widget.postId,
+                        ),
                         onReport: () => context
                             .read<FeedViewmodel>()
                             .reportPost(widget.postId, 'inappropriate'),
@@ -236,7 +243,9 @@ class _PostCardState extends State<PostCard> {
                 icon: widget.isLiked
                     ? AppAssets.icon.favoriteFilled
                     : AppAssets.icon.favoriteOutline,
-                iconColor: widget.isLiked ? AppColors.danger : AppColors.textWhite,
+                iconColor: widget.isLiked
+                    ? AppColors.danger
+                    : AppColors.textWhite,
                 label: widget.likes,
                 showBorder: widget.showActionsBorder,
                 onTap: _toggleLike,
@@ -245,8 +254,7 @@ class _PostCardState extends State<PostCard> {
                     context: context,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
-                    builder: (context) =>
-                        PostLikesSheet(postId: widget.postId),
+                    builder: (context) => PostLikesSheet(postId: widget.postId),
                   );
                 },
               ),
@@ -275,17 +283,17 @@ class _PostCardState extends State<PostCard> {
               width: 40,
               height: 40,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: 40,
-                height: 40,
-                color: AppColors.outline,
-              ),
+              placeholder: (context, url) =>
+                  Container(width: 40, height: 40, color: AppColors.outline),
               errorWidget: (context, url, error) => Container(
                 width: 40,
                 height: 40,
                 color: AppColors.outline,
                 child: const Icon(
-                    Icons.person, color: AppColors.textSecondary, size: 22),
+                  Icons.person,
+                  color: AppColors.textSecondary,
+                  size: 22,
+                ),
               ),
             )
           : Container(
@@ -293,7 +301,10 @@ class _PostCardState extends State<PostCard> {
               height: 40,
               color: AppColors.outline,
               child: const Icon(
-                  Icons.person, color: AppColors.textSecondary, size: 22),
+                Icons.person,
+                color: AppColors.textSecondary,
+                size: 22,
+              ),
             ),
     );
   }

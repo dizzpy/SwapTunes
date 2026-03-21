@@ -4,7 +4,7 @@ import { success } from '../../shared/utils/response.js'
 // Get profile controller handler.
 export const getProfile = async (req, res, next) => {
   try {
-    const profile = await usersService.getProfile(req.params.username)
+    const profile = await usersService.getProfile(req.params.username, req.user.id)
     success(res, profile)
   } catch (err) {
     next(err)

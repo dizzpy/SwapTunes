@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/input_box.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/auth_guard.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../widgets/genre_selection_wrap.dart';
 import '../widgets/profile_avatar_picker.dart';
 
@@ -51,7 +52,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     if (user != null) {
       final meta = user.userMetadata ?? {};
-      
+
       final fullName = meta['full_name'] as String?;
       if (fullName != null && fullName.isNotEmpty) {
         _fullNameController.text = fullName;
@@ -149,114 +150,121 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              Center(
-                child: Text(
-                  AppStrings.profileSetup.title,
-                  style: AppTextStyles.heading3,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 25.0,
+              vertical: 20.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Center(
+                  child: Text(
+                    AppStrings.profileSetup.title,
+                    style: AppTextStyles.heading3,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              Center(child: ProfileAvatarPicker(avatarUrl: _avatarUrl)),
-              const SizedBox(height: 40),
+                const SizedBox(height: 40),
+                Center(child: ProfileAvatarPicker(avatarUrl: _avatarUrl)),
+                const SizedBox(height: 40),
 
-              // Text inputs for user details
-              InputBox(
-                controller: _fullNameController,
-                title: AppStrings.profileSetup.fullNameLabel,
-                hintText: AppStrings.profileSetup.fullNameHint,
-              ),
-              const SizedBox(height: 25),
-              InputBox(
-                controller: _usernameController,
-                title: AppStrings.profileSetup.usernameLabel,
-                hintText: AppStrings.profileSetup.usernameHint,
-                prefixIcon: Text(
-                  '@',
-                  style: AppTextStyles.bodySecondary.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
+                // Text inputs for user details
+                InputBox(
+                  controller: _fullNameController,
+                  title: AppStrings.profileSetup.fullNameLabel,
+                  hintText: AppStrings.profileSetup.fullNameHint,
                 ),
-              ),
-              const SizedBox(height: 25),
-              InputBox(
-                controller: _bioController,
-                title: AppStrings.profileSetup.bioLabel,
-                hintText: AppStrings.profileSetup.bioHint,
-                isMultiLine: true,
-                characterCountText:
-                    AppStrings.profileSetup.characterCountSuffix,
-              ),
-              const SizedBox(height: 25),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppStrings.profileSetup.whatToListenInfo,
-                    style: AppTextStyles.bodySecondary,
-                  ),
-                  Text(
-                    AppStrings.profileSetup.pickCountInfo,
+                const SizedBox(height: 25),
+                InputBox(
+                  controller: _usernameController,
+                  title: AppStrings.profileSetup.usernameLabel,
+                  hintText: AppStrings.profileSetup.usernameHint,
+                  prefixIcon: Text(
+                    '@',
                     style: AppTextStyles.bodySecondary.copyWith(
-                      color: AppColors.primary,
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 15),
+                ),
+                const SizedBox(height: 25),
+                InputBox(
+                  controller: _bioController,
+                  title: AppStrings.profileSetup.bioLabel,
+                  hintText: AppStrings.profileSetup.bioHint,
+                  isMultiLine: true,
+                  characterCountText:
+                      AppStrings.profileSetup.characterCountSuffix,
+                ),
+                const SizedBox(height: 25),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppStrings.profileSetup.whatToListenInfo,
+                      style: AppTextStyles.bodySecondary,
+                    ),
+                    Text(
+                      AppStrings.profileSetup.pickCountInfo,
+                      style: AppTextStyles.bodySecondary.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
 
-              // Wrap widget to select multiple favorite genres
-              GenreSelectionWrap(
-                availableGenres: _genres,
-                selectedGenres: _selectedGenres,
-                onGenreToggled: (genre) {
-                  setState(() {
-                    if (_selectedGenres.contains(genre)) {
-                      _selectedGenres.remove(genre);
-                    } else {
-                      _selectedGenres.add(genre);
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 40),
+                // Wrap widget to select multiple favorite genres
+                GenreSelectionWrap(
+                  availableGenres: _genres,
+                  selectedGenres: _selectedGenres,
+                  onGenreToggled: (genre) {
+                    setState(() {
+                      if (_selectedGenres.contains(genre)) {
+                        _selectedGenres.remove(genre);
+                      } else {
+                        _selectedGenres.add(genre);
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 40),
 
-              // Navigation button to proceed to Spotify connect screen
-              Consumer<AuthViewmodel>(
-                builder: (context, auth, _) {
-                  return GreenButton(
-                    text: auth.isLoading
-                        ? 'Creating profile...'
-                        : AppStrings.profileSetup.completeButton,
-                    onPressed: auth.isLoading ? () {} : _handleCompleteProfile,
-                    icon: auth.isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
+                // Navigation button to proceed to Spotify connect screen
+                Consumer<AuthViewmodel>(
+                  builder: (context, auth, _) {
+                    return GreenButton(
+                      text: auth.isLoading
+                          ? 'Creating profile...'
+                          : AppStrings.profileSetup.completeButton,
+                      onPressed: auth.isLoading
+                          ? () {}
+                          : _handleCompleteProfile,
+                      icon: auth.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: WavyCircularIndicator(
+                                color: AppColors.primary,
+                                size: 20,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.arrow_forward_rounded,
                               color: AppColors.primary,
-                              strokeWidth: 2,
+                              size: 20,
                             ),
-                          )
-                        : const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: AppColors.primary,
-                            size: 20,
-                          ),
-                  );
-                },
-              ),
-              const SizedBox(height: 30),
-            ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 30),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }

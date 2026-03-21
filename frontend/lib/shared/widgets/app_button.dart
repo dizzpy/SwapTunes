@@ -205,3 +205,34 @@ class GreenButton extends BaseButton {
     child: buildLabel(),
   );
 }
+
+// ─────────────────────────────────────────────
+// TEXT BUTTON
+// ─────────────────────────────────────────────
+
+class TextAppButton extends BaseButton {
+  const TextAppButton({
+    super.key,
+    required super.text,
+    required super.onPressed,
+    super.height,
+    super.borderRadius,
+    super.icon,
+    super.foregroundColor,
+  });
+
+  @override
+  ButtonStyle buildStyle(BuildContext context) => TextButton.styleFrom(
+    foregroundColor: foregroundColor ?? AppColors.textWhite,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(borderRadius),
+    ),
+  );
+
+  @override
+  Widget buildChild(BuildContext context) => TextButton(
+    style: buildStyle(context),
+    onPressed: _handlePressed,
+    child: buildLabel(),
+  );
+}

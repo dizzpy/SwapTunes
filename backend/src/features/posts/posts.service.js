@@ -53,6 +53,26 @@ export const getFeed = async (userId, query) => {
   return mapped
 }
 
+// Get posts by a specific user (for profile posts tab).
+export const getUserPosts = async (requesterId, targetUserId, query) => {
+  const { from, to } = getPagination(query.page, query.limit)
+
+  const { data: posts, error } = await supabase
+    .from('posts')
+    .select('*, user:users(id, username, full_name, avatar_url, is_verified), post_likes(user_id)')
+    .eq('user_id', targetUserId)
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw { statusCode: 400, code: 'FETCH_POSTS_FAILED', message: error.message }
+
+  return posts.map((p) => ({
+    ...p,
+    is_liked: p.post_likes.some((like) => like.user_id === requesterId),
+    post_likes: undefined
+  }))
+}
+
 // Like post service method interacting with the database.
 export const likePost = async (userId, postId) => {
   const { data, error } = await supabase

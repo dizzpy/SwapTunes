@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'app/app.dart';
 import 'core/network/api_client.dart';
 import 'core/network/api_interceptor.dart';
+import 'core/services/isar_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/supabase_auth_service.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -15,6 +16,8 @@ import 'features/feed/data/repositories/feed_repository.dart';
 import 'features/feed/presentation/viewmodels/feed_viewmodel.dart';
 import 'features/onboarding/data/repositories/onboarding_repository.dart';
 import 'features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
+import 'features/profile/data/datasources/profile_remote_datasource.dart';
+import 'features/profile/data/repositories/profile_repository.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
 
 /// Entry point for the SwapTunes application.
@@ -44,6 +47,9 @@ Future<void> main() async {
   final interceptor = ApiInterceptor(storageService);
   final apiClient = ApiClient(interceptor: interceptor);
 
+  // Open Isar database
+  final isar = await IsarService.open();
+
   // Build data layer
   final authDatasource = AuthRemoteDatasource(apiClient);
   final authRepository = AuthRepository(
@@ -54,6 +60,12 @@ Future<void> main() async {
   final onboardingRepository = OnboardingRepository(storageService);
   final feedRepository = FeedRepository(
     FeedRemoteDatasource(apiClient, interceptor),
+    isar,
+  );
+  final profileRepository = ProfileRepository(
+    apiClient,
+    ProfileRemoteDatasource(apiClient, interceptor),
+    isar,
   );
 
   runApp(
@@ -65,6 +77,7 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(create: (_) => ProfileViewmodel(authRepository)),
         ChangeNotifierProvider(create: (_) => FeedViewmodel(feedRepository)),
+        Provider<ProfileRepository>.value(value: profileRepository),
       ],
       child: const SwapTuneApp(),
     ),

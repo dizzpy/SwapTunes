@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../../../../core/utils/app_haptics.dart';
 
 /// Result returned by [EditContentSheet] when editing a post.
@@ -231,7 +232,7 @@ class _EditContentSheetState extends State<EditContentSheet> {
                     placeholder: (_, _) => Container(
                       color: AppColors.cardFront,
                       child: const Center(
-                        child: CircularProgressIndicator(
+                        child: WavyCircularIndicator(
                           strokeWidth: 2,
                           color: AppColors.primary,
                         ),

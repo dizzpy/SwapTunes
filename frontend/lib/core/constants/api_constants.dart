@@ -24,6 +24,7 @@ class ApiConstants {
   static String following(String userId) => '/users/$userId/following';
   static String follow(String userId) => '/users/$userId/follow';
   static String unfollow(String userId) => '/users/$userId/unfollow';
+  static String userPosts(String userId) => '/users/$userId/posts';
 
   // ── Creator ────────────────────────────────────────────
   static const String creatorSetup = '/creator/setup';

@@ -1,14 +1,6 @@
 import 'package:flutter/services.dart';
 
-/// Centralised haptic feedback utility for SwapTunes.
-///
-/// Provides semantic, named methods instead of raw [HapticFeedback] calls
-/// so every callsite communicates intent rather than intensity.
-///
-/// Usage:
-///   AppHaptics.buttonTap();
-///   AppHaptics.success();
-///   AppHaptics.error();
+/// Centralised haptic feedback utility
 class AppHaptics {
   AppHaptics._();
 
