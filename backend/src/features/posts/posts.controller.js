@@ -21,6 +21,16 @@ export const getFeed = async (req, res, next) => {
   }
 }
 
+// Get posts by a specific user (profile posts tab).
+export const getUserPosts = async (req, res, next) => {
+  try {
+    const posts = await postsService.getUserPosts(req.user.id, req.params.userId, req.query)
+    success(res, posts)
+  } catch (err) {
+    next(err)
+  }
+}
+
 // Like post controller handler.
 export const likePost = async (req, res, next) => {
   try {
