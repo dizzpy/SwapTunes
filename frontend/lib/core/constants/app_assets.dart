@@ -24,6 +24,11 @@ class _Icons {
   final dynamic discover = HugeIcons.strokeRoundedDiscoverCircle;
   final dynamic message = HugeIcons.strokeRoundedMessage01;
   final dynamic profile = HugeIcons.strokeRoundedUserCircle;
+  final dynamic search = HugeIcons.strokeRoundedSearch01;
+  final dynamic add = HugeIcons.strokeRoundedAdd01;
+  final dynamic arrowLeft = HugeIcons.strokeRoundedArrowLeft01;
+  final dynamic clock = HugeIcons.strokeRoundedClock02;
+  final dynamic cancelCircle = HugeIcons.strokeRoundedCancelCircle;
 
   // Feed Actions
   final dynamic favoriteOutline = HugeIcons.strokeRoundedFavourite;
@@ -44,4 +49,8 @@ class _Icons {
   final dynamic music = HugeIcons.strokeRoundedMusicNote01;
   final dynamic close = HugeIcons.strokeRoundedCancel01;
   final dynamic gallery = HugeIcons.strokeRoundedImage01;
+  final dynamic externalLink = HugeIcons.strokeRoundedLink01;
+  final dynamic link = HugeIcons.strokeRoundedLinkSquare02;
+  final dynamic check = HugeIcons.strokeRoundedCheckmarkCircle02;
+  final dynamic globe = HugeIcons.strokeRoundedGlobe02;
 }

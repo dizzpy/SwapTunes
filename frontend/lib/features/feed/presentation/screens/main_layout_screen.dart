@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:swaptune/features/discover/presentation/screens/discover_screen.dart';
 import 'package:swaptune/features/feed/presentation/screens/feed_screen.dart';
 import 'package:swaptune/features/profile/presentation/screens/own_profile_screen.dart';
 import '../../../../core/constants/app_assets.dart';
@@ -35,9 +36,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
   final List<Widget> _tabRoots = [
     const FeedScreen(),
-    const Center(
-      child: Text('Discover', style: TextStyle(color: AppColors.textWhite)),
-    ),
+    const DiscoverScreen(),
     const Center(
       child: Text('Inbox', style: TextStyle(color: AppColors.textWhite)),
     ),
