@@ -72,31 +72,37 @@ class _AuthGateState extends State<_AuthGate> {
     // Cold-start: app was opened by tapping the magic link / OAuth redirect
     try {
       final initialUri = await _appLinks.getInitialLink();
-      if (initialUri != null && _isAuthCallback(initialUri)) {
-        debugPrint('[AuthGate] Cold-start deep link: $initialUri');
-        if (mounted) {
-          await context.read<AuthViewmodel>().handleDeepLink(initialUri);
-        }
+      if (initialUri != null) {
+        _handleIncomingLink(initialUri);
       }
     } catch (e) {
       debugPrint('[AuthGate] Failed to get initial link: $e');
     }
 
     _linkSub = _appLinks.uriLinkStream.listen(
-      (uri) async {
-        if (_isAuthCallback(uri) && mounted) {
-          debugPrint('[AuthGate] Warm deep link: $uri');
-          await context.read<AuthViewmodel>().handleDeepLink(uri);
-        }
-      },
+      (uri) => _handleIncomingLink(uri),
       onError: (Object e) {
         debugPrint('[AuthGate] Deep link stream error: $e');
       },
     );
   }
 
-  bool _isAuthCallback(Uri uri) =>
-      uri.scheme == SupabaseConstants.redirectScheme;
+  void _handleIncomingLink(Uri uri) {
+    if (!mounted) return;
+    if (uri.scheme != SupabaseConstants.redirectScheme) return;
+
+    final auth = context.read<AuthViewmodel>();
+
+    if (uri.host == 'spotify-connect') {
+      // Spotify connect callback — route to the Completer in AuthViewmodel
+      debugPrint('[AuthGate] Spotify connect callback: $uri');
+      auth.handleSpotifyConnectCallback(uri);
+    } else {
+      // Supabase auth callback (OAuth / magic link)
+      debugPrint('[AuthGate] Auth callback: $uri');
+      auth.handleDeepLink(uri);
+    }
+  }
 
   // ── Auth-driven navigation ─────────────────────────────
 

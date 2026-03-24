@@ -4,8 +4,11 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../data/models/source_platform.dart';
+import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/playlist_editor_viewmodel.dart';
 
 class PlaylistEditorScreen extends StatelessWidget {
@@ -38,7 +41,9 @@ class PlaylistEditorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PlaylistEditorViewModel(
+      create: (ctx) => PlaylistEditorViewModel(
+        repository: ctx.read<DiscoverRepository>(),
+        playlistId: playlistId,
         initialPlatform: initialPlatform,
         initialPrimaryUrl: initialPrimaryUrl,
         suggestedGenres: suggestedGenres,
@@ -94,6 +99,7 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             _buildTextField(
               hint: AppStrings.discover.playlistNameHint,
               onChanged: viewModel.setName,
+              errorText: viewModel.nameError,
             ),
             const SizedBox(height: 16),
             _buildSectionLabel(AppStrings.discover.descriptionLabel),
@@ -109,6 +115,13 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             _buildSectionLabel(AppStrings.discover.sourcePlatformLabel),
             const SizedBox(height: 10),
             _buildPlatformSelector(viewModel),
+            if (viewModel.platformError != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                viewModel.platformError!,
+                style: AppTextStyles.caption.copyWith(color: AppColors.danger),
+              ),
+            ],
             const SizedBox(height: 28),
 
             // 4 — Primary link input (shown only after platform is selected)
@@ -267,7 +280,10 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
   Widget _buildCoverImagePicker(PlaylistEditorViewModel viewModel) {
     return Center(
       child: GestureDetector(
-        onTap: () => AppHaptics.buttonTap(),
+        onTap: () {
+          AppHaptics.buttonTap();
+          _showCoverImageSheet(context, viewModel);
+        },
         child: Container(
           width: 130,
           height: 130,
@@ -276,34 +292,159 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.outline, width: 1.5),
           ),
-          child: viewModel.coverImageUrl != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(19),
-                  child: Image.network(
-                    viewModel.coverImageUrl!,
-                    fit: BoxFit.cover,
+          child: viewModel.isUploadingImage
+              ? const Center(
+                  child: SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: AppColors.primary,
+                    ),
                   ),
                 )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const HugeIcon(
-                      icon: HugeIcons.strokeRoundedImage02,
-                      color: AppColors.textSecondary,
-                      size: 32,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppStrings.discover.coverImageLabel,
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              : viewModel.coverImageUrl != null
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(19),
+                          child: Image.network(
+                            viewModel.coverImageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _buildCoverPlaceholder(),
+                          ),
+                        ),
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: GestureDetector(
+                            onTap: () {
+                              AppHaptics.buttonTap();
+                              viewModel.removeCoverImage();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppColors.background.withValues(alpha: 0.7),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const HugeIcon(
+                                icon: HugeIcons.strokeRoundedCancel01,
+                                color: AppColors.textWhite,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : _buildCoverPlaceholder(),
         ),
       ),
     );
+  }
+
+  Widget _buildCoverPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const HugeIcon(
+          icon: HugeIcons.strokeRoundedImage02,
+          color: AppColors.textSecondary,
+          size: 32,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          AppStrings.discover.coverImageLabel,
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCoverImageSheet(
+    BuildContext context,
+    PlaylistEditorViewModel viewModel,
+  ) {
+    AppHaptics.sheetOpen();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.cardFront,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 32),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Cover Image',
+                style: AppTextStyles.heading3.copyWith(
+                  color: AppColors.textWhite,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _CoverImageOption(
+                icon: HugeIcons.strokeRoundedImage01,
+                label: 'Choose from Gallery',
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickCoverImage(viewModel, ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 10),
+              _CoverImageOption(
+                icon: HugeIcons.strokeRoundedCamera01,
+                label: 'Take a Photo',
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickCoverImage(viewModel, ImageSource.camera);
+                },
+              ),
+              if (viewModel.coverImageUrl != null) ...[
+                const SizedBox(height: 10),
+                _CoverImageOption(
+                  icon: HugeIcons.strokeRoundedDelete01,
+                  label: 'Remove Image',
+                  isDanger: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                    viewModel.removeCoverImage();
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickCoverImage(
+    PlaylistEditorViewModel viewModel,
+    ImageSource source,
+  ) async {
+    final success = await viewModel.pickCoverImage(source);
+    if (!success && mounted) {
+      AppSnackbar.error('Failed to upload cover image');
+    }
   }
 
   // ── Platform selector ─────────────────────────────────────────────────────
@@ -435,7 +576,7 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: viewModel.primaryUrlError != null
+                color: (viewModel.primaryUrlError ?? viewModel.linkError) != null
                     ? AppColors.danger
                     : AppColors.outline,
               ),
@@ -443,7 +584,7 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: viewModel.primaryUrlError != null
+                color: (viewModel.primaryUrlError ?? viewModel.linkError) != null
                     ? AppColors.danger
                     : platform.color,
                 width: 1.5,
@@ -457,10 +598,10 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
         ),
 
         // Inline validation error
-        if (viewModel.primaryUrlError != null) ...[
+        if (viewModel.primaryUrlError != null || viewModel.linkError != null) ...[
           const SizedBox(height: 6),
           Text(
-            viewModel.primaryUrlError!,
+            viewModel.primaryUrlError ?? viewModel.linkError!,
             style: AppTextStyles.caption.copyWith(color: AppColors.danger),
           ),
         ],
@@ -872,9 +1013,25 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             : () async {
                 AppHaptics.buttonTap();
                 final success = await viewModel.savePlaylist();
-                if (success && context.mounted) {
+                if (!context.mounted) return;
+                if (success) {
                   AppHaptics.success();
-                  Navigator.pop(context);
+                  AppSnackbar.success(
+                    widget.isEditMode
+                        ? 'Playlist updated'
+                        : 'Playlist published',
+                  );
+                  Navigator.pop(context, true);
+                } else if (viewModel.error != null) {
+                  // API / network error
+                  AppSnackbar.error(AppStrings.discover.saveError);
+                } else {
+                  // Validation error — show first field error
+                  final msg = viewModel.nameError ??
+                      viewModel.platformError ??
+                      viewModel.linkError ??
+                      AppStrings.discover.saveError;
+                  AppSnackbar.error(msg);
                 }
               },
         style: ElevatedButton.styleFrom(
@@ -912,37 +1069,56 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
     required String hint,
     required ValueChanged<String> onChanged,
     int maxLines = 1,
+    String? errorText,
   }) {
-    return TextField(
-      onChanged: onChanged,
-      maxLines: maxLines,
-      style: AppTextStyles.bodySecondaryWhite.copyWith(
-        color: AppColors.textWhite,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: AppTextStyles.bodySecondaryWhite.copyWith(
-          color: AppColors.textSecondary,
+    final hasError = errorText != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          onChanged: onChanged,
+          maxLines: maxLines,
+          style: AppTextStyles.bodySecondaryWhite.copyWith(
+            color: AppColors.textWhite,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: AppTextStyles.bodySecondaryWhite.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            filled: true,
+            fillColor: AppColors.cardFront,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.outline),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.danger : AppColors.outline,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.danger : AppColors.primary,
+                width: 1.5,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
         ),
-        filled: true,
-        fillColor: AppColors.cardFront,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.outline),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
+        if (hasError) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText,
+            style: AppTextStyles.caption.copyWith(color: AppColors.danger),
+          ),
+        ],
+      ],
     );
   }
 
@@ -1016,6 +1192,58 @@ class _VisibilityOption extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoverImageOption extends StatelessWidget {
+  final dynamic icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isDanger;
+
+  const _CoverImageOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isDanger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDanger ? AppColors.danger : AppColors.primary;
+    return GestureDetector(
+      onTap: () {
+        AppHaptics.buttonTap();
+        onTap();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            HugeIcon(icon: icon, color: color, size: 20),
+            const SizedBox(width: 14),
+            Text(
+              label,
+              style: AppTextStyles.bodyPrimary.copyWith(
+                color: isDanger ? AppColors.danger : AppColors.textWhite,
+                fontSize: 14,
+              ),
+            ),
+            const Spacer(),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: AppColors.textSecondary,
+              size: 16,
+            ),
+          ],
         ),
       ),
     );

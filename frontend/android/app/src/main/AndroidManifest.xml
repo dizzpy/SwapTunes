@@ -32,6 +32,14 @@
                 <data android:scheme="io.supabase.swaptune"
                       android:host="login-callback" />
             </intent-filter>
+            <!-- Deep link handler for Spotify connect callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="io.supabase.swaptune"
+                      android:host="spotify-connect" />
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

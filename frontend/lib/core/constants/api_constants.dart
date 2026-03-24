@@ -49,12 +49,18 @@ class ApiConstants {
   static String postLikers(String postId) => '/posts/$postId/likers';
 
   // ── Discover ───────────────────────────────────────────
-  static const String discoverFeed = '/discover/feed';
+  static const String discoverPlaylists = '/discover/playlists';
+  static const String discoverGenres = '/discover/genres';
   static const String discoverSearch = '/discover/search';
 
   // ── Playlists ──────────────────────────────────────────
   static const String playlists = '/playlists';
+  static const String playlistCreate = '/playlists/create';
+  static const String spotifyAvailable = '/playlists/spotify/available';
+  static const String playlistImport = '/playlists/import';
   static String playlistById(String id) => '/playlists/$id';
+  static String playlistLike(String id) => '/playlists/$id/like';
+  static String userPlaylists(String userId) => '/playlists/user/$userId';
 
   // ── Collabs ────────────────────────────────────────────
   static const String collabs = '/collabs';

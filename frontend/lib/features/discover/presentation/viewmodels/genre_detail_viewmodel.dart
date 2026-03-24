@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../data/models/playlist_model.dart';
+import '../../data/repositories/discover_repository.dart';
 
+/// Lightweight display model for a single playlist card in the genre detail grid.
 class PlaylistItem {
   final String id;
   final String title;
@@ -12,40 +15,85 @@ class PlaylistItem {
     required this.subtitle,
     this.imageUrl,
   });
+
+  factory PlaylistItem.fromModel(PlaylistModel model) {
+    return PlaylistItem(
+      id: model.id,
+      title: model.name,
+      subtitle: model.genreTags.isNotEmpty
+          ? model.genreTags.join(', ')
+          : model.ownerUsername,
+      imageUrl: model.coverImageUrl,
+    );
+  }
 }
 
 class GenreDetailViewModel extends ChangeNotifier {
+  static const int _pageSize = 20;
+
+  final DiscoverRepository _repository;
   final String genre;
 
-  final bool _isLoading = false;
-  final String? _error = null;
+  bool _isLoading = true;
   bool _isLoadingMore = false;
-  bool _hasMore = true;
+  String? _error;
+  final List<PlaylistItem> _playlists = [];
   int _page = 1;
-  static const int _pageSize = 8;
+  bool _hasMore = true;
 
   bool get isLoading => _isLoading;
-  String? get error => _error;
   bool get isLoadingMore => _isLoadingMore;
-  bool get hasMore => _hasMore;
+  String? get error => _error;
+  List<PlaylistItem> get playlists => List.unmodifiable(_playlists);
 
-  final List<PlaylistItem> playlists = [];
-
-  GenreDetailViewModel({required this.genre}) {
-    _seedMockData();
+  GenreDetailViewModel({required this.genre, required DiscoverRepository repository})
+      : _repository = repository {
+    _loadPlaylists();
   }
 
-  void _seedMockData() {
-    // First page — will be replaced with API call in data layer phase
-    for (var i = 1; i <= _pageSize; i++) {
-      playlists.add(
-        PlaylistItem(
-          id: 'mock-$i',
-          title: '$genre Mix $i',
-          subtitle: '$genre • ${20 + i} tracks',
-          imageUrl: 'https://picsum.photos/seed/${genre}_$i/200/200',
-        ),
+  Future<void> _loadPlaylists() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final results = await _repository.getDiscoverPlaylists(
+        genre: genre,
+        page: 1,
+        limit: _pageSize,
       );
+      _playlists
+        ..clear()
+        ..addAll(results.map(PlaylistItem.fromModel));
+      _page = 1;
+      _hasMore = results.length == _pageSize;
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> retry() => _loadPlaylists();
+
+  /// Silent refresh — re-fetches page 1 without showing loading spinner.
+  Future<void> refresh() async {
+    try {
+      final results = await _repository.getDiscoverPlaylists(
+        genre: genre,
+        page: 1,
+        limit: _pageSize,
+      );
+      _playlists
+        ..clear()
+        ..addAll(results.map(PlaylistItem.fromModel));
+      _page = 1;
+      _hasMore = results.length == _pageSize;
+      _error = null;
+      notifyListeners();
+    } catch (_) {
+      // Silently ignore — stale data is better than a blank screen
     }
   }
 
@@ -55,26 +103,18 @@ class GenreDetailViewModel extends ChangeNotifier {
     _isLoadingMore = true;
     notifyListeners();
 
-    // Simulates paged API call — will be wired to real API in data layer phase
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    _page++;
-    final start = (_page - 1) * _pageSize + 1;
-    final end = start + _pageSize;
-
-    for (var i = start; i < end; i++) {
-      playlists.add(
-        PlaylistItem(
-          id: 'mock-$i',
-          title: '$genre Mix $i',
-          subtitle: '$genre • ${20 + i} tracks',
-          imageUrl: 'https://picsum.photos/seed/${genre}_$i/200/200',
-        ),
+    try {
+      final results = await _repository.getDiscoverPlaylists(
+        genre: genre,
+        page: _page + 1,
+        limit: _pageSize,
       );
+      _playlists.addAll(results.map(PlaylistItem.fromModel));
+      _page++;
+      _hasMore = results.length == _pageSize;
+    } catch (_) {
+      // silently ignore load-more errors — existing data stays visible
     }
-
-    // Stop after 3 pages in mock
-    if (_page >= 3) _hasMore = false;
 
     _isLoadingMore = false;
     notifyListeners();

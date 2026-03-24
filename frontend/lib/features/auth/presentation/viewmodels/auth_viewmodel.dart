@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/spotify_constants.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
 
@@ -249,6 +251,45 @@ class AuthViewmodel extends ChangeNotifier {
   }
 
   // ── Spotify Connect ────────────────────────────────────
+
+  Completer<String?>? _spotifyConnectCompleter;
+
+  /// Opens Spotify authorization page in the browser.
+  /// Returns the auth code when the callback deep link arrives, or null
+  /// if the user cancelled or an error occurred.
+  Future<String?> launchSpotifyConnect() async {
+    _spotifyConnectCompleter = Completer<String?>();
+
+    final url = SpotifyConstants.buildAuthorizationUrl();
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+
+    return _spotifyConnectCompleter!.future;
+  }
+
+  /// Called by the deep link handler when a `spotify-connect` callback arrives.
+  void handleSpotifyConnectCallback(Uri uri) {
+    final code = uri.queryParameters['code'];
+    final error = uri.queryParameters['error'];
+
+    if (_spotifyConnectCompleter != null &&
+        !_spotifyConnectCompleter!.isCompleted) {
+      if (error != null || code == null) {
+        _spotifyConnectCompleter!.complete(null);
+      } else {
+        _spotifyConnectCompleter!.complete(code);
+      }
+    }
+    _spotifyConnectCompleter = null;
+  }
+
+  /// Cancels a pending Spotify connect flow (e.g. user navigated away).
+  void cancelSpotifyConnect() {
+    if (_spotifyConnectCompleter != null &&
+        !_spotifyConnectCompleter!.isCompleted) {
+      _spotifyConnectCompleter!.complete(null);
+    }
+    _spotifyConnectCompleter = null;
+  }
 
   /// Exchanges Spotify OAuth code via `POST /auth/spotify/connect`.
   Future<bool> connectSpotify(String code, String redirectUri) async {

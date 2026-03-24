@@ -4,6 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/discover_viewmodel.dart';
 import '../widgets/section_header.dart';
 import '../widgets/genre_chip.dart';
@@ -23,7 +25,7 @@ class DiscoverScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => DiscoverViewModel(),
+      create: (ctx) => DiscoverViewModel(ctx.read<DiscoverRepository>()),
       child: const _DiscoverScreenContent(),
     );
   }
@@ -36,12 +38,58 @@ class _DiscoverScreenContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<DiscoverViewModel>();
 
+    if (viewModel.isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: _buildAppBar(context),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (viewModel.error != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: _buildAppBar(context),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                AppStrings.discover.loadingError,
+                style: AppTextStyles.bodySecondaryWhite.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: viewModel.retry,
+                child: Text(
+                  AppStrings.discover.retry,
+                  style: AppTextStyles.bodyPrimary.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        backgroundColor: AppColors.cardFront,
+        onRefresh: viewModel.refresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- Browse by Genre Section ---
@@ -49,13 +97,15 @@ class _DiscoverScreenContent extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SectionHeader(
                 title: AppStrings.discover.browseByGenre,
-                onSeeAll: () {
-                  Navigator.push(
+                onSeeAll: () async {
+                  final vm = context.read<DiscoverViewModel>();
+                  final changed = await Navigator.push<bool>(
                     context,
                     MaterialPageRoute(
                       builder: (_) => const BrowseGenresScreen(),
                     ),
                   );
+                  if (changed == true) vm.refresh();
                 },
               ),
             ),
@@ -71,13 +121,15 @@ class _DiscoverScreenContent extends StatelessWidget {
                   final genre = viewModel.genres[index];
                   return GenreChip(
                     label: genre,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final vm = context.read<DiscoverViewModel>();
+                      final changed = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
                           builder: (_) => GenreDetailScreen(genre: genre),
                         ),
                       );
+                      if (changed == true) vm.refresh();
                     },
                   );
                 },
@@ -85,11 +137,11 @@ class _DiscoverScreenContent extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // --- Future Playlists Section ---
+            // --- Featured Playlists Section ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SectionHeader(
-                title: AppStrings.discover.futurePlaylists,
+                title: AppStrings.discover.featuredPlaylists,
                 onSeeAll: () {},
               ),
             ),
@@ -99,26 +151,29 @@ class _DiscoverScreenContent extends StatelessWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 scrollDirection: Axis.horizontal,
-                itemCount: viewModel.futurePlaylists.length,
+                itemCount: viewModel.playlists.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 16),
                 itemBuilder: (context, index) {
-                  final playlist = viewModel.futurePlaylists[index];
-                  final tag = playlist['id'] ?? 'discover-$index';
+                  final playlist = viewModel.playlists[index];
                   return PlaylistCard(
-                    title: playlist['title']!,
-                    subtitle: playlist['subtitle']!,
-                    imageUrl: playlist['image'],
-                    heroTag: tag,
-                    onTap: () {
-                      Navigator.push(
+                    title: playlist.name,
+                    subtitle: playlist.genreTags.isNotEmpty
+                        ? playlist.genreTags.join(', ')
+                        : playlist.ownerUsername,
+                    imageUrl: playlist.coverImageUrl,
+                    heroTag: playlist.id,
+                    onTap: () async {
+                      final vm = context.read<DiscoverViewModel>();
+                      final changed = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
                           builder: (_) => PlaylistDetailScreen(
-                            playlistId: tag,
-                            heroTag: tag,
+                            playlistId: playlist.id,
+                            heroTag: playlist.id,
                           ),
                         ),
                       );
+                      if (changed == true) vm.refresh();
                     },
                   );
                 },
@@ -151,6 +206,7 @@ class _DiscoverScreenContent extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -164,17 +220,21 @@ class _DiscoverScreenContent extends StatelessWidget {
           AppAssets.icon.add,
           () => AddPlaylistSheet.show(
             context,
-            onImportFromSpotify: () {
-              Navigator.push(
+            onImportFromSpotify: () async {
+              final vm = context.read<DiscoverViewModel>();
+              final changed = await Navigator.push<bool>(
                 context,
                 MaterialPageRoute(builder: (_) => const SpotifyImportScreen()),
               );
+              if (changed == true) vm.refresh();
             },
-            onCreateManually: () {
-              Navigator.push(
+            onCreateManually: () async {
+              final vm = context.read<DiscoverViewModel>();
+              final changed = await Navigator.push<bool>(
                 context,
                 MaterialPageRoute(builder: (_) => const PlaylistEditorScreen()),
               );
+              if (changed == true) vm.refresh();
             },
           ),
         ),

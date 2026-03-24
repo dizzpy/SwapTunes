@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../data/models/playlist_model.dart';
 import '../../data/models/source_platform.dart';
+import '../../data/repositories/discover_repository.dart';
 
 class TrackItem {
   final int index;
@@ -28,7 +30,7 @@ class PlaylistDetailData {
   final bool isOwner;
   final DateTime createdAt;
 
-  // External links (null = platform not linked)
+  // Single primary link — maps the stored primary_url to the correct platform slot
   final String? spotifyUrl;
   final String? youtubeMusicUrl;
   final String? appleMusicUrl;
@@ -54,21 +56,35 @@ class PlaylistDetailData {
     this.soundcloudUrl,
   });
 
+  factory PlaylistDetailData.fromModel(PlaylistModel model, String? currentUserId) {
+    return PlaylistDetailData(
+      id: model.id,
+      name: model.name,
+      description: model.description,
+      coverImageUrl: model.coverImageUrl,
+      trackCount: model.trackCount,
+      sourcePlatform: model.sourcePlatform,
+      isPublic: model.isPublic,
+      genreTags: model.genreTags,
+      ownerUsername: model.ownerUsername,
+      ownerFullName: model.ownerFullName,
+      ownerAvatarUrl: model.ownerAvatarUrl,
+      isOwner: currentUserId != null && currentUserId == model.userId,
+      createdAt: model.createdAt,
+      spotifyUrl: model.sourcePlatform == SourcePlatform.spotify ? model.primaryUrl : null,
+      youtubeMusicUrl: model.sourcePlatform == SourcePlatform.youtubeMusic ? model.primaryUrl : null,
+      appleMusicUrl: model.sourcePlatform == SourcePlatform.appleMusic ? model.primaryUrl : null,
+      soundcloudUrl: model.sourcePlatform == SourcePlatform.soundcloud ? model.primaryUrl : null,
+    );
+  }
+
   /// Returns only platforms that have a URL configured.
   List<MapEntry<SourcePlatform, String>> get activeLinks {
     final links = <MapEntry<SourcePlatform, String>>[];
-    if (spotifyUrl != null) {
-      links.add(MapEntry(SourcePlatform.spotify, spotifyUrl!));
-    }
-    if (youtubeMusicUrl != null) {
-      links.add(MapEntry(SourcePlatform.youtubeMusic, youtubeMusicUrl!));
-    }
-    if (appleMusicUrl != null) {
-      links.add(MapEntry(SourcePlatform.appleMusic, appleMusicUrl!));
-    }
-    if (soundcloudUrl != null) {
-      links.add(MapEntry(SourcePlatform.soundcloud, soundcloudUrl!));
-    }
+    if (spotifyUrl != null) links.add(MapEntry(SourcePlatform.spotify, spotifyUrl!));
+    if (youtubeMusicUrl != null) links.add(MapEntry(SourcePlatform.youtubeMusic, youtubeMusicUrl!));
+    if (appleMusicUrl != null) links.add(MapEntry(SourcePlatform.appleMusic, appleMusicUrl!));
+    if (soundcloudUrl != null) links.add(MapEntry(SourcePlatform.soundcloud, soundcloudUrl!));
     return links;
   }
 
@@ -88,36 +104,34 @@ class PlaylistDetailData {
 }
 
 class PlaylistDetailViewModel extends ChangeNotifier {
+  final DiscoverRepository _repository;
   final String playlistId;
+  final String? currentUserId;
 
   bool _isLoading = true;
   bool _isDeleting = false;
-  bool _isLoadingTracks = false;
   String? _error;
   PlaylistDetailData? _playlist;
-  List<TrackItem> _trackList = [];
+  final List<TrackItem> _trackList = [];
 
-  // Like state — will be synced with real API in data layer phase
   bool _isLiked = false;
-  int _likeCount = 128;
+  int _likeCount = 0;
+  bool _isTogglingLike = false;
 
   bool get isLoading => _isLoading;
   bool get isDeleting => _isDeleting;
-  bool get isLoadingTracks => _isLoadingTracks;
   String? get error => _error;
   PlaylistDetailData? get playlist => _playlist;
   List<TrackItem> get trackList => _trackList;
   bool get isLiked => _isLiked;
   int get likeCount => _likeCount;
 
-  PlaylistDetailViewModel({required this.playlistId}) {
+  PlaylistDetailViewModel({
+    required this.playlistId,
+    required DiscoverRepository repository,
+    this.currentUserId,
+  }) : _repository = repository {
     _loadPlaylist();
-  }
-
-  void toggleLike() {
-    _isLiked = !_isLiked;
-    _likeCount += _isLiked ? 1 : -1;
-    notifyListeners();
   }
 
   Future<void> _loadPlaylist() async {
@@ -125,89 +139,62 @@ class PlaylistDetailViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    // Simulates network call — will be wired to real API in data layer phase
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    _playlist = PlaylistDetailData(
-      id: playlistId,
-      name: 'Heavy Bass Drops 2026',
-      description:
-          'The finest dubstep and bass music curated for high energy sessions. '
-          'Updated weekly with fresh drops.',
-      coverImageUrl: 'https://picsum.photos/seed/$playlistId/400/400',
-      trackCount: 45,
-      sourcePlatform: SourcePlatform.spotify,
-      isPublic: true,
-      genreTags: ['Dubstep', 'Bass', 'Electronic'],
-      ownerUsername: 'skrillex',
-      ownerFullName: 'Skrillex',
-      ownerAvatarUrl: 'https://picsum.photos/seed/owner/100/100',
-      isOwner: true,
-      createdAt: DateTime(2026, 1, 15),
-      spotifyUrl: 'https://open.spotify.com/playlist/abc123',
-      youtubeMusicUrl: null,
-      appleMusicUrl: null,
-      soundcloudUrl: null,
-    );
+    try {
+      final model = await _repository.getPlaylist(playlistId);
+      _playlist = PlaylistDetailData.fromModel(model, currentUserId);
+      _isLiked = model.isLiked;
+      _likeCount = model.likesCount;
+    } catch (e) {
+      _error = e.toString();
+    }
 
     _isLoading = false;
     notifyListeners();
-
-    // Auto-load tracks if Spotify
-    if (_playlist!.sourcePlatform == SourcePlatform.spotify) {
-      _loadTracks();
-    }
   }
 
-  Future<void> _loadTracks() async {
-    _isLoadingTracks = true;
+  Future<void> retry() => _loadPlaylist();
+
+  Future<void> toggleLike() async {
+    if (_isTogglingLike) return;
+    _isTogglingLike = true;
+
+    // Optimistic update
+    final wasLiked = _isLiked;
+    _isLiked = !_isLiked;
+    _likeCount += _isLiked ? 1 : -1;
     notifyListeners();
 
-    // Simulates Spotify API tracklist call — real API wired in data layer phase
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      if (_isLiked) {
+        await _repository.likePlaylist(playlistId);
+      } else {
+        await _repository.unlikePlaylist(playlistId);
+      }
+    } catch (_) {
+      // Revert on failure
+      _isLiked = wasLiked;
+      _likeCount += wasLiked ? 1 : -1;
+      notifyListeners();
+    }
 
-    _trackList = [
-      const TrackItem(
-        index: 1,
-        title: 'Scary Monsters and Nice Sprites',
-        artist: 'Skrillex',
-      ),
-      const TrackItem(
-        index: 2,
-        title: 'First of the Year (Equinox)',
-        artist: 'Skrillex',
-      ),
-      const TrackItem(index: 3, title: 'Bass Cannon', artist: 'Flux Pavilion'),
-      const TrackItem(
-        index: 4,
-        title: 'I Can\'t Stop',
-        artist: 'Flux Pavilion',
-      ),
-      const TrackItem(index: 5, title: 'X Up', artist: 'Excision'),
-      const TrackItem(
-        index: 6,
-        title: 'Throwin\' Elbows',
-        artist: 'Excision & Datsik',
-      ),
-      const TrackItem(index: 7, title: 'Shambhala', artist: 'Virtual Riot'),
-      const TrackItem(index: 8, title: 'Energy Drink', artist: 'Virtual Riot'),
-      const TrackItem(index: 9, title: 'Collapse', artist: 'Zeds Dead'),
-      const TrackItem(index: 10, title: 'Hadouken', artist: 'Feed Me'),
-    ];
-
-    _isLoadingTracks = false;
-    notifyListeners();
+    _isTogglingLike = false;
   }
 
   Future<bool> deletePlaylist() async {
+    if (_isDeleting) return false;
     _isDeleting = true;
     notifyListeners();
 
-    // Simulates network call — will be wired to real API in data layer phase
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    _isDeleting = false;
-    notifyListeners();
-    return true;
+    try {
+      await _repository.deletePlaylist(playlistId);
+      _isDeleting = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isDeleting = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

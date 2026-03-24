@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/genre_detail_viewmodel.dart';
 import '../widgets/playlist_card.dart';
 import 'playlist_detail_screen.dart';
@@ -16,7 +17,10 @@ class GenreDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => GenreDetailViewModel(genre: genre),
+      create: (ctx) => GenreDetailViewModel(
+        genre: genre,
+        repository: ctx.read<DiscoverRepository>(),
+      ),
       child: _GenreDetailContent(genre: genre),
     );
   }
@@ -68,9 +72,14 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
             )
           : viewModel.error != null
           ? _buildError(context)
-          : viewModel.playlists.isEmpty
-          ? _buildEmpty()
-          : _buildList(context, viewModel),
+          : RefreshIndicator(
+              color: AppColors.primary,
+              backgroundColor: AppColors.cardFront,
+              onRefresh: viewModel.refresh,
+              child: viewModel.playlists.isEmpty
+                  ? _buildEmpty()
+                  : _buildList(context, viewModel),
+            ),
     );
   }
 
@@ -126,14 +135,16 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
           subtitle: item.subtitle,
           imageUrl: item.imageUrl,
           heroTag: item.id,
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final vm = context.read<GenreDetailViewModel>();
+            final changed = await Navigator.push<bool>(
               context,
               MaterialPageRoute(
                 builder: (_) =>
                     PlaylistDetailScreen(playlistId: item.id, heroTag: item.id),
               ),
             );
+            if (changed == true) vm.refresh();
           },
         );
       },
@@ -157,35 +168,44 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
   }
 
   Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedMusicNote01,
-            color: AppColors.textSecondary,
-            size: 48,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            AppStrings.discover.noPlaylistsInGenre,
-            style: AppTextStyles.bodyPrimary.copyWith(
-              color: AppColors.textWhite,
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: constraints.maxHeight,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const HugeIcon(
+                  icon: HugeIcons.strokeRoundedMusicNote01,
+                  color: AppColors.textSecondary,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.discover.noPlaylistsInGenre,
+                  style: AppTextStyles.bodyPrimary.copyWith(
+                    color: AppColors.textWhite,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppStrings.discover.noPlaylistsSubtitle,
+                  style: AppTextStyles.bodySecondaryWhite.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            AppStrings.discover.noPlaylistsSubtitle,
-            style: AppTextStyles.bodySecondaryWhite.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildError(BuildContext context) {
+    final viewModel = context.read<GenreDetailViewModel>();
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -199,7 +219,7 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () {},
+            onPressed: viewModel.retry,
             child: Text(
               AppStrings.discover.retry,
               style: AppTextStyles.bodyPrimary.copyWith(

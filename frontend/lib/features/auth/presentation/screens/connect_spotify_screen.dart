@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/spotify_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/auth_guard.dart';
@@ -9,14 +10,45 @@ import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/connect_spotify_widgets.dart';
 import 'welcome_success_screen.dart';
 
+/// Determines the navigation behaviour of [ConnectSpotifyScreen].
+enum ConnectSpotifyContext {
+  /// During first-time onboarding (shows "Skip for Now", navigates to success).
+  onboarding,
+
+  /// From the Discover → Import flow (shows "Nevermind", pops back).
+  discover,
+}
+
 class ConnectSpotifyScreen extends StatefulWidget {
-  const ConnectSpotifyScreen({super.key});
+  final ConnectSpotifyContext flowContext;
+
+  const ConnectSpotifyScreen({
+    super.key,
+    this.flowContext = ConnectSpotifyContext.onboarding,
+  });
 
   @override
   State<ConnectSpotifyScreen> createState() => _ConnectSpotifyScreenState();
 }
 
 class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
+  late final AuthViewmodel _auth;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = context.read<AuthViewmodel>();
+  }
+
+  @override
+  void dispose() {
+    _auth.cancelSpotifyConnect();
+    super.dispose();
+  }
+
+  bool get _isOnboarding =>
+      widget.flowContext == ConnectSpotifyContext.onboarding;
+
   void _navigateToSuccess() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
@@ -29,20 +61,26 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
     );
   }
 
-  // Connects the user's Spotify account and proceeds
+  // Opens Spotify auth in browser, waits for callback, exchanges code
   void _onConnectTapped() async {
-    final auth = context.read<AuthViewmodel>();
+    // Step 1: Launch Spotify authorization page, wait for the auth code
+    final code = await _auth.launchSpotifyConnect();
+    if (code == null || !mounted) return;
 
-    // Pass dummy values here since actual OAuth code retrieval requires deep linking
-    final success = await auth.connectSpotify(
-      'dummy_code',
-      'swaptunes://spotify-callback',
+    // Step 2: Exchange the code with the backend
+    final success = await _auth.connectSpotify(
+      code,
+      SpotifyConstants.connectRedirectUri,
     );
 
     if (success && mounted) {
-      _navigateToSuccess();
+      if (_isOnboarding) {
+        _navigateToSuccess();
+      } else {
+        Navigator.of(context).pop(true);
+      }
     } else if (mounted) {
-      final error = auth.errorMessage;
+      final error = _auth.errorMessage;
       if (error != null) {
         ScaffoldMessenger.of(
           context,
@@ -51,9 +89,12 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
     }
   }
 
-  // Skips the Spotify connection for now
   void _onSkipTapped() {
-    _navigateToSuccess();
+    if (_isOnboarding) {
+      _navigateToSuccess();
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -94,7 +135,7 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
                   ),
 
                   const Spacer(flex: 4),
-                  // Privacy disclaimer text
+                  // Permission details
                   const ConnectSpotifyPrivacyInfo(),
 
                   const SizedBox(height: 20),
@@ -102,7 +143,7 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
                   ConnectSpotifyActionBtn(onTap: _onConnectTapped),
 
                   const SizedBox(height: 24),
-                  // Secondary skip action button
+                  // Secondary skip / nevermind button
                   TextButton(
                     onPressed: _onSkipTapped,
                     style: TextButton.styleFrom(
@@ -110,7 +151,9 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
                       splashFactory: NoSplash.splashFactory,
                     ),
                     child: Text(
-                      AppStrings.connectSpotify.skipBtn,
+                      _isOnboarding
+                          ? AppStrings.connectSpotify.skipBtn
+                          : AppStrings.connectSpotify.nevermindBtn,
                       style: AppTextStyles.bodyPrimary.copyWith(
                         color: AppColors.textSecondary,
                       ),

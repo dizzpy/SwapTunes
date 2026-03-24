@@ -1,6 +1,16 @@
 import * as discoverService from './discover.service.js'
 import { success } from '../../shared/utils/response.js'
 
+// Get genres controller handler.
+export const getGenres = async (req, res, next) => {
+  try {
+    const genres = await discoverService.getGenres()
+    success(res, genres)
+  } catch (err) {
+    next(err)
+  }
+}
+
 // Discover playlists controller handler.
 export const discoverPlaylists = async (req, res, next) => {
   try {

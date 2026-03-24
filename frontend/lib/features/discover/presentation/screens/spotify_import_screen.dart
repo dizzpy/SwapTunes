@@ -5,9 +5,17 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/utils/app_snackbar.dart';
+import '../../../../features/auth/presentation/screens/connect_spotify_screen.dart'
+    show ConnectSpotifyContext, ConnectSpotifyScreen;
+import '../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../data/models/source_platform.dart';
+import '../../data/models/spotify_playlist_model.dart';
+import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/spotify_import_viewmodel.dart';
 import 'playlist_editor_screen.dart';
+
+const _spotifyGreen = Color(0xFF1DB954);
 
 class SpotifyImportScreen extends StatelessWidget {
   const SpotifyImportScreen({super.key});
@@ -15,7 +23,11 @@ class SpotifyImportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => SpotifyImportViewModel(),
+      create: (ctx) => SpotifyImportViewModel(
+        isSpotifyConnected:
+            ctx.read<AuthViewmodel>().currentUser?.spotifyConnected ?? false,
+        repository: ctx.read<DiscoverRepository>(),
+      ),
       child: const _SpotifyImportContent(),
     );
   }
@@ -23,8 +35,6 @@ class SpotifyImportScreen extends StatelessWidget {
 
 class _SpotifyImportContent extends StatelessWidget {
   const _SpotifyImportContent();
-
-  static const _spotifyGreen = Color(0xFF1DB954);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +44,13 @@ class _SpotifyImportContent extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
       body: viewModel.isSpotifyConnected
-          ? _buildPlaylistList(context, viewModel)
+          ? viewModel.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
+              : viewModel.error != null && viewModel.playlists.isEmpty
+                  ? _buildLoadError(context, viewModel)
+                  : _buildPlaylistList(context, viewModel)
           : _buildConnectPrompt(context, viewModel),
     );
   }
@@ -106,9 +122,19 @@ class _SpotifyImportContent extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   AppHaptics.buttonTap();
-                  viewModel.connectSpotify();
+                  final connected = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ConnectSpotifyScreen(
+                        flowContext: ConnectSpotifyContext.discover,
+                      ),
+                    ),
+                  );
+                  if (connected == true && context.mounted) {
+                    context.read<SpotifyImportViewModel>().markConnected();
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _spotifyGreen,
@@ -125,6 +151,36 @@ class _SpotifyImportContent extends StatelessWidget {
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
                   ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadError(BuildContext context, SpotifyImportViewModel viewModel) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              AppStrings.discover.loadingError,
+              style: AppTextStyles.bodyPrimary.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => viewModel.retry(),
+              child: Text(
+                AppStrings.discover.retry,
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -166,8 +222,9 @@ class _SpotifyImportContent extends StatelessWidget {
                 onImport: () async {
                   AppHaptics.buttonTap();
                   final success = await viewModel.importPlaylist(item.id);
-                  if (success && context.mounted) {
-                    Navigator.push(
+                  if (!context.mounted) return;
+                  if (success) {
+                    final published = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => PlaylistEditorScreen(
@@ -178,6 +235,11 @@ class _SpotifyImportContent extends StatelessWidget {
                         ),
                       ),
                     );
+                    if (published == true && context.mounted) {
+                      Navigator.pop(context, true);
+                    }
+                  } else {
+                    AppSnackbar.error(AppStrings.discover.importError);
                   }
                 },
               );
@@ -190,7 +252,7 @@ class _SpotifyImportContent extends StatelessWidget {
 }
 
 class _SpotifyPlaylistTile extends StatelessWidget {
-  final SpotifyPlaylistItem item;
+  final SpotifyPlaylistModel item;
   final bool isImporting;
   final VoidCallback onImport;
 
@@ -199,8 +261,6 @@ class _SpotifyPlaylistTile extends StatelessWidget {
     required this.isImporting,
     required this.onImport,
   });
-
-  static const _spotifyGreen = Color(0xFF1DB954);
 
   @override
   Widget build(BuildContext context) {

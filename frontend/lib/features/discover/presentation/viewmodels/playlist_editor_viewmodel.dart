@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../data/models/source_platform.dart';
+import '../../data/repositories/discover_repository.dart';
 
 /// Predefined mood tags — max 3 selectable per playlist.
 const List<String> kMoodTags = [
@@ -69,6 +71,11 @@ final Map<SourcePlatform, RegExp> _kUrlPatterns = {
 };
 
 class PlaylistEditorViewModel extends ChangeNotifier {
+  final DiscoverRepository _repository;
+
+  /// Non-null = edit mode. Null = create mode.
+  final String? playlistId;
+
   // ── Auto-suggest data (populated on Spotify import) ──────────────────────
   final List<String> suggestedGenres;
   final List<String> suggestedArtists;
@@ -96,23 +103,60 @@ class PlaylistEditorViewModel extends ChangeNotifier {
 
   // ── State ─────────────────────────────────────────────────────────────────
   bool _isSaving = false;
+  bool _isUploadingImage = false;
   String? _error;
 
+  // ── Per-field validation errors (set on submit attempt) ─────────────────
+  String? nameError;
+  String? platformError;
+  String? linkError;
+  bool _hasAttemptedSubmit = false;
+
   bool get isSaving => _isSaving;
+  bool get isUploadingImage => _isUploadingImage;
   String? get error => _error;
+  bool get isEditMode => playlistId != null;
+  bool get hasAttemptedSubmit => _hasAttemptedSubmit;
 
   PlaylistEditorViewModel({
+    required DiscoverRepository repository,
+    this.playlistId,
     this.suggestedGenres = const [],
     this.suggestedArtists = const [],
     SourcePlatform? initialPlatform,
     String? initialPrimaryUrl,
-  }) {
-    if (initialPlatform != null) {
-      sourcePlatform = initialPlatform;
+  }) : _repository = repository {
+    if (initialPlatform != null) sourcePlatform = initialPlatform;
+    if (initialPrimaryUrl != null) primaryUrl = initialPrimaryUrl;
+  }
+
+  // ── Cover image ─────────────────────────────────────────────────────────
+
+  Future<bool> pickCoverImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: source, imageQuality: 90);
+    if (file == null) return false;
+
+    _isUploadingImage = true;
+    notifyListeners();
+
+    try {
+      final url = await _repository.uploadImage(file);
+      coverImageUrl = url;
+      _isUploadingImage = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isUploadingImage = false;
+      _error = e.toString();
+      notifyListeners();
+      return false;
     }
-    if (initialPrimaryUrl != null) {
-      primaryUrl = initialPrimaryUrl;
-    }
+  }
+
+  void removeCoverImage() {
+    coverImageUrl = null;
+    notifyListeners();
   }
 
   // ── Validation ────────────────────────────────────────────────────────────
@@ -124,6 +168,26 @@ class PlaylistEditorViewModel extends ChangeNotifier {
       sourcePlatform != null &&
       hasAtLeastOneLink &&
       primaryUrlError == null;
+
+  /// Runs all field validations and returns the first error message, or null if valid.
+  String? validate() {
+    _hasAttemptedSubmit = true;
+
+    nameError = name.trim().isEmpty ? 'Playlist name is required' : null;
+    platformError = sourcePlatform == null ? 'Select a source platform' : null;
+
+    if (primaryUrl.isEmpty) {
+      linkError = 'Playlist link is required';
+    } else {
+      _validatePrimaryUrl();
+      linkError = primaryUrlError;
+    }
+
+    notifyListeners();
+
+    // Return first error message for snackbar
+    return nameError ?? platformError ?? linkError;
+  }
 
   String _platformHint(SourcePlatform platform) {
     switch (platform) {
@@ -158,6 +222,9 @@ class PlaylistEditorViewModel extends ChangeNotifier {
 
   void setName(String value) {
     name = value;
+    if (_hasAttemptedSubmit) {
+      nameError = value.trim().isEmpty ? 'Playlist name is required' : null;
+    }
     notifyListeners();
   }
 
@@ -168,8 +235,12 @@ class PlaylistEditorViewModel extends ChangeNotifier {
 
   void setSourcePlatform(SourcePlatform platform) {
     // Clear primary URL when switching platforms
-    if (sourcePlatform != platform) primaryUrl = '';
+    if (sourcePlatform != platform) {
+      primaryUrl = '';
+      linkError = null;
+    }
     primaryUrlError = null;
+    platformError = null;
     sourcePlatform = platform;
     notifyListeners();
   }
@@ -177,6 +248,11 @@ class PlaylistEditorViewModel extends ChangeNotifier {
   void setPrimaryUrl(String value) {
     primaryUrl = value;
     _validatePrimaryUrl();
+    if (_hasAttemptedSubmit) {
+      linkError = primaryUrl.isEmpty
+          ? 'Playlist link is required'
+          : primaryUrlError;
+    }
     notifyListeners();
   }
 
@@ -256,17 +332,44 @@ class PlaylistEditorViewModel extends ChangeNotifier {
   // ── Save ──────────────────────────────────────────────────────────────────
 
   Future<bool> savePlaylist() async {
-    if (!isValid) return false;
+    final validationError = validate();
+    if (validationError != null) return false;
 
     _isSaving = true;
     _error = null;
     notifyListeners();
 
-    // Simulates network call — will be wired to real API in data layer phase
-    await Future.delayed(const Duration(milliseconds: 800));
+    final body = <String, dynamic>{
+      'name': name.trim(),
+      'description': description.trim().isEmpty ? null : description.trim(),
+      'cover_image_url': coverImageUrl,
+      'is_public': isPublic,
+      'source_platform': sourcePlatform!.value,
+      'primary_url': primaryUrl,
+      'genre_tags': genreTags,
+      'artists': artists,
+      'mood_tags': moodTags,
+      'era': era,
+      'energy_level': energyLevel?.toLowerCase(),
+      'occasion_tags': occasionTags,
+      'vocal_style': vocalStyle?.toLowerCase(),
+      'language': language?.toLowerCase(),
+    };
 
-    _isSaving = false;
-    notifyListeners();
-    return true;
+    try {
+      if (isEditMode) {
+        await _repository.updatePlaylist(playlistId!, body);
+      } else {
+        await _repository.createPlaylist(body);
+      }
+      _isSaving = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isSaving = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

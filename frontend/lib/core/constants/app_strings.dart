@@ -58,8 +58,14 @@ class _ConnectSpotifyStrings {
   final String subtitle = 'Import your playlists and share your\nmusic taste';
   final String privacyInfo =
       "We only read your playlists. We'll never post anything without asking.";
+  final String permissionsTitle = 'What we access';
+  final String permissionPlaylists = 'Your public and private playlists';
+  final String permissionCollaborative = 'Collaborative playlists you follow';
+  final String permissionNever =
+      'We never modify your library or post on your behalf';
   final String connectBtn = 'Connect Spotify Account';
   final String skipBtn = 'Skip for Now';
+  final String nevermindBtn = 'Nevermind';
 }
 
 class _WelcomeSuccessStrings {
@@ -83,7 +89,7 @@ class _DiscoverStrings {
 
   // Discover Home sections
   final String browseByGenre = 'Browse by Genre';
-  final String futurePlaylists = 'Future Playlists';
+  final String featuredPlaylists = 'Featured Playlists';
   final String suggestForYou = 'Suggest for you';
 
   // Browse Genres page
@@ -155,7 +161,7 @@ class _DiscoverStrings {
   final String noPlaylistsInGenre = 'No playlists in this genre yet';
   final String noPlaylistsSubtitle = 'Be the first to add one!';
 
-  // Playlist Detail
+  // Playlist Detail (continued)
   final String openOn = 'Open on';
   final String trackListLabel = 'Tracks';
   final String addedOnLabel = 'Added';
@@ -175,6 +181,8 @@ class _DiscoverStrings {
   // Empty / error states
   final String noGenres = 'No genres available yet';
   final String loadingError = 'Something went wrong. Please try again.';
+  final String saveError = 'Failed to save playlist. Please try again.';
+  final String importError = 'Failed to import playlist. Please try again.';
   final String retry = 'Retry';
   final String loadMore = 'Load more';
 }

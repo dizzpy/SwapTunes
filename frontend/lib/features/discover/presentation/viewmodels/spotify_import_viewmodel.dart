@@ -1,98 +1,99 @@
 import 'package:flutter/material.dart';
-
-/// Represents a Spotify playlist available for import.
-class SpotifyPlaylistItem {
-  final String id;
-  final String name;
-  final int trackCount;
-  final String? coverImageUrl;
-  final bool isImported;
-
-  const SpotifyPlaylistItem({
-    required this.id,
-    required this.name,
-    required this.trackCount,
-    this.coverImageUrl,
-    this.isImported = false,
-  });
-}
+import '../../data/models/spotify_playlist_model.dart';
+import '../../data/repositories/discover_repository.dart';
 
 class SpotifyImportViewModel extends ChangeNotifier {
-  bool _isSpotifyConnected = false;
-  final bool _isLoading = false;
+  final DiscoverRepository _repository;
+
+  bool _isSpotifyConnected;
+  bool get isSpotifyConnected => _isSpotifyConnected;
+  bool _isLoading = false;
   bool _isImporting = false;
   String? _importingId;
   String? _error;
+  List<SpotifyPlaylistModel> _playlists = [];
 
-  bool get isSpotifyConnected => _isSpotifyConnected;
   bool get isLoading => _isLoading;
   bool get isImporting => _isImporting;
   String? get importingId => _importingId;
   String? get error => _error;
-
-  // Mock data — will be replaced with API calls in the data layer phase
-  final List<SpotifyPlaylistItem> playlists = [
-    const SpotifyPlaylistItem(
-      id: 'sp1',
-      name: 'Heavy Bass Drops 2026',
-      trackCount: 45,
-      coverImageUrl: 'https://picsum.photos/seed/sp1/200/200',
-      isImported: false,
-    ),
-    const SpotifyPlaylistItem(
-      id: 'sp2',
-      name: 'Late Night Study Vibes',
-      trackCount: 32,
-      coverImageUrl: 'https://picsum.photos/seed/sp2/200/200',
-      isImported: true,
-    ),
-    const SpotifyPlaylistItem(
-      id: 'sp3',
-      name: 'Summer R&B Essentials',
-      trackCount: 28,
-      coverImageUrl: 'https://picsum.photos/seed/sp3/200/200',
-      isImported: false,
-    ),
-    const SpotifyPlaylistItem(
-      id: 'sp4',
-      name: 'K-Pop Bangers',
-      trackCount: 35,
-      coverImageUrl: 'https://picsum.photos/seed/sp4/200/200',
-      isImported: false,
-    ),
-  ];
+  List<SpotifyPlaylistModel> get playlists => _playlists;
 
   // Populated after a successful import — passed to PlaylistEditorScreen
   List<String> lastSuggestedGenres = [];
   List<String> lastSuggestedArtists = [];
   String? lastImportedSpotifyUrl;
 
-  void connectSpotify() {
-    // Will trigger OAuth flow via AuthViewModel in the data layer phase
+  SpotifyImportViewModel({
+    required bool isSpotifyConnected,
+    required DiscoverRepository repository,
+  })  : _isSpotifyConnected = isSpotifyConnected,
+        _repository = repository {
+    if (_isSpotifyConnected) _loadPlaylists();
+  }
+
+  /// Marks the user as connected and loads playlists.
+  void markConnected() {
     _isSpotifyConnected = true;
+    notifyListeners();
+    _loadPlaylists();
+  }
+
+  Future<void> _loadPlaylists() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _playlists = await _repository.getAvailableSpotifyPlaylists();
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
     notifyListeners();
   }
 
-  /// Imports a single Spotify playlist and extracts genre/artist suggestions
-  /// from the track data. Returns true on success.
+  Future<void> retry() => _loadPlaylists();
+
+  /// Imports a single Spotify playlist. Returns true on success.
   Future<bool> importPlaylist(String spotifyId) async {
     if (_isImporting) return false;
     _isImporting = true;
     _importingId = spotifyId;
+    _error = null;
     notifyListeners();
 
-    // Simulates Spotify API call — will be wired to real API in data layer phase.
-    // In production, the backend extracts top artists + their genres from tracks.
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final playlist = await _repository.importSpotifyPlaylist(spotifyId);
+      lastImportedSpotifyUrl = playlist.primaryUrl;
+      lastSuggestedGenres = playlist.genreTags;
+      lastSuggestedArtists = playlist.artists;
 
-    // Mock suggestions extracted from the playlist tracks
-    lastSuggestedGenres = ['Electronic', 'Dubstep', 'Bass'];
-    lastSuggestedArtists = ['Skrillex', 'Excision', 'Virtual Riot'];
-    lastImportedSpotifyUrl = 'https://open.spotify.com/playlist/$spotifyId';
+      // Mark as imported in the list
+      _playlists = _playlists
+          .map((p) => p.id == spotifyId
+              ? SpotifyPlaylistModel(
+                  id: p.id,
+                  name: p.name,
+                  trackCount: p.trackCount,
+                  isPublic: p.isPublic,
+                  coverImageUrl: p.coverImageUrl,
+                  isImported: true,
+                )
+              : p)
+          .toList();
 
-    _isImporting = false;
-    _importingId = null;
-    notifyListeners();
-    return true;
+      _isImporting = false;
+      _importingId = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isImporting = false;
+      _importingId = null;
+      notifyListeners();
+      return false;
+    }
   }
 }

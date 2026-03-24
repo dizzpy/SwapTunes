@@ -6,7 +6,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
+import '../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../data/models/source_platform.dart';
+import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/playlist_detail_viewmodel.dart';
 import '../widgets/external_link_button.dart';
 import 'playlist_editor_screen.dart';
@@ -26,7 +28,11 @@ class PlaylistDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PlaylistDetailViewModel(playlistId: playlistId),
+      create: (ctx) => PlaylistDetailViewModel(
+        playlistId: playlistId,
+        repository: ctx.read<DiscoverRepository>(),
+        currentUserId: ctx.read<AuthViewmodel>().currentUser?.id,
+      ),
       child: _PlaylistDetailContent(heroTag: heroTag),
     );
   }
@@ -75,13 +81,17 @@ class _PlaylistDetailContent extends StatelessWidget {
               ? [
                   _buildOverlayButton(
                     icon: HugeIcons.strokeRoundedEdit02,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PlaylistEditorScreen(playlistId: playlist.id),
-                      ),
-                    ),
+                    onTap: () async {
+                      final vm = context.read<PlaylistDetailViewModel>();
+                      final changed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PlaylistEditorScreen(playlistId: playlist.id),
+                        ),
+                      );
+                      if (changed == true) vm.retry();
+                    },
                   ),
                   const SizedBox(width: 8),
                   _buildOverlayButton(
@@ -406,34 +416,7 @@ class _PlaylistDetailContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        if (viewModel.isLoadingTracks)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    AppStrings.discover.loadingTracks,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          ...viewModel.trackList.map((track) => _TrackRow(track: track)),
+        ...viewModel.trackList.map((track) => _TrackRow(track: track)),
       ],
     );
   }
@@ -477,7 +460,7 @@ class _PlaylistDetailContent extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       AppHaptics.buttonTap();
       final success = await viewModel.deletePlaylist();
-      if (success && context.mounted) Navigator.pop(context);
+      if (success && context.mounted) Navigator.pop(context, true);
     }
   }
 
@@ -505,7 +488,7 @@ class _PlaylistDetailContent extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextButton(
-              onPressed: () {},
+              onPressed: viewModel.retry,
               child: Text(
                 AppStrings.discover.retry,
                 style: AppTextStyles.bodyPrimary.copyWith(

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/browse_genres_viewmodel.dart';
 import '../widgets/genre_card.dart';
 import 'genre_detail_screen.dart';
@@ -14,7 +15,7 @@ class BrowseGenresScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => BrowseGenresViewModel(),
+      create: (ctx) => BrowseGenresViewModel(ctx.read<DiscoverRepository>()),
       child: const _BrowseGenresContent(),
     );
   }
@@ -36,7 +37,12 @@ class _BrowseGenresContent extends StatelessWidget {
             )
           : viewModel.error != null
           ? _buildError(context)
-          : _buildGrid(context, viewModel),
+          : RefreshIndicator(
+              color: AppColors.primary,
+              backgroundColor: AppColors.cardFront,
+              onRefresh: viewModel.refresh,
+              child: _buildGrid(context, viewModel),
+            ),
     );
   }
 
@@ -136,6 +142,7 @@ class _BrowseGenresContent extends StatelessWidget {
   }
 
   Widget _buildError(BuildContext context) {
+    final viewModel = context.read<BrowseGenresViewModel>();
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -149,7 +156,7 @@ class _BrowseGenresContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () {},
+            onPressed: viewModel.retry,
             child: Text(
               AppStrings.discover.retry,
               style: AppTextStyles.bodyPrimary.copyWith(
