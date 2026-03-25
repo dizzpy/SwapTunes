@@ -304,42 +304,42 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
                   ),
                 )
               : viewModel.coverImageUrl != null
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(19),
-                          child: Image.network(
-                            viewModel.coverImageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _buildCoverPlaceholder(),
+              ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(19),
+                      child: Image.network(
+                        viewModel.coverImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _buildCoverPlaceholder(),
+                      ),
+                    ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: GestureDetector(
+                        onTap: () {
+                          AppHaptics.buttonTap();
+                          viewModel.removeCoverImage();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppColors.background.withValues(alpha: 0.7),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            color: AppColors.textWhite,
+                            size: 16,
                           ),
                         ),
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: GestureDetector(
-                            onTap: () {
-                              AppHaptics.buttonTap();
-                              viewModel.removeCoverImage();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: AppColors.background.withValues(alpha: 0.7),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const HugeIcon(
-                                icon: HugeIcons.strokeRoundedCancel01,
-                                color: AppColors.textWhite,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : _buildCoverPlaceholder(),
+                      ),
+                    ),
+                  ],
+                )
+              : _buildCoverPlaceholder(),
         ),
       ),
     );
@@ -357,9 +357,7 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
         const SizedBox(height: 8),
         Text(
           AppStrings.discover.coverImageLabel,
-          style: AppTextStyles.caption.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
@@ -576,7 +574,8 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: (viewModel.primaryUrlError ?? viewModel.linkError) != null
+                color:
+                    (viewModel.primaryUrlError ?? viewModel.linkError) != null
                     ? AppColors.danger
                     : AppColors.outline,
               ),
@@ -584,7 +583,8 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: (viewModel.primaryUrlError ?? viewModel.linkError) != null
+                color:
+                    (viewModel.primaryUrlError ?? viewModel.linkError) != null
                     ? AppColors.danger
                     : platform.color,
                 width: 1.5,
@@ -598,7 +598,8 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
         ),
 
         // Inline validation error
-        if (viewModel.primaryUrlError != null || viewModel.linkError != null) ...[
+        if (viewModel.primaryUrlError != null ||
+            viewModel.linkError != null) ...[
           const SizedBox(height: 6),
           Text(
             viewModel.primaryUrlError ?? viewModel.linkError!,
@@ -1027,7 +1028,8 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
                   AppSnackbar.error(AppStrings.discover.saveError);
                 } else {
                   // Validation error — show first field error
-                  final msg = viewModel.nameError ??
+                  final msg =
+                      viewModel.nameError ??
                       viewModel.platformError ??
                       viewModel.linkError ??
                       AppStrings.discover.saveError;

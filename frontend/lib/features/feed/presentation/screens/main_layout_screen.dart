@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:swaptune/features/discover/presentation/screens/discover_screen.dart';
 import 'package:swaptune/features/feed/presentation/screens/feed_screen.dart';
+import 'package:swaptune/features/messaging/presentation/screens/chats_list_screen.dart';
 import 'package:swaptune/features/profile/presentation/screens/own_profile_screen.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -21,6 +22,11 @@ class MainLayoutScreen extends StatefulWidget {
     state._switchTab(3);
   }
 
+  /// Show or hide the bottom navigation bar (e.g. when entering a full-screen chat).
+  static void setNavVisible(bool visible) {
+    _key.currentState?._setNavVisible(visible);
+  }
+
   @override
   State<MainLayoutScreen> createState() => _MainLayoutScreenState();
 }
@@ -37,9 +43,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   final List<Widget> _tabRoots = [
     const FeedScreen(),
     const DiscoverScreen(),
-    const Center(
-      child: Text('Inbox', style: TextStyle(color: AppColors.textWhite)),
-    ),
+    const ChatsListScreen(),
     const OwnProfileScreen(),
   ];
 
@@ -48,6 +52,10 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       _currentIndex = index;
       _isBottomNavVisible = true;
     });
+  }
+
+  void _setNavVisible(bool visible) {
+    setState(() => _isBottomNavVisible = visible);
   }
 
   @override

@@ -9,4 +9,5 @@ class AppRoutes {
   static const String connectSpotify = '/connect-spotify';
   static const String welcomeSuccess = '/welcome-success';
   static const String home = '/home';
+  static const String singleChat = '/single-chat';
 }

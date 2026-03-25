@@ -9,6 +9,26 @@ class AppStrings {
   static const welcomeSuccess = _WelcomeSuccessStrings();
   static const feed = _FeedStrings();
   static const discover = _DiscoverStrings();
+  static const messaging = _MessagingStrings();
+}
+
+class _MessagingStrings {
+  const _MessagingStrings();
+
+  // Chats List Screen
+  final String chatsTitle = 'Chats';
+  final String searchChatHint = 'Search chat';
+  final String conversationsSection = 'Conversations';
+  final String noChatHistory = 'No messages yet';
+
+  // Chat Detail Screen
+  final String writeMessageHint = 'Write a message...';
+  final String onlineStatus = 'online';
+  final String offlineStatus = 'offline';
+  final String typingStatus = 'typing...';
+  final String todayLabel = 'Today';
+  final String yesterdayLabel = 'Yesterday';
+  final String lastWeekLabel = 'Last week';
 }
 
 class _ProfileSetupStrings {

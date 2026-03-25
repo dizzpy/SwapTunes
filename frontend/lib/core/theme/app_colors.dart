@@ -36,6 +36,10 @@ class AppColors {
   // Send button
   static const Color sendButtonBg = Color(0xFF1B2B24);
 
+  // Message bubbles
+  static const Color sentBubbleBg = Color(0xFF1B2B24);
+  static const Color receivedBubbleBg = Color(0xFF222424);
+
   // Gradient (40% to 0% opacity)
   static const LinearGradient greenGradient = LinearGradient(
     begin: Alignment.topCenter,

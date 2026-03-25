@@ -35,10 +35,9 @@ class DiscoverRemoteDatasource {
   }) async {
     final params = <String, String>{'page': '$page', 'limit': '$limit'};
     if (genre != null) params['genre'] = genre;
-    final data = await _client.get(
-      ApiConstants.discoverPlaylists,
-      queryParams: params,
-    ) as List;
+    final data =
+        await _client.get(ApiConstants.discoverPlaylists, queryParams: params)
+            as List;
     return data
         .map((e) => PlaylistModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -88,12 +87,14 @@ class DiscoverRemoteDatasource {
   }
 
   Future<PlaylistModel> importSpotifyPlaylist(String playlistId) async {
-    final data = await _client.post(
-      ApiConstants.playlistImport,
-      body: {
-        'playlist_ids': [playlistId],
-      },
-    ) as List;
+    final data =
+        await _client.post(
+              ApiConstants.playlistImport,
+              body: {
+                'playlist_ids': [playlistId],
+              },
+            )
+            as List;
     if (data.isEmpty) {
       throw ApiException(
         code: 'IMPORT_FAILED',

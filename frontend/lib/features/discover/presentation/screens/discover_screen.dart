@@ -90,122 +90,122 @@ class _DiscoverScreenContent extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Browse by Genre Section ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(
-                title: AppStrings.discover.browseByGenre,
-                onSeeAll: () async {
-                  final vm = context.read<DiscoverViewModel>();
-                  final changed = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BrowseGenresScreen(),
-                    ),
-                  );
-                  if (changed == true) vm.refresh();
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Browse by Genre Section ---
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                itemCount: viewModel.genres.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final genre = viewModel.genres[index];
-                  return GenreChip(
-                    label: genre,
-                    onTap: () async {
-                      final vm = context.read<DiscoverViewModel>();
-                      final changed = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => GenreDetailScreen(genre: genre),
-                        ),
-                      );
-                      if (changed == true) vm.refresh();
-                    },
-                  );
-                },
+                child: SectionHeader(
+                  title: AppStrings.discover.browseByGenre,
+                  onSeeAll: () async {
+                    final vm = context.read<DiscoverViewModel>();
+                    final changed = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BrowseGenresScreen(),
+                      ),
+                    );
+                    if (changed == true) vm.refresh();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-
-            // --- Featured Playlists Section ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(
-                title: AppStrings.discover.featuredPlaylists,
-                onSeeAll: () {},
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 310,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                itemCount: viewModel.playlists.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 16),
-                itemBuilder: (context, index) {
-                  final playlist = viewModel.playlists[index];
-                  return PlaylistCard(
-                    title: playlist.name,
-                    subtitle: playlist.genreTags.isNotEmpty
-                        ? playlist.genreTags.join(', ')
-                        : playlist.ownerUsername,
-                    imageUrl: playlist.coverImageUrl,
-                    heroTag: playlist.id,
-                    onTap: () async {
-                      final vm = context.read<DiscoverViewModel>();
-                      final changed = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PlaylistDetailScreen(
-                            playlistId: playlist.id,
-                            heroTag: playlist.id,
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: viewModel.genres.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final genre = viewModel.genres[index];
+                    return GenreChip(
+                      label: genre,
+                      onTap: () async {
+                        final vm = context.read<DiscoverViewModel>();
+                        final changed = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GenreDetailScreen(genre: genre),
                           ),
-                        ),
-                      );
-                      if (changed == true) vm.refresh();
-                    },
-                  );
-                },
+                        );
+                        if (changed == true) vm.refresh();
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // --- Suggest for you Section ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(title: AppStrings.discover.suggestForYou),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: viewModel.suggestedUsers.map((user) {
-                  return SuggestUserTile(
-                    name: user['name']!,
-                    subtitle: user['subtitle']!,
-                    avatarUrl: user['avatar']!,
-                    onFollow: () {},
-                  );
-                }).toList(),
+              // --- Featured Playlists Section ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(
+                  title: AppStrings.discover.featuredPlaylists,
+                  onSeeAll: () {},
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 310,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: viewModel.playlists.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 16),
+                  itemBuilder: (context, index) {
+                    final playlist = viewModel.playlists[index];
+                    return PlaylistCard(
+                      title: playlist.name,
+                      subtitle: playlist.genreTags.isNotEmpty
+                          ? playlist.genreTags.join(', ')
+                          : playlist.ownerUsername,
+                      imageUrl: playlist.coverImageUrl,
+                      heroTag: playlist.id,
+                      onTap: () async {
+                        final vm = context.read<DiscoverViewModel>();
+                        final changed = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PlaylistDetailScreen(
+                              playlistId: playlist.id,
+                              heroTag: playlist.id,
+                            ),
+                          ),
+                        );
+                        if (changed == true) vm.refresh();
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
 
-            // Extra padding to avoid content overlapping with the sliding Nav Bar
-            const SizedBox(height: 120),
-          ],
+              // --- Suggest for you Section ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(title: AppStrings.discover.suggestForYou),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: viewModel.suggestedUsers.map((user) {
+                    return SuggestUserTile(
+                      name: user['name']!,
+                      subtitle: user['subtitle']!,
+                      avatarUrl: user['avatar']!,
+                      onFollow: () {},
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              // Extra padding to avoid content overlapping with the sliding Nav Bar
+              const SizedBox(height: 120),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

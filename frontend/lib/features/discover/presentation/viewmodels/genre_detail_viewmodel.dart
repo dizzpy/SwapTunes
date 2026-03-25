@@ -46,8 +46,10 @@ class GenreDetailViewModel extends ChangeNotifier {
   String? get error => _error;
   List<PlaylistItem> get playlists => List.unmodifiable(_playlists);
 
-  GenreDetailViewModel({required this.genre, required DiscoverRepository repository})
-      : _repository = repository {
+  GenreDetailViewModel({
+    required this.genre,
+    required DiscoverRepository repository,
+  }) : _repository = repository {
     _loadPlaylists();
   }
 

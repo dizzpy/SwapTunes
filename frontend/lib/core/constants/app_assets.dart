@@ -53,4 +53,8 @@ class _Icons {
   final dynamic link = HugeIcons.strokeRoundedLinkSquare02;
   final dynamic check = HugeIcons.strokeRoundedCheckmarkCircle02;
   final dynamic globe = HugeIcons.strokeRoundedGlobe02;
+  final dynamic send = HugeIcons.strokeRoundedSent;
+
+  // Messaging
+  final dynamic arrowUp = HugeIcons.strokeRoundedArrowUp02;
 }

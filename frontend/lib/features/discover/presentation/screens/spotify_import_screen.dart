@@ -45,12 +45,12 @@ class _SpotifyImportContent extends StatelessWidget {
       appBar: _buildAppBar(context),
       body: viewModel.isSpotifyConnected
           ? viewModel.isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                )
-              : viewModel.error != null && viewModel.playlists.isEmpty
-                  ? _buildLoadError(context, viewModel)
-                  : _buildPlaylistList(context, viewModel)
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
+                : viewModel.error != null && viewModel.playlists.isEmpty
+                ? _buildLoadError(context, viewModel)
+                : _buildPlaylistList(context, viewModel)
           : _buildConnectPrompt(context, viewModel),
     );
   }
@@ -160,7 +160,10 @@ class _SpotifyImportContent extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadError(BuildContext context, SpotifyImportViewModel viewModel) {
+  Widget _buildLoadError(
+    BuildContext context,
+    SpotifyImportViewModel viewModel,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),

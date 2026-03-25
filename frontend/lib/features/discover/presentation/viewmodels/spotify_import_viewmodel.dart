@@ -27,8 +27,8 @@ class SpotifyImportViewModel extends ChangeNotifier {
   SpotifyImportViewModel({
     required bool isSpotifyConnected,
     required DiscoverRepository repository,
-  })  : _isSpotifyConnected = isSpotifyConnected,
-        _repository = repository {
+  }) : _isSpotifyConnected = isSpotifyConnected,
+       _repository = repository {
     if (_isSpotifyConnected) _loadPlaylists();
   }
 
@@ -72,16 +72,18 @@ class SpotifyImportViewModel extends ChangeNotifier {
 
       // Mark as imported in the list
       _playlists = _playlists
-          .map((p) => p.id == spotifyId
-              ? SpotifyPlaylistModel(
-                  id: p.id,
-                  name: p.name,
-                  trackCount: p.trackCount,
-                  isPublic: p.isPublic,
-                  coverImageUrl: p.coverImageUrl,
-                  isImported: true,
-                )
-              : p)
+          .map(
+            (p) => p.id == spotifyId
+                ? SpotifyPlaylistModel(
+                    id: p.id,
+                    name: p.name,
+                    trackCount: p.trackCount,
+                    isPublic: p.isPublic,
+                    coverImageUrl: p.coverImageUrl,
+                    isImported: true,
+                  )
+                : p,
+          )
           .toList();
 
       _isImporting = false;

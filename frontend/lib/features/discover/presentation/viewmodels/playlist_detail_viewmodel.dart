@@ -56,7 +56,10 @@ class PlaylistDetailData {
     this.soundcloudUrl,
   });
 
-  factory PlaylistDetailData.fromModel(PlaylistModel model, String? currentUserId) {
+  factory PlaylistDetailData.fromModel(
+    PlaylistModel model,
+    String? currentUserId,
+  ) {
     return PlaylistDetailData(
       id: model.id,
       name: model.name,
@@ -71,20 +74,32 @@ class PlaylistDetailData {
       ownerAvatarUrl: model.ownerAvatarUrl,
       isOwner: currentUserId != null && currentUserId == model.userId,
       createdAt: model.createdAt,
-      spotifyUrl: model.sourcePlatform == SourcePlatform.spotify ? model.primaryUrl : null,
-      youtubeMusicUrl: model.sourcePlatform == SourcePlatform.youtubeMusic ? model.primaryUrl : null,
-      appleMusicUrl: model.sourcePlatform == SourcePlatform.appleMusic ? model.primaryUrl : null,
-      soundcloudUrl: model.sourcePlatform == SourcePlatform.soundcloud ? model.primaryUrl : null,
+      spotifyUrl: model.sourcePlatform == SourcePlatform.spotify
+          ? model.primaryUrl
+          : null,
+      youtubeMusicUrl: model.sourcePlatform == SourcePlatform.youtubeMusic
+          ? model.primaryUrl
+          : null,
+      appleMusicUrl: model.sourcePlatform == SourcePlatform.appleMusic
+          ? model.primaryUrl
+          : null,
+      soundcloudUrl: model.sourcePlatform == SourcePlatform.soundcloud
+          ? model.primaryUrl
+          : null,
     );
   }
 
   /// Returns only platforms that have a URL configured.
   List<MapEntry<SourcePlatform, String>> get activeLinks {
     final links = <MapEntry<SourcePlatform, String>>[];
-    if (spotifyUrl != null) links.add(MapEntry(SourcePlatform.spotify, spotifyUrl!));
-    if (youtubeMusicUrl != null) links.add(MapEntry(SourcePlatform.youtubeMusic, youtubeMusicUrl!));
-    if (appleMusicUrl != null) links.add(MapEntry(SourcePlatform.appleMusic, appleMusicUrl!));
-    if (soundcloudUrl != null) links.add(MapEntry(SourcePlatform.soundcloud, soundcloudUrl!));
+    if (spotifyUrl != null)
+      links.add(MapEntry(SourcePlatform.spotify, spotifyUrl!));
+    if (youtubeMusicUrl != null)
+      links.add(MapEntry(SourcePlatform.youtubeMusic, youtubeMusicUrl!));
+    if (appleMusicUrl != null)
+      links.add(MapEntry(SourcePlatform.appleMusic, appleMusicUrl!));
+    if (soundcloudUrl != null)
+      links.add(MapEntry(SourcePlatform.soundcloud, soundcloudUrl!));
     return links;
   }
 

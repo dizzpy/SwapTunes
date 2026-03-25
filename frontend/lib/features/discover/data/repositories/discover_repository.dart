@@ -19,7 +19,8 @@ class DiscoverRepository {
     String? genre,
     int page = 1,
     int limit = kDiscoverPageSize,
-  }) => _datasource.getDiscoverPlaylists(genre: genre, page: page, limit: limit);
+  }) =>
+      _datasource.getDiscoverPlaylists(genre: genre, page: page, limit: limit);
 
   // ── Playlist CRUD ──────────────────────────────────────
 
