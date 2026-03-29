@@ -29,6 +29,17 @@ class _MessagingStrings {
   final String todayLabel = 'Today';
   final String yesterdayLabel = 'Yesterday';
   final String lastWeekLabel = 'Last week';
+
+  // Message actions
+  final String messageDeletedPlaceholder = 'This message was deleted';
+  final String deleteMessageAction = 'Delete message';
+  final String deleteMessageUndo = 'Message deleted';
+  final String cancelAction = 'Cancel';
+
+  // Delete conversation dialog
+  final String deleteConversationTitle = 'Delete conversation';
+  final String deleteConversationMessage =
+      'This will remove the conversation from your inbox. The other person will not be affected.';
 }
 
 class _ProfileSetupStrings {

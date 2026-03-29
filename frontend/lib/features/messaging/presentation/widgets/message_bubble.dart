@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -8,6 +9,8 @@ class MessageBubble extends StatelessWidget {
   final bool isSent;
   final bool isFirst;
   final bool isLast;
+  final bool isDeleted;
+  final VoidCallback? onLongPress;
 
   const MessageBubble({
     super.key,
@@ -15,6 +18,8 @@ class MessageBubble extends StatelessWidget {
     required this.isSent,
     this.isFirst = true,
     this.isLast = true,
+    this.isDeleted = false,
+    this.onLongPress,
   });
 
   @override
@@ -28,22 +33,46 @@ class MessageBubble extends StatelessWidget {
 
     return Align(
       alignment: isSent ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        decoration: BoxDecoration(
-          color: isSent ? AppColors.greenDarkBg : AppColors.receivedBubbleBg,
-          borderRadius: borderRadius,
-        ),
-        child: Text(
-          text,
-          style: AppTextStyles.bodySecondaryWhite.copyWith(
-            fontSize: 14,
-            height: 1.4,
+      child: GestureDetector(
+        onLongPress: (!isDeleted && isSent) ? onLongPress : null,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
           ),
+          decoration: BoxDecoration(
+            color: isSent ? AppColors.greenDarkBg : AppColors.receivedBubbleBg,
+            borderRadius: borderRadius,
+          ),
+          child: isDeleted
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.block,
+                      size: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      AppStrings.messaging.messageDeletedPlaceholder,
+                      style: AppTextStyles.bodySecondaryWhite.copyWith(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  text,
+                  style: AppTextStyles.bodySecondaryWhite.copyWith(
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
         ),
       ),
     );

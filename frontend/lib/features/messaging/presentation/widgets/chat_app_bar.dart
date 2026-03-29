@@ -17,7 +17,6 @@ class ChatAppBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Container(
-        // Tuned padding to keep the back arrow close to the left edge like the design
         padding: const EdgeInsets.only(left: 8, right: 12, top: 10, bottom: 10),
         decoration: BoxDecoration(
           color: AppColors.cardFront,
@@ -67,16 +66,13 @@ class ChatAppBar extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize:
-                    MainAxisSize.min, // Keeps the texts stacked tightly
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     conversation.participantName,
                     style: AppTextStyles.bodyPrimary,
                   ),
-                  const SizedBox(
-                    height: 2,
-                  ), // Tight vertical spacing matching Figma
+                  const SizedBox(height: 2),
                   Text(
                     conversation.isOnline
                         ? AppStrings.messaging.onlineStatus
@@ -91,14 +87,14 @@ class ChatAppBar extends StatelessWidget {
               ),
             ),
 
-            // More Options
+            // More Options (placeholder — no actions yet)
             IconButton(
               icon: HugeIcon(
                 icon: AppAssets.icon.more,
                 color: AppColors.textWhite,
                 size: 24,
               ),
-              onPressed: () {},
+              onPressed: null,
               padding: const EdgeInsets.all(8),
               constraints: const BoxConstraints(),
             ),

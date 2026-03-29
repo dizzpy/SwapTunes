@@ -6,7 +6,7 @@ class ApiConstants {
 
   // ── Base ───────────────────────────────────────────────
   // TODO: load from environment variable / --dart-define for production builds.
-  static const String baseUrl = 'http://192.168.8.127:3000/api/v1';
+  static const String baseUrl = 'http://localhost:3000/api/v1';
 
   // ── Health ─────────────────────────────────────────────
   static const String health = '/health';
@@ -71,6 +71,9 @@ class ApiConstants {
   static String conversationById(String id) => '/conversations/$id';
   static String conversationMessages(String id) =>
       '/conversations/$id/messages';
+  static String conversationMarkRead(String id) => '/conversations/$id/read';
+  static String conversationMessageById(String conversationId, String messageId) =>
+      '/conversations/$conversationId/messages/$messageId';
 
   // ── Notifications ──────────────────────────────────────
   static const String notifications = '/notifications';

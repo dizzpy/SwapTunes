@@ -10,5 +10,7 @@ router.post('/', requireAuth, conversationsController.startConversation)
 router.get('/:conversationId/messages', requireAuth, conversationsController.getMessages)
 router.post('/:conversationId/messages', requireAuth, conversationsController.sendMessage)
 router.patch('/:conversationId/read', requireAuth, conversationsController.markMessagesRead)
+router.delete('/:conversationId/messages/:messageId', requireAuth, conversationsController.deleteMessage)
+router.delete('/:conversationId', requireAuth, conversationsController.deleteConversation)
 
 export default router

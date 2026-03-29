@@ -43,11 +43,12 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   final List<Widget> _tabRoots = [
     const FeedScreen(),
     const DiscoverScreen(),
-    const ChatsListScreen(),
+    ChatsListScreen(),
     const OwnProfileScreen(),
   ];
 
   void _switchTab(int index) {
+    if (index == 2) ChatsListScreen.refresh();
     setState(() {
       _currentIndex = index;
       _isBottomNavVisible = true;
@@ -57,7 +58,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   void _setNavVisible(bool visible) {
     setState(() => _isBottomNavVisible = visible);
   }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(

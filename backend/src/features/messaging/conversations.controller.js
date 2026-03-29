@@ -4,7 +4,7 @@ import { success } from '../../shared/utils/response.js'
 // Get conversations controller handler.
 export const getConversations = async (req, res, next) => {
   try {
-    const convos = await conversationsService.getConversations(req.user.id, req.query)
+    const convos = await conversationsService.getConversations(req.user.id)
     success(res, convos)
   } catch (err) {
     next(err)
@@ -36,6 +36,30 @@ export const startConversation = async (req, res, next) => {
   try {
     const convo = await conversationsService.startConversation(req.user.id, req.body.recipient_id, req.body.collab_id)
     success(res, convo, 201)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Delete conversation controller handler.
+export const deleteConversation = async (req, res, next) => {
+  try {
+    const result = await conversationsService.deleteConversation(req.user.id, req.params.conversationId)
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Delete single message controller handler.
+export const deleteMessage = async (req, res, next) => {
+  try {
+    const result = await conversationsService.deleteMessage(
+      req.user.id,
+      req.params.conversationId,
+      req.params.messageId,
+    )
+    success(res, result)
   } catch (err) {
     next(err)
   }

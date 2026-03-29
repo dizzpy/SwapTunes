@@ -7,8 +7,9 @@ import '../screens/single_chat_screen.dart';
 
 class ChatTile extends StatelessWidget {
   final ChatConversationModel conversation;
+  final VoidCallback? onReturn;
 
-  const ChatTile({super.key, required this.conversation});
+  const ChatTile({super.key, required this.conversation, this.onReturn});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class ChatTile extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => SingleChatScreen(conversation: conversation),
         ),
-      ),
+      ).then((_) => onReturn?.call()),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),

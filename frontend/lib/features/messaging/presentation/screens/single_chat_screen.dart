@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../data/models/chat_conversation_model.dart';
 import '../../data/models/message_model.dart';
+import '../../data/repositories/messaging_repository.dart';
+import '../viewmodels/single_chat_viewmodel.dart';
 import '../widgets/chat_app_bar.dart';
 import '../widgets/chat_input_field.dart';
 import '../widgets/date_separator.dart';
@@ -12,7 +18,16 @@ import '../widgets/message_bubble.dart';
 class SingleChatScreen extends StatefulWidget {
   final ChatConversationModel conversation;
 
-  const SingleChatScreen({super.key, required this.conversation});
+  /// When provided, the screen resolves the conversation ID via
+  /// [startConversation] before loading messages. Navigation happens
+  /// immediately so the header shows the participant info right away.
+  final String? recipientId;
+
+  const SingleChatScreen({
+    super.key,
+    required this.conversation,
+    this.recipientId,
+  });
 
   @override
   State<SingleChatScreen> createState() => _SingleChatScreenState();
@@ -20,82 +35,153 @@ class SingleChatScreen extends StatefulWidget {
 
 class _SingleChatScreenState extends State<SingleChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  SingleChatViewmodel? _viewmodel;
+  late final String _currentUserId;
+  bool _isInitializing = false;
+  int _lastMessageCount = 0;
 
-  // TODO: Replace with real current user ID from auth state
-  static const _currentUserId = 'current-user';
+  @override
+  void initState() {
+    super.initState();
+    _currentUserId = context.read<StorageService>().getUserId() ?? '';
+    _scrollController.addListener(_onScroll);
 
-  // TODO: Replace with real messages from backend / viewmodel
-  late final List<MessageModel> _messages = [
-    MessageModel(
-      id: '1',
-      senderId: _currentUserId,
-      text: 'I am so ready. I think they do a new',
-      createdAt: DateTime.now().subtract(const Duration(days: 5, hours: 2)),
-    ),
-    MessageModel(
-      id: '2',
-      senderId: _currentUserId,
-      text: 'they do a new',
-      createdAt: DateTime.now().subtract(const Duration(days: 5, hours: 1)),
-    ),
-    MessageModel(
-      id: '3',
-      senderId: widget.conversation.participantId,
-      text: 'Are we still',
-      createdAt: DateTime.now().subtract(const Duration(days: 5, minutes: 30)),
-    ),
-    MessageModel(
-      id: '4',
-      senderId: widget.conversation.participantId,
-      text: 'Are we still going to the Zodac meeting',
-      createdAt: DateTime.now().subtract(const Duration(days: 5, minutes: 29)),
-    ),
-    MessageModel(
-      id: '5',
-      senderId: widget.conversation.participantId,
-      text: 'Are we still going to the Zodac meeting tomorrow?',
-      createdAt: DateTime.now().subtract(const Duration(days: 5, minutes: 28)),
-    ),
-    MessageModel(
-      id: '6',
-      senderId: _currentUserId,
-      text: 'okay',
-      createdAt: DateTime.now().subtract(const Duration(days: 5, minutes: 20)),
-    ),
-    MessageModel(
-      id: '7',
-      senderId: widget.conversation.participantId,
-      text: 'Are we still going to the Zodac meeting tomorrow?',
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-    ),
-    MessageModel(
-      id: '8',
-      senderId: _currentUserId,
-      text: 'Yeah! I am so ready. I think they do a great stout.',
-      createdAt: DateTime.now().subtract(const Duration(hours: 1)),
-    ),
-  ];
+    if (widget.recipientId != null) {
+      // Navigate was instant — resolve conversation ID in the background.
+      setState(() => _isInitializing = true);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _resolveAndStart(widget.recipientId!),
+      );
+    } else {
+      _startChat(widget.conversation.id);
+    }
+  }
 
   @override
   void dispose() {
+    _viewmodel?.removeListener(_onViewmodelChange);
+    _viewmodel?.dispose();
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  // ── Initialisation ─────────────────────────────────────
+
+  Future<void> _resolveAndStart(String recipientId) async {
+    try {
+      final repo = context.read<MessagingRepository>();
+      final conversation = await repo.startConversation(recipientId);
+      if (!mounted) return;
+      _startChat(conversation.id);
+      setState(() => _isInitializing = false);
+    } catch (_) {
+      if (!mounted) return;
+      AppSnackbar.error('Could not open conversation. Please try again.');
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  void _startChat(String conversationId) {
+    _viewmodel = SingleChatViewmodel(
+      repository: context.read<MessagingRepository>(),
+      conversationId: conversationId,
+      currentUserId: _currentUserId,
+    );
+    _viewmodel!.subscribeToMessages();
+    _viewmodel!.addListener(_onViewmodelChange);
+    _viewmodel!.loadMessages().then((_) {
+      if (mounted) _viewmodel?.markAsRead();
+    });
+  }
+
+  // ── Listeners ──────────────────────────────────────────
+
+  void _onViewmodelChange() {
+    final vm = _viewmodel;
+    if (vm == null) return;
+
+    // Only scroll to bottom when a new message is added — not on deletes,
+    // mark-read, or other state changes that shouldn't move the viewport.
+    final currentCount = vm.messages.length;
+    final newMessageArrived = currentCount > _lastMessageCount;
+    _lastMessageCount = currentCount;
+
+    if (newMessageArrived && _scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels <= 80) {
+      _viewmodel?.loadMore();
+    }
+  }
+
+  void _showDeleteSheet(String messageId) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.cardFront,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.outline,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: AppColors.danger),
+              title: Text(
+                AppStrings.messaging.deleteMessageAction,
+                style: TextStyle(color: AppColors.danger),
+              ),
+              onTap: () {
+                Navigator.of(context).pop();
+                _viewmodel?.deleteMessage(messageId);
+                AppSnackbar.withUndo(
+                  message: AppStrings.messaging.deleteMessageUndo,
+                  onUndo: () => _viewmodel?.undoDeleteMessage(messageId),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.close, color: AppColors.textSecondary),
+              title: Text(AppStrings.messaging.cancelAction, style: TextStyle(color: AppColors.textSecondary)),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   void _handleSend() {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add(MessageModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        senderId: _currentUserId,
-        text: text,
-        createdAt: DateTime.now(),
-      ));
-    });
     _messageController.clear();
+    _viewmodel?.sendMessage(text);
   }
+
+  // ── Build ──────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -106,35 +192,86 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
         child: Column(
           children: [
             const SizedBox(height: 8),
+            // Header always visible immediately — uses profile data from widget.conversation
             ChatAppBar(conversation: widget.conversation),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: _buildMessageWidgets(),
+
+            if (_isInitializing || _viewmodel == null)
+              const Expanded(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
+              Expanded(
+                child: ListenableBuilder(
+                  listenable: _viewmodel!,
+                  builder: (context, _) {
+                    return Column(
+                      children: [
+                        if (_viewmodel!.isReconnecting)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            color: AppColors.outline,
+                            child: Text(
+                              'Reconnecting…',
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        Expanded(child: _buildMessageList()),
+                        ChatInputField(
+                          controller: _messageController,
+                          onSend: _handleSend,
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-            ChatInputField(
-              controller: _messageController,
-              onSend: _handleSend,
-            ),
           ],
         ),
       ),
     );
   }
 
-  // ── Message grouping logic ───────────────────────────────
+  Widget _buildMessageList() {
+    final vm = _viewmodel!;
+    if (vm.isLoading && vm.messages.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-  List<Widget> _buildMessageWidgets() {
+    if (vm.error != null && vm.messages.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            vm.error!,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySecondary,
+          ),
+        ),
+      );
+    }
+
+    return ListView(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: _buildMessageWidgets(vm.messages),
+    );
+  }
+
+  // ── Message grouping ───────────────────────────────────
+
+  List<Widget> _buildMessageWidgets(List<MessageModel> messages) {
     final widgets = <Widget>[];
 
-    for (int i = 0; i < _messages.length; i++) {
-      final msg = _messages[i];
-      final prevMsg = i > 0 ? _messages[i - 1] : null;
-      final nextMsg = i < _messages.length - 1 ? _messages[i + 1] : null;
+    for (int i = 0; i < messages.length; i++) {
+      final msg = messages[i];
+      final prevMsg = i > 0 ? messages[i - 1] : null;
+      final nextMsg = i < messages.length - 1 ? messages[i + 1] : null;
 
-      // Insert date separator when the date changes
       if (prevMsg == null || !_isSameDay(prevMsg.createdAt, msg.createdAt)) {
         if (i > 0) widgets.add(const SizedBox(height: 24));
         widgets.add(DateSeparator(dateText: _formatDateLabel(msg.createdAt)));
@@ -143,14 +280,12 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
 
       final isSent = msg.senderId == _currentUserId;
 
-      // Spacing between sender groups on the same day
       final sameDayAsPrev =
           prevMsg != null && _isSameDay(prevMsg.createdAt, msg.createdAt);
       if (sameDayAsPrev && prevMsg.senderId != msg.senderId) {
         widgets.add(const SizedBox(height: 24));
       }
 
-      // Corner-rounding flags for consecutive same-sender bubbles
       final isFirstInGroup = prevMsg == null ||
           prevMsg.senderId != msg.senderId ||
           !_isSameDay(prevMsg.createdAt, msg.createdAt);
@@ -163,6 +298,8 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
         isSent: isSent,
         isFirst: isFirstInGroup,
         isLast: isLastInGroup,
+        isDeleted: msg.isDeleted,
+        onLongPress: () => _showDeleteSheet(msg.id),
       ));
     }
 

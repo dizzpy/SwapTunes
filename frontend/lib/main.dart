@@ -18,6 +18,8 @@ import 'features/onboarding/data/repositories/onboarding_repository.dart';
 import 'features/onboarding/presentation/viewmodels/onboarding_viewmodel.dart';
 import 'features/discover/data/datasources/discover_remote_datasource.dart';
 import 'features/discover/data/repositories/discover_repository.dart';
+import 'features/messaging/data/datasources/messaging_remote_datasource.dart';
+import 'features/messaging/data/repositories/messaging_repository.dart';
 import 'features/profile/data/datasources/profile_remote_datasource.dart';
 import 'features/profile/data/repositories/profile_repository.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
@@ -72,6 +74,10 @@ Future<void> main() async {
   final discoverRepository = DiscoverRepository(
     DiscoverRemoteDatasource(apiClient, interceptor),
   );
+  final messagingRepository = MessagingRepository(
+    MessagingRemoteDatasource(apiClient),
+    storageService,
+  );
 
   runApp(
     MultiProvider(
@@ -84,6 +90,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => FeedViewmodel(feedRepository)),
         Provider<ProfileRepository>.value(value: profileRepository),
         Provider<DiscoverRepository>.value(value: discoverRepository),
+        Provider<StorageService>.value(value: storageService),
+        Provider<MessagingRepository>.value(value: messagingRepository),
       ],
       child: const SwapTuneApp(),
     ),

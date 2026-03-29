@@ -8,6 +8,8 @@ import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_icon_button.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../messaging/data/models/chat_conversation_model.dart';
+import '../../../messaging/presentation/screens/single_chat_screen.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../widgets/profile_header.dart';
@@ -54,6 +56,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isOwnProfile(String profileId) {
     final myId = context.read<AuthViewmodel>().currentUser?.id;
     return myId != null && myId == profileId;
+  }
+
+  void _onMessageTap(String recipientId) {
+    final profile = _viewmodel.profile;
+    if (profile == null) return;
+
+    // Build a display model immediately from profile data and navigate
+    // right away. SingleChatScreen resolves the conversation ID in background.
+    final tempConversation = ChatConversationModel(
+      id: '',
+      participantId: profile.id,
+      participantName: profile.fullName,
+      participantAvatarUrl: profile.avatarUrl,
+      isOnline: false,
+      lastMessage: '',
+      lastMessageAt: DateTime.fromMillisecondsSinceEpoch(0),
+      unreadCount: 0,
+    );
+
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => SingleChatScreen(
+          conversation: tempConversation,
+          recipientId: recipientId,
+        ),
+      ),
+    );
   }
 
   Future<void> _onFollowTap() async {
@@ -271,7 +300,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   foregroundColor: AppColors.textWhite,
                                   borderRadius: 24,
                                   height: 48,
-                                  onPressed: () {},
+                                  onPressed: () => _onMessageTap(profile.id),
                                 ),
                               ),
                             ],
