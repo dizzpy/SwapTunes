@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cached_user_post.dart';
+part of 'cached_conversation.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -9,13 +9,14 @@ part of 'cached_user_post.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetCachedUserPostCollection on Isar {
-  IsarCollection<CachedUserPost> get cachedUserPosts => this.collection();
+extension GetCachedConversationCollection on Isar {
+  IsarCollection<CachedConversation> get cachedConversations =>
+      this.collection();
 }
 
-const CachedUserPostSchema = CollectionSchema(
-  name: r'CachedUserPost',
-  id: 3732626450385001946,
+const CachedConversationSchema = CollectionSchema(
+  name: r'CachedConversation',
+  id: 3264234806672372389,
   properties: {
     r'cachedAt': PropertySchema(
       id: 0,
@@ -33,10 +34,10 @@ const CachedUserPostSchema = CollectionSchema(
       type: IsarType.string,
     )
   },
-  estimateSize: _cachedUserPostEstimateSize,
-  serialize: _cachedUserPostSerialize,
-  deserialize: _cachedUserPostDeserialize,
-  deserializeProp: _cachedUserPostDeserializeProp,
+  estimateSize: _cachedConversationEstimateSize,
+  serialize: _cachedConversationSerialize,
+  deserialize: _cachedConversationDeserialize,
+  deserializeProp: _cachedConversationDeserializeProp,
   idName: r'isarId',
   indexes: {
     r'userId': IndexSchema(
@@ -55,14 +56,14 @@ const CachedUserPostSchema = CollectionSchema(
   },
   links: {},
   embeddedSchemas: {},
-  getId: _cachedUserPostGetId,
-  getLinks: _cachedUserPostGetLinks,
-  attach: _cachedUserPostAttach,
+  getId: _cachedConversationGetId,
+  getLinks: _cachedConversationGetLinks,
+  attach: _cachedConversationAttach,
   version: '3.1.0+1',
 );
 
-int _cachedUserPostEstimateSize(
-  CachedUserPost object,
+int _cachedConversationEstimateSize(
+  CachedConversation object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -72,8 +73,8 @@ int _cachedUserPostEstimateSize(
   return bytesCount;
 }
 
-void _cachedUserPostSerialize(
-  CachedUserPost object,
+void _cachedConversationSerialize(
+  CachedConversation object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -83,13 +84,13 @@ void _cachedUserPostSerialize(
   writer.writeString(offsets[2], object.userId);
 }
 
-CachedUserPost _cachedUserPostDeserialize(
+CachedConversation _cachedConversationDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = CachedUserPost();
+  final object = CachedConversation();
   object.cachedAt = reader.readDateTime(offsets[0]);
   object.contentJson = reader.readString(offsets[1]);
   object.isarId = id;
@@ -97,7 +98,7 @@ CachedUserPost _cachedUserPostDeserialize(
   return object;
 }
 
-P _cachedUserPostDeserializeProp<P>(
+P _cachedConversationDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -115,25 +116,26 @@ P _cachedUserPostDeserializeProp<P>(
   }
 }
 
-Id _cachedUserPostGetId(CachedUserPost object) {
+Id _cachedConversationGetId(CachedConversation object) {
   return object.isarId;
 }
 
-List<IsarLinkBase<dynamic>> _cachedUserPostGetLinks(CachedUserPost object) {
+List<IsarLinkBase<dynamic>> _cachedConversationGetLinks(
+    CachedConversation object) {
   return [];
 }
 
-void _cachedUserPostAttach(
-    IsarCollection<dynamic> col, Id id, CachedUserPost object) {
+void _cachedConversationAttach(
+    IsarCollection<dynamic> col, Id id, CachedConversation object) {
   object.isarId = id;
 }
 
-extension CachedUserPostByIndex on IsarCollection<CachedUserPost> {
-  Future<CachedUserPost?> getByUserId(String userId) {
+extension CachedConversationByIndex on IsarCollection<CachedConversation> {
+  Future<CachedConversation?> getByUserId(String userId) {
     return getByIndex(r'userId', [userId]);
   }
 
-  CachedUserPost? getByUserIdSync(String userId) {
+  CachedConversation? getByUserIdSync(String userId) {
     return getByIndexSync(r'userId', [userId]);
   }
 
@@ -145,12 +147,12 @@ extension CachedUserPostByIndex on IsarCollection<CachedUserPost> {
     return deleteByIndexSync(r'userId', [userId]);
   }
 
-  Future<List<CachedUserPost?>> getAllByUserId(List<String> userIdValues) {
+  Future<List<CachedConversation?>> getAllByUserId(List<String> userIdValues) {
     final values = userIdValues.map((e) => [e]).toList();
     return getAllByIndex(r'userId', values);
   }
 
-  List<CachedUserPost?> getAllByUserIdSync(List<String> userIdValues) {
+  List<CachedConversation?> getAllByUserIdSync(List<String> userIdValues) {
     final values = userIdValues.map((e) => [e]).toList();
     return getAllByIndexSync(r'userId', values);
   }
@@ -165,37 +167,38 @@ extension CachedUserPostByIndex on IsarCollection<CachedUserPost> {
     return deleteAllByIndexSync(r'userId', values);
   }
 
-  Future<Id> putByUserId(CachedUserPost object) {
+  Future<Id> putByUserId(CachedConversation object) {
     return putByIndex(r'userId', object);
   }
 
-  Id putByUserIdSync(CachedUserPost object, {bool saveLinks = true}) {
+  Id putByUserIdSync(CachedConversation object, {bool saveLinks = true}) {
     return putByIndexSync(r'userId', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByUserId(List<CachedUserPost> objects) {
+  Future<List<Id>> putAllByUserId(List<CachedConversation> objects) {
     return putAllByIndex(r'userId', objects);
   }
 
-  List<Id> putAllByUserIdSync(List<CachedUserPost> objects,
+  List<Id> putAllByUserIdSync(List<CachedConversation> objects,
       {bool saveLinks = true}) {
     return putAllByIndexSync(r'userId', objects, saveLinks: saveLinks);
   }
 }
 
-extension CachedUserPostQueryWhereSort
-    on QueryBuilder<CachedUserPost, CachedUserPost, QWhere> {
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhere> anyIsarId() {
+extension CachedConversationQueryWhereSort
+    on QueryBuilder<CachedConversation, CachedConversation, QWhere> {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhere>
+      anyIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension CachedUserPostQueryWhere
-    on QueryBuilder<CachedUserPost, CachedUserPost, QWhereClause> {
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause> isarIdEqualTo(
-      Id isarId) {
+extension CachedConversationQueryWhere
+    on QueryBuilder<CachedConversation, CachedConversation, QWhereClause> {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
+      isarIdEqualTo(Id isarId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: isarId,
@@ -204,7 +207,7 @@ extension CachedUserPostQueryWhere
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
       isarIdNotEqualTo(Id isarId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -227,7 +230,7 @@ extension CachedUserPostQueryWhere
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
       isarIdGreaterThan(Id isarId, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -236,7 +239,7 @@ extension CachedUserPostQueryWhere
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
       isarIdLessThan(Id isarId, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -245,7 +248,8 @@ extension CachedUserPostQueryWhere
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause> isarIdBetween(
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
+      isarIdBetween(
     Id lowerIsarId,
     Id upperIsarId, {
     bool includeLower = true,
@@ -261,8 +265,8 @@ extension CachedUserPostQueryWhere
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause> userIdEqualTo(
-      String userId) {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
+      userIdEqualTo(String userId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'userId',
@@ -271,7 +275,7 @@ extension CachedUserPostQueryWhere
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterWhereClause>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterWhereClause>
       userIdNotEqualTo(String userId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -307,9 +311,9 @@ extension CachedUserPostQueryWhere
   }
 }
 
-extension CachedUserPostQueryFilter
-    on QueryBuilder<CachedUserPost, CachedUserPost, QFilterCondition> {
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+extension CachedConversationQueryFilter
+    on QueryBuilder<CachedConversation, CachedConversation, QFilterCondition> {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       cachedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -319,7 +323,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       cachedAtGreaterThan(
     DateTime value, {
     bool include = false,
@@ -333,7 +337,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       cachedAtLessThan(
     DateTime value, {
     bool include = false,
@@ -347,7 +351,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       cachedAtBetween(
     DateTime lower,
     DateTime upper, {
@@ -365,7 +369,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -379,7 +383,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonGreaterThan(
     String value, {
     bool include = false,
@@ -395,7 +399,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonLessThan(
     String value, {
     bool include = false,
@@ -411,7 +415,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonBetween(
     String lower,
     String upper, {
@@ -431,7 +435,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -445,7 +449,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -459,7 +463,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -470,7 +474,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -481,7 +485,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -491,7 +495,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       contentJsonIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -501,7 +505,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       isarIdEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -511,7 +515,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       isarIdGreaterThan(
     Id value, {
     bool include = false,
@@ -525,7 +529,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       isarIdLessThan(
     Id value, {
     bool include = false,
@@ -539,7 +543,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       isarIdBetween(
     Id lower,
     Id upper, {
@@ -557,7 +561,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -571,7 +575,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdGreaterThan(
     String value, {
     bool include = false,
@@ -587,7 +591,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdLessThan(
     String value, {
     bool include = false,
@@ -603,7 +607,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdBetween(
     String lower,
     String upper, {
@@ -623,7 +627,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -637,7 +641,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -651,7 +655,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -662,7 +666,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -673,7 +677,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -683,7 +687,7 @@ extension CachedUserPostQueryFilter
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterFilterCondition>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterFilterCondition>
       userIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -694,48 +698,50 @@ extension CachedUserPostQueryFilter
   }
 }
 
-extension CachedUserPostQueryObject
-    on QueryBuilder<CachedUserPost, CachedUserPost, QFilterCondition> {}
+extension CachedConversationQueryObject
+    on QueryBuilder<CachedConversation, CachedConversation, QFilterCondition> {}
 
-extension CachedUserPostQueryLinks
-    on QueryBuilder<CachedUserPost, CachedUserPost, QFilterCondition> {}
+extension CachedConversationQueryLinks
+    on QueryBuilder<CachedConversation, CachedConversation, QFilterCondition> {}
 
-extension CachedUserPostQuerySortBy
-    on QueryBuilder<CachedUserPost, CachedUserPost, QSortBy> {
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy> sortByCachedAt() {
+extension CachedConversationQuerySortBy
+    on QueryBuilder<CachedConversation, CachedConversation, QSortBy> {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
+      sortByCachedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       sortByCachedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       sortByContentJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'contentJson', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       sortByContentJsonDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'contentJson', Sort.desc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy> sortByUserId() {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
+      sortByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       sortByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
@@ -743,55 +749,58 @@ extension CachedUserPostQuerySortBy
   }
 }
 
-extension CachedUserPostQuerySortThenBy
-    on QueryBuilder<CachedUserPost, CachedUserPost, QSortThenBy> {
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy> thenByCachedAt() {
+extension CachedConversationQuerySortThenBy
+    on QueryBuilder<CachedConversation, CachedConversation, QSortThenBy> {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
+      thenByCachedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       thenByCachedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       thenByContentJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'contentJson', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       thenByContentJsonDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'contentJson', Sort.desc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy> thenByIsarId() {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
+      thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       thenByIsarIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.desc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy> thenByUserId() {
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
+      thenByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QAfterSortBy>
+  QueryBuilder<CachedConversation, CachedConversation, QAfterSortBy>
       thenByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
@@ -799,50 +808,53 @@ extension CachedUserPostQuerySortThenBy
   }
 }
 
-extension CachedUserPostQueryWhereDistinct
-    on QueryBuilder<CachedUserPost, CachedUserPost, QDistinct> {
-  QueryBuilder<CachedUserPost, CachedUserPost, QDistinct> distinctByCachedAt() {
+extension CachedConversationQueryWhereDistinct
+    on QueryBuilder<CachedConversation, CachedConversation, QDistinct> {
+  QueryBuilder<CachedConversation, CachedConversation, QDistinct>
+      distinctByCachedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cachedAt');
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QDistinct> distinctByContentJson(
-      {bool caseSensitive = true}) {
+  QueryBuilder<CachedConversation, CachedConversation, QDistinct>
+      distinctByContentJson({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'contentJson', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<CachedUserPost, CachedUserPost, QDistinct> distinctByUserId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<CachedConversation, CachedConversation, QDistinct>
+      distinctByUserId({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userId', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension CachedUserPostQueryProperty
-    on QueryBuilder<CachedUserPost, CachedUserPost, QQueryProperty> {
-  QueryBuilder<CachedUserPost, int, QQueryOperations> isarIdProperty() {
+extension CachedConversationQueryProperty
+    on QueryBuilder<CachedConversation, CachedConversation, QQueryProperty> {
+  QueryBuilder<CachedConversation, int, QQueryOperations> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isarId');
     });
   }
 
-  QueryBuilder<CachedUserPost, DateTime, QQueryOperations> cachedAtProperty() {
+  QueryBuilder<CachedConversation, DateTime, QQueryOperations>
+      cachedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cachedAt');
     });
   }
 
-  QueryBuilder<CachedUserPost, String, QQueryOperations> contentJsonProperty() {
+  QueryBuilder<CachedConversation, String, QQueryOperations>
+      contentJsonProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'contentJson');
     });
   }
 
-  QueryBuilder<CachedUserPost, String, QQueryOperations> userIdProperty() {
+  QueryBuilder<CachedConversation, String, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
     });

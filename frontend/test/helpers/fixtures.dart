@@ -2,6 +2,8 @@ import 'package:swaptune/features/auth/data/models/user_model.dart';
 import 'package:swaptune/features/feed/data/models/comment_model.dart';
 import 'package:swaptune/features/feed/data/models/liker_model.dart';
 import 'package:swaptune/features/feed/data/models/post_model.dart';
+import 'package:swaptune/features/messaging/data/models/chat_conversation_model.dart';
+import 'package:swaptune/features/messaging/data/models/message_model.dart';
 import 'package:swaptune/features/profile/data/models/full_profile_model.dart';
 
 // ── Auth ──────────────────────────────────────────────────────────────────
@@ -65,6 +67,49 @@ final tLiker = LikerModel(
   username: 'otheruser',
   fullName: 'Other User',
 );
+
+// ── Messaging ─────────────────────────────────────────────────────────────
+
+ChatConversationModel makeConversation({
+  String id = 'convo-1',
+  String participantId = 'user-2',
+  String participantName = 'Other User',
+  String? participantAvatarUrl,
+  String lastMessage = 'Hello!',
+  int unreadCount = 0,
+}) =>
+    ChatConversationModel(
+      id: id,
+      participantId: participantId,
+      participantName: participantName,
+      participantAvatarUrl: participantAvatarUrl,
+      isOnline: false,
+      lastMessage: lastMessage,
+      lastMessageAt: DateTime(2024, 1, 1, 12),
+      unreadCount: unreadCount,
+    );
+
+final tConversation = makeConversation();
+
+MessageModel makeMessage({
+  String id = 'msg-1',
+  String conversationId = 'convo-1',
+  String senderId = 'user-1',
+  String text = 'Hello!',
+  bool isRead = false,
+  bool isDeleted = false,
+}) =>
+    MessageModel(
+      id: id,
+      conversationId: conversationId,
+      senderId: senderId,
+      text: text,
+      isRead: isRead,
+      isDeleted: isDeleted,
+      createdAt: DateTime(2024, 1, 1, 12),
+    );
+
+final tMessage = makeMessage();
 
 // ── Profile ───────────────────────────────────────────────────────────────
 

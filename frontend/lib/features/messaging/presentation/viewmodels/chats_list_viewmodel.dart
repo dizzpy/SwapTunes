@@ -34,14 +34,16 @@ class ChatsListViewmodel extends ChangeNotifier {
 
   // ── Data ───────────────────────────────────────────────
 
-  Future<void> loadConversations() async {
+  Future<void> loadConversations({bool forceRefresh = false}) async {
     if (_isLoading) return;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _conversations = await _repository.getConversations();
+      _conversations = await _repository.getConversations(
+        forceRefresh: forceRefresh,
+      );
     } catch (e) {
       _error = _parseError(e);
     } finally {
@@ -104,7 +106,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_one_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(),
+          callback: (_) => loadConversations(forceRefresh: true),
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.update,
@@ -115,7 +117,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_one_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(),
+          callback: (_) => loadConversations(forceRefresh: true),
         )
         .subscribe((status, _) {
           final reconnecting = status == RealtimeSubscribeStatus.closed ||
@@ -137,7 +139,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_two_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(),
+          callback: (_) => loadConversations(forceRefresh: true),
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.update,
@@ -148,7 +150,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_two_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(),
+          callback: (_) => loadConversations(forceRefresh: true),
         )
         .subscribe();
   }
@@ -157,12 +159,11 @@ class ChatsListViewmodel extends ChangeNotifier {
 
   @override
   void dispose() {
-    final supabase = Supabase.instance.client;
     if (_channelAsUserOne != null) {
-      supabase.removeChannel(_channelAsUserOne!);
+      Supabase.instance.client.removeChannel(_channelAsUserOne!);
     }
     if (_channelAsUserTwo != null) {
-      supabase.removeChannel(_channelAsUserTwo!);
+      Supabase.instance.client.removeChannel(_channelAsUserTwo!);
     }
     super.dispose();
   }

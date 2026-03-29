@@ -77,6 +77,7 @@ Future<void> main() async {
   final messagingRepository = MessagingRepository(
     MessagingRemoteDatasource(apiClient),
     storageService,
+    isar,
   );
 
   runApp(
