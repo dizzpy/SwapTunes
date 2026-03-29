@@ -48,6 +48,12 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   }) async =>
       false;
   @override
+  Future<String?> launchSpotifyConnect() async => null;
+  @override
+  void handleSpotifyConnectCallback(Uri uri) {}
+  @override
+  void cancelSpotifyConnect() {}
+  @override
   Future<bool> connectSpotify(String code, String redirectUri) async => false;
   @override
   Future<void> refreshCurrentUser() async {}
