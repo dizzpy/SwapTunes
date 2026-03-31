@@ -28,6 +28,9 @@ class AppColors {
   static const Color authBgBottom = Color(0xFF081916);
   static const Color authGlow = Color(0xFF1E6F5C);
 
+  // Creator background gradient
+  static const Color creatorGradientTop = Color(0xFF173D2C);
+
   // Skeleton shimmer
   static const Color skeletonBase = Color(0xFF222627);
   static const Color skeletonHighlight = Color(0xFF2F3535);

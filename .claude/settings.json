@@ -4,7 +4,9 @@
       "Bash(find /Users/dizzpy/Dev/swaptunes-merge/swaptunes-mono -maxdepth 3 -name *postman* -o -name *swagger* -o -name *openapi*)",
       "Bash(xargs ls:*)",
       "Bash(find /Users/dizzpy/Dev/swaptunes-merge/swaptunes-mono/frontend/lib/features/messaging -type f -name *.dart)",
-      "Read(//Users/dizzpy/.pub-cache/hosted/pub.dev/**)"
+      "Read(//Users/dizzpy/.pub-cache/hosted/pub.dev/**)",
+      "Bash(grep -E \"\\\\.\\(dart|ts\\)$\")",
+      "Bash(node --input-type=module:*)"
     ]
   }
 }

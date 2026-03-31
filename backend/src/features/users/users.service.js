@@ -9,7 +9,6 @@ export const getProfile = async (username, requesterId) => {
     .select(
       `
       *,
-      creator_profiles(*),
       user_genres(genre)
     `
     )
@@ -23,6 +22,17 @@ export const getProfile = async (username, requesterId) => {
   delete data.user_genres
   delete data.spotify_access_token
   delete data.spotify_refresh_token
+
+  // Fetch creator_profiles separately so a join RLS issue never kills the whole query
+  data.creator_profiles = []
+  if (data.user_type === 'creator') {
+    const { data: cp } = await supabase
+      .from('creator_profiles')
+      .select('*')
+      .eq('user_id', data.id)
+      .maybeSingle()
+    if (cp) data.creator_profiles = [cp]
+  }
 
   // Get follow stats
   const { count: followersCount } = await supabase
@@ -44,11 +54,15 @@ export const getProfile = async (username, requesterId) => {
 
   let collabsCount = 0
   if (data.user_type === 'creator') {
-    const { count } = await supabase
-      .from('collaborations')
-      .select('*', { count: 'exact', head: true })
-      .eq('creator_id', data.id)
-    collabsCount = count
+    try {
+      const { count } = await supabase
+        .from('collaborations')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', data.id)
+      collabsCount = count ?? 0
+    } catch (_) {
+      collabsCount = 0
+    }
   }
 
   data.stats = {

@@ -10,6 +10,7 @@ class AppStrings {
   static const feed = _FeedStrings();
   static const discover = _DiscoverStrings();
   static const messaging = _MessagingStrings();
+  static const creator = _CreatorStrings();
 }
 
 class _MessagingStrings {
@@ -113,6 +114,54 @@ class _FeedStrings {
   final String createPostTitle = 'Create post';
   final String postHint = "What's on your mind?";
   final String publishBtn = 'Post';
+}
+
+class _CreatorStrings {
+  const _CreatorStrings();
+
+  // Become a Creator screen
+  final String becomeCreatorTitle = 'Ready to Become\na Creator?';
+  final String becomeCreatorSubtitle =
+      'Join the community of artists and start\nbuilding your music network today';
+  final String featureCollabTitle = 'Post Collaboration Opportunities';
+  final String featureCollabSubtitle = 'Find artists for your next track';
+  final String featureBadgeTitle = 'Creator Badge';
+  final String featureBadgeSubtitle = 'Get verified as an active creator';
+  final String featureEngageTitle = 'Engage with Listeners';
+  final String featureEngageSubtitle = 'Grow your audience and fanbase';
+  final String featurePortfolioTitle = 'Showcase Your Portfolio';
+  final String featurePortfolioSubtitle = 'Display your links and social profiles';
+  final String continueToSetupBtn = 'Continue to Setup';
+
+  // Creator Setup screen
+  final String creatorSetupTitle = 'Creator Setup';
+  final String professionalInfoSection = 'Professional Information';
+  final String roleTitleLabel = 'Your Role / Title';
+  final String roleTitleHint = 'e.g. Music Producer';
+  final String locationLabel = 'Location';
+  final String locationHint = 'City, Country';
+  final String specializationSection = 'Specialization';
+  final String portfolioSection = 'Portfolio & Links';
+  final String soundcloudHint = 'SoundCloud Link';
+  final String youtubeHint = 'YouTube Link';
+  final String spotifyArtistHint = 'Spotify Artist URL';
+  final String appleMusicHint = 'Apple Music URL';
+  final String portfolioHint = 'Portfolio Link';
+  final String completeSetupBtn = 'Complete Setup';
+  final String nevermindBtn = 'Nevermind';
+
+  // Creator success screen
+  final String creatorSuccessTitle = "You're a Creator Now!";
+  final String creatorSuccessSubtitle =
+      'Your profile is live. Start posting collaborations\nand get discovered by the community.';
+  final String goToProfileBtn = 'Go to Profile';
+
+  // Deactivation dialog
+  final String switchToListenerTitle = 'Switch to Listener?';
+  final String switchToListenerMessage =
+      'Your open collaborations will be closed. Your creator profile data will be saved if you want to switch back later.';
+  final String switchBtn = 'Switch';
+  final String cancelBtn = 'Cancel';
 }
 
 class _DiscoverStrings {
