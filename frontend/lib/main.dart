@@ -20,6 +20,9 @@ import 'features/discover/data/datasources/discover_remote_datasource.dart';
 import 'features/discover/data/repositories/discover_repository.dart';
 import 'features/messaging/data/datasources/messaging_remote_datasource.dart';
 import 'features/messaging/data/repositories/messaging_repository.dart';
+import 'features/creator/data/datasources/creator_remote_datasource.dart';
+import 'features/creator/data/repositories/creator_repository.dart';
+import 'features/creator/presentation/viewmodels/creator_viewmodel.dart';
 import 'features/profile/data/datasources/profile_remote_datasource.dart';
 import 'features/profile/data/repositories/profile_repository.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
@@ -79,6 +82,9 @@ Future<void> main() async {
     storageService,
     isar,
   );
+  final creatorRepository = CreatorRepository(
+    CreatorRemoteDatasource(apiClient),
+  );
 
   runApp(
     MultiProvider(
@@ -89,6 +95,10 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(create: (_) => ProfileViewmodel(authRepository)),
         ChangeNotifierProvider(create: (_) => FeedViewmodel(feedRepository)),
+        ChangeNotifierProvider(
+          create: (_) => CreatorViewmodel(creatorRepository),
+        ),
+        Provider<ApiClient>.value(value: apiClient),
         Provider<ProfileRepository>.value(value: profileRepository),
         Provider<DiscoverRepository>.value(value: discoverRepository),
         Provider<StorageService>.value(value: storageService),

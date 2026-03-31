@@ -5,8 +5,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/utils/app_snackbar.dart';
+import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../creator/data/models/creator_profile_form.dart';
+import '../../../creator/presentation/screens/become_a_creator.dart';
+import '../../../creator/presentation/viewmodels/creator_viewmodel.dart';
 import '../../data/repositories/profile_repository.dart';
 import 'edit_profile_screen.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
@@ -17,6 +21,8 @@ import '../widgets/profile_stats_row.dart';
 import '../widgets/profile_content_tabs.dart';
 import '../widgets/profile_tab_content.dart';
 import '../widgets/follows_sheet.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../dev/presentation/screens/dev_tools_screen.dart';
 
 /// Own profile screen — displayed as the Profile tab in bottom navigation.
 class OwnProfileScreen extends StatefulWidget {
@@ -29,19 +35,53 @@ class OwnProfileScreen extends StatefulWidget {
 class _OwnProfileScreenState extends State<OwnProfileScreen> {
   late final UserProfileViewmodel _viewmodel;
   int _selectedTabIndex = 0;
+  String? _lastUserType;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _viewmodel = UserProfileViewmodel(context.read<ProfileRepository>());
-    final username = context.read<AuthViewmodel>().currentUser?.username ?? '';
+    final authVm = context.read<AuthViewmodel>();
+    final username = authVm.currentUser?.username ?? '';
+    _lastUserType = authVm.currentUser?.userType;
+    
+    // Listen to auth changes
+    authVm.addListener(_onAuthChanged);
+    
     if (username.isNotEmpty) {
       _viewmodel.loadProfile(username).then((_) => _viewmodel.loadUserPosts());
     }
   }
 
+  void _onAuthChanged() {
+    if (!mounted || _isRefreshing) return;
+    
+    final authVm = context.read<AuthViewmodel>();
+    final currentUserType = authVm.currentUser?.userType;
+    
+    // If user type changed (listener <-> creator), refresh the profile
+    if (_lastUserType != null && 
+        currentUserType != null && 
+        _lastUserType != currentUserType) {
+      _lastUserType = currentUserType;
+      // Reset tab index to avoid out-of-bounds error when tabs change
+      setState(() => _selectedTabIndex = 0);
+      final username = authVm.currentUser?.username ?? '';
+      if (username.isNotEmpty) {
+        _isRefreshing = true;
+        _viewmodel.refresh(username).whenComplete(() {
+          if (mounted) _isRefreshing = false;
+        });
+      }
+    } else if (_lastUserType == null && currentUserType != null) {
+      _lastUserType = currentUserType;
+    }
+  }
+
   @override
   void dispose() {
+    context.read<AuthViewmodel>().removeListener(_onAuthChanged);
     _viewmodel.dispose();
     super.dispose();
   }
@@ -49,6 +89,39 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
   Future<void> _onRefresh() async {
     final username = context.read<AuthViewmodel>().currentUser?.username ?? '';
     if (username.isNotEmpty) await _viewmodel.refresh(username);
+  }
+
+  Future<void> _switchToListener(BuildContext ctx) async {
+    final confirmed = await AppConfirmDialog.show(
+      ctx,
+      title: 'Switch to Listener?',
+      message:
+          'Your open collaborations will be closed. Your creator profile data will be saved if you want to switch back later.',
+      confirmLabel: 'Switch',
+      isDanger: true,
+    );
+    if (confirmed != true || !mounted) return;
+
+    final creatorVm = context.read<CreatorViewmodel>();
+    final authVm = context.read<AuthViewmodel>();
+    final profileRepo = context.read<ProfileRepository>();
+
+    final success = await creatorVm.deactivateCreator();
+    if (!mounted) return;
+
+    if (success) {
+      final username = authVm.currentUser?.username ?? '';
+      if (username.isNotEmpty) {
+        profileRepo.invalidateCache(username);
+      }
+      // Auth listener will handle the refresh automatically
+      await authVm.refreshCurrentUser();
+      if (mounted) {
+        AppSnackbar.success('Switched to listener mode');
+      }
+    } else {
+      AppSnackbar.error(creatorVm.errorMessage ?? 'Switch failed. Try again.');
+    }
   }
 
   // ── Image editing ────────────────────────────────────────────────
@@ -363,15 +436,27 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                           ? CrossAxisAlignment.start
                           : CrossAxisAlignment.center,
                       children: [
-                        // Name & Verified
+                        // Name & Verified (triple-tap opens dev tools)
                         Row(
                           mainAxisAlignment: profile.isCreator
                               ? MainAxisAlignment.start
                               : MainAxisAlignment.center,
                           children: [
-                            Text(
-                              profile.fullName,
-                              style: AppTextStyles.heading2,
+                            GestureDetector(
+                              onDoubleTap: () {},
+                              onLongPress: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => DevToolsScreen(
+                                      apiClient: context.read<ApiClient>(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                profile.fullName,
+                                style: AppTextStyles.heading2,
+                              ),
                             ),
                             if (profile.isVerified) ...[
                               const SizedBox(width: 8),
@@ -475,16 +560,51 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                           },
                         ),
 
-                        if (!profile.isCreator) ...[
-                          const SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                        if (!profile.isCreator)
                           TextAppButton(
                             text: 'Switch to Creator Mode',
                             foregroundColor: AppColors.primary,
                             borderRadius: 24,
                             height: 48,
-                            onPressed: () {},
+                            onPressed: () async {
+                              final existingProfile =
+                                  profile.creatorProfile != null
+                                      ? CreatorProfileForm.fromCreatorProfile(
+                                          profile.creatorProfile!)
+                                      : null;
+                              final authVm = context.read<AuthViewmodel>();
+                              final profileRepo =
+                                  context.read<ProfileRepository>();
+                              final became = await Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => BecomeACreator(
+                                    existingProfile: existingProfile,
+                                  ),
+                                ),
+                              );
+                              if (became == true && mounted) {
+                                await authVm.refreshCurrentUser();
+                                final username =
+                                    authVm.currentUser?.username ?? '';
+                                if (username.isNotEmpty) {
+                                  profileRepo.invalidateCache(username);
+                                  await _viewmodel.refresh(username);
+                                }
+                              }
+                            },
+                          )
+                        else
+                          TextAppButton(
+                            text: 'Switch to Listener',
+                            foregroundColor: AppColors.textSecondary,
+                            borderRadius: 24,
+                            height: 48,
+                            onPressed: () => _switchToListener(context),
                           ),
-                        ],
                         const SizedBox(height: 32),
 
                         // Tabs

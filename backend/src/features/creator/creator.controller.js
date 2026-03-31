@@ -20,3 +20,13 @@ export const updateCreatorProfile = async (req, res, next) => {
     next(err)
   }
 }
+
+// Deactivate creator — switch back to listener mode.
+export const deactivateCreator = async (req, res, next) => {
+  try {
+    await creatorService.deactivateCreator(req.user.id)
+    success(res, { message: 'Switched to listener mode' })
+  } catch (err) {
+    next(err)
+  }
+}

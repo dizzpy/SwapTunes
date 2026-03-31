@@ -29,6 +29,7 @@ class ApiConstants {
   // ── Creator ────────────────────────────────────────────
   static const String creatorSetup = '/creator/setup';
   static const String creatorProfile = '/creator/profile';
+  static const String creatorDeactivate = '/creator/deactivate';
 
   // ── Uploads ────────────────────────────────────────────
   static const String uploadImage = '/uploads/image';
@@ -72,8 +73,13 @@ class ApiConstants {
   static String conversationMessages(String id) =>
       '/conversations/$id/messages';
   static String conversationMarkRead(String id) => '/conversations/$id/read';
-  static String conversationMessageById(String conversationId, String messageId) =>
-      '/conversations/$conversationId/messages/$messageId';
+  static String conversationMessageById(
+    String conversationId,
+    String messageId,
+  ) => '/conversations/$conversationId/messages/$messageId';
+
+  // ── Dev (non-production only) ──────────────────────────
+  static const String devResetRole = '/dev/reset-role';
 
   // ── Notifications ──────────────────────────────────────
   static const String notifications = '/notifications';
