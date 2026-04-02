@@ -9,6 +9,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_interceptor.dart';
 import '../../../../core/network/network_exceptions.dart';
+import '../../../collab/data/models/collab_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../models/full_profile_model.dart';
 import '../models/follow_user_model.dart';
@@ -87,6 +88,23 @@ class ProfileRemoteDatasource {
             as List;
     return data
         .map((e) => PostModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// GET /users/:userId/collabs (paginated)
+  Future<List<CollabModel>> getUserCollabs(
+    String userId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final data =
+        await _client.get(
+              ApiConstants.userCollabs(userId),
+              queryParams: {'page': '$page', 'limit': '$limit'},
+            )
+            as List;
+    return data
+        .map((e) => CollabModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 

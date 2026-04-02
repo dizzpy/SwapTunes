@@ -8,6 +8,7 @@ import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../collab/presentation/screens/collab_details_screen.dart';
 import '../../../creator/data/models/creator_profile_form.dart';
 import '../../../creator/presentation/screens/become_a_creator.dart';
 import '../../../creator/presentation/viewmodels/creator_viewmodel.dart';
@@ -45,10 +46,10 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     final authVm = context.read<AuthViewmodel>();
     final username = authVm.currentUser?.username ?? '';
     _lastUserType = authVm.currentUser?.userType;
-    
+
     // Listen to auth changes
     authVm.addListener(_onAuthChanged);
-    
+
     if (username.isNotEmpty) {
       _viewmodel.loadProfile(username).then((_) => _viewmodel.loadUserPosts());
     }
@@ -56,13 +57,13 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
 
   void _onAuthChanged() {
     if (!mounted || _isRefreshing) return;
-    
+
     final authVm = context.read<AuthViewmodel>();
     final currentUserType = authVm.currentUser?.userType;
-    
+
     // If user type changed (listener <-> creator), refresh the profile
-    if (_lastUserType != null && 
-        currentUserType != null && 
+    if (_lastUserType != null &&
+        currentUserType != null &&
         _lastUserType != currentUserType) {
       _lastUserType = currentUserType;
       // Reset tab index to avoid out-of-bounds error when tabs change
@@ -570,22 +571,24 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                             onPressed: () async {
                               final existingProfile =
                                   profile.creatorProfile != null
-                                      ? CreatorProfileForm.fromCreatorProfile(
-                                          profile.creatorProfile!)
-                                      : null;
+                                  ? CreatorProfileForm.fromCreatorProfile(
+                                      profile.creatorProfile!,
+                                    )
+                                  : null;
                               final authVm = context.read<AuthViewmodel>();
-                              final profileRepo =
-                                  context.read<ProfileRepository>();
-                              final became = await Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).push<bool>(
-                                MaterialPageRoute(
-                                  builder: (_) => BecomeACreator(
-                                    existingProfile: existingProfile,
-                                  ),
-                                ),
-                              );
+                              final profileRepo = context
+                                  .read<ProfileRepository>();
+                              final became =
+                                  await Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).push<bool>(
+                                    MaterialPageRoute(
+                                      builder: (_) => BecomeACreator(
+                                        existingProfile: existingProfile,
+                                      ),
+                                    ),
+                                  );
                               if (became == true && mounted) {
                                 await authVm.refreshCurrentUser();
                                 final username =
@@ -614,6 +617,9 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                           onTabChanged: (index) {
                             setState(() => _selectedTabIndex = index);
                             if (index == 0) _viewmodel.loadUserPosts();
+                            if (index == 1 && profile.isCreator) {
+                              _viewmodel.loadUserCollabs();
+                            }
                           },
                         ),
                         const SizedBox(height: 24),
@@ -626,6 +632,16 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                           posts: _viewmodel.posts,
                           isPostsLoading: _viewmodel.isPostsLoading,
                           onPostDeleted: _viewmodel.removePost,
+                          collabs: _viewmodel.collabs,
+                          isCollabsLoading: _viewmodel.isCollabsLoading,
+                          onCollabTap: (collab) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CollabDetailsScreen(collabId: collab.id),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 32),
                       ],

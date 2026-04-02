@@ -10,6 +10,7 @@ import '../models/cached_profile.dart';
 import '../models/cached_user_post.dart';
 import '../models/full_profile_model.dart';
 import '../models/follow_user_model.dart';
+import '../../../collab/data/models/collab_model.dart';
 import '../../../feed/data/models/post_model.dart';
 
 /// Repository for all profile-related operations.
@@ -220,4 +221,10 @@ class ProfileRepository {
   // ── Image upload ───────────────────────────────────────
 
   Future<String> uploadImage(XFile image) => _datasource.uploadImage(image);
+
+  // ── User collabs (profile tab) ─────────────────────────
+
+  /// Fetches collabs for a user's profile page (no caching for now).
+  Future<List<CollabModel>> getUserCollabs(String userId, {int page = 1}) =>
+      _datasource.getUserCollabs(userId, page: page);
 }

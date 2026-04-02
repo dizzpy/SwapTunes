@@ -104,6 +104,8 @@ class PrimaryButton extends BaseButton {
 
 class OutlinedAppButton extends BaseButton {
   final BorderSide? border;
+  final Color? textColor;
+  final Color? borderColor;
 
   const OutlinedAppButton({
     super.key,
@@ -112,17 +114,42 @@ class OutlinedAppButton extends BaseButton {
     super.height,
     super.borderRadius,
     super.foregroundColor,
+    super.icon,
     this.border,
+    this.textColor,
+    this.borderColor,
   });
 
   @override
   ButtonStyle buildStyle(BuildContext context) => OutlinedButton.styleFrom(
-    foregroundColor: foregroundColor ?? AppColors.textSecondary,
-    side: border ?? const BorderSide(color: AppColors.outline, width: 1),
+    foregroundColor: textColor ?? foregroundColor ?? AppColors.textSecondary,
+    side: border ?? BorderSide(
+      color: borderColor ?? AppColors.outline, 
+      width: 1,
+    ),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(borderRadius),
     ),
   );
+
+  @override
+  Widget buildLabel() {
+    final label = Text(
+      text,
+      textAlign: TextAlign.center,
+      style: AppTextStyles.bodyPrimary.copyWith(
+        color: textColor ?? foregroundColor,
+        fontSize: height < 40 ? 12 : 15,
+      ),
+    );
+
+    if (icon == null) return label;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [icon!, const SizedBox(width: 8), label],
+    );
+  }
 
   @override
   Widget buildChild(BuildContext context) => OutlinedButton(

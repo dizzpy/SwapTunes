@@ -25,6 +25,7 @@ class ApiConstants {
   static String follow(String userId) => '/users/$userId/follow';
   static String unfollow(String userId) => '/users/$userId/unfollow';
   static String userPosts(String userId) => '/users/$userId/posts';
+  static String userCollabs(String userId) => '/users/$userId/collabs';
 
   // ── Creator ────────────────────────────────────────────
   static const String creatorSetup = '/creator/setup';
@@ -65,6 +66,7 @@ class ApiConstants {
 
   // ── Collabs ────────────────────────────────────────────
   static const String collabs = '/collabs';
+  static const String myCollabs = '/collabs/me';
   static String collabById(String id) => '/collabs/$id';
 
   // ── Conversations ──────────────────────────────────────

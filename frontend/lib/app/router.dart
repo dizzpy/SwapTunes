@@ -10,4 +10,7 @@ class AppRoutes {
   static const String welcomeSuccess = '/welcome-success';
   static const String home = '/home';
   static const String singleChat = '/single-chat';
+  static const String collabDetails = '/collab-details';
+  static const String manageCollabs = '/manage-collabs';
+  static const String newCollab = '/new-collab';
 }

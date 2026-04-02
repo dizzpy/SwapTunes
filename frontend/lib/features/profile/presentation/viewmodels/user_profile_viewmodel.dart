@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../../core/network/network_exceptions.dart';
+import '../../../collab/data/models/collab_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../../data/models/full_profile_model.dart';
 import '../../data/repositories/profile_repository.dart';
@@ -22,6 +23,10 @@ class UserProfileViewmodel extends ChangeNotifier {
   bool _isPostsLoading = false;
   bool _postsLoaded = false; // guard against duplicate loads
 
+  List<CollabModel> _collabs = [];
+  bool _isCollabsLoading = false;
+  bool _collabsLoaded = false;
+
   FullProfileModel? get profile => _profile;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -30,6 +35,8 @@ class UserProfileViewmodel extends ChangeNotifier {
   bool get isCreator => _profile?.isCreator ?? false;
   List<PostModel> get posts => _posts;
   bool get isPostsLoading => _isPostsLoading;
+  List<CollabModel> get collabs => _collabs;
+  bool get isCollabsLoading => _isCollabsLoading;
 
   UserProfileViewmodel(this._repository);
 
@@ -143,6 +150,23 @@ class UserProfileViewmodel extends ChangeNotifier {
       // Silently keep empty list on error
     } finally {
       _isPostsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Load the Collabs tab content for the current profile.
+  Future<void> loadUserCollabs() async {
+    if (_profile == null || _isCollabsLoading || _collabsLoaded) return;
+    _isCollabsLoading = true;
+    notifyListeners();
+
+    try {
+      _collabs = await _repository.getUserCollabs(_profile!.id);
+      _collabsLoaded = true;
+    } catch (_) {
+      // Silently keep empty list on error
+    } finally {
+      _isCollabsLoading = false;
       notifyListeners();
     }
   }

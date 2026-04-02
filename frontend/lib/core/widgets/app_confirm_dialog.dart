@@ -58,87 +58,38 @@ class AppConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final confirmColor = isDanger ? AppColors.danger : AppColors.primary;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardFront,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.outline, width: 0.8),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Title
-            Text(
-              title,
-              style: AppTextStyles.bodyPrimary.copyWith(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            // Message
-            Text(
-              message,
-              style: AppTextStyles.bodySecondary,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 28),
-            // Buttons
-            Row(
-              children: [
-                // Cancel
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context, false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.outline,
-                          width: 0.8,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        cancelLabel,
-                        style: AppTextStyles.bodyPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Confirm
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context, true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isDanger
-                            ? AppColors.danger.withValues(alpha: 0.15)
-                            : AppColors.greenDarkBg,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: confirmColor, width: 0.8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        confirmLabel,
-                        style: AppTextStyles.bodyPrimary.copyWith(
-                          color: confirmColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+    return AlertDialog(
+      backgroundColor: AppColors.cardFront,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+      actionsPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      title: Text(title, style: AppTextStyles.heading3),
+      content: Text(
+        message,
+        style: AppTextStyles.bodyPrimary.copyWith(
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondary,
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            cancelLabel,
+            style: AppTextStyles.bodyPrimary.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(
+            confirmLabel,
+            style: AppTextStyles.bodyPrimary.copyWith(color: confirmColor),
+          ),
+        ),
+      ],
     );
   }
 }
