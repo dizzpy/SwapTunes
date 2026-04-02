@@ -12,6 +12,18 @@ import '../../../../core/widgets/sliding_nav_bar.dart';
 import '../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../../../features/collab/presentation/screens/collab_screen.dart';
 
+/// Enum to control bottom nav bar visibility behavior per screen
+enum NavBarVisibility {
+  /// Nav bar is visible and responds to scroll (default behavior)
+  visible,
+
+  /// Nav bar is hidden and ignores scroll events
+  hidden,
+
+  /// Nav bar is visible but ignores scroll events (always shown)
+  locked,
+}
+
 class MainLayoutScreen extends StatefulWidget {
   static final GlobalKey<_MainLayoutScreenState> _key = GlobalKey();
 
@@ -27,9 +39,28 @@ class MainLayoutScreen extends StatefulWidget {
     state._switchTab(profileIndex);
   }
 
-  /// Show or hide the bottom navigation bar (e.g. when entering a full-screen chat).
+  /// Set the nav bar visibility mode.
+  /// - [NavBarVisibility.visible]: Normal behavior with scroll hide/show
+  /// - [NavBarVisibility.hidden]: Force hide, ignores scroll
+  /// - [NavBarVisibility.locked]: Force show, ignores scroll
+  static void setNavVisibility(NavBarVisibility visibility) {
+    _key.currentState?._setNavVisibility(visibility);
+  }
+
+  /// Convenience method to hide nav bar (shorthand for setNavVisibility(hidden))
+  static void hideNavBar() => setNavVisibility(NavBarVisibility.hidden);
+
+  /// Convenience method to show nav bar (shorthand for setNavVisibility(visible))
+  static void showNavBar() => setNavVisibility(NavBarVisibility.visible);
+
+  /// Convenience method to lock nav bar visible (shorthand for setNavVisibility(locked))
+  static void lockNavBar() => setNavVisibility(NavBarVisibility.locked);
+
+  @Deprecated('Use setNavVisibility, hideNavBar, or showNavBar instead')
   static void setNavVisible(bool visible) {
-    _key.currentState?._setNavVisible(visible);
+    _key.currentState?._setNavVisibility(
+      visible ? NavBarVisibility.visible : NavBarVisibility.hidden,
+    );
   }
 
   @override
@@ -38,7 +69,8 @@ class MainLayoutScreen extends StatefulWidget {
 
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentIndex = 0;
-  bool _isBottomNavVisible = true;
+  NavBarVisibility _navVisibility = NavBarVisibility.visible;
+  bool _isNavBarShown = true;
   bool _isCreator = false;
 
   // Always allocate 5 keys — collab tab uses index 2, others shift right
@@ -95,12 +127,47 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     if (!_isCreator && index == 2) ChatsListScreen.refresh();
     setState(() {
       _currentIndex = index;
-      _isBottomNavVisible = true;
+      // Reset to default visibility when switching tabs
+      _navVisibility = NavBarVisibility.visible;
+      _isNavBarShown = true;
     });
   }
 
-  void _setNavVisible(bool visible) {
-    setState(() => _isBottomNavVisible = visible);
+  void _setNavVisibility(NavBarVisibility visibility) {
+    setState(() {
+      _navVisibility = visibility;
+      // Update shown state based on visibility mode
+      switch (visibility) {
+        case NavBarVisibility.visible:
+          _isNavBarShown = true;
+        case NavBarVisibility.hidden:
+          _isNavBarShown = false;
+        case NavBarVisibility.locked:
+          _isNavBarShown = true;
+      }
+    });
+  }
+
+  /// Handle scroll events - only responds to VERTICAL scroll and only when
+  /// visibility mode is [NavBarVisibility.visible]
+  bool _handleScrollNotification(UserScrollNotification notification) {
+    // Only respond to scroll when in normal visible mode
+    if (_navVisibility != NavBarVisibility.visible) return false;
+
+    // FIX: Only respond to vertical scroll, ignore horizontal scroll
+    final metrics = notification.metrics;
+    if (metrics.axis != Axis.vertical) return false;
+
+    if (notification.direction == ScrollDirection.forward) {
+      if (!_isNavBarShown) {
+        setState(() => _isNavBarShown = true);
+      }
+    } else if (notification.direction == ScrollDirection.reverse) {
+      if (_isNavBarShown) {
+        setState(() => _isNavBarShown = false);
+      }
+    }
+    return false;
   }
 
   /// Returns the actual Navigator tab index accounting for creator/listener mode.
@@ -176,18 +243,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         extendBody: true,
         backgroundColor: AppColors.background,
         body: NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            if (notification.direction == ScrollDirection.forward) {
-              if (!_isBottomNavVisible) {
-                setState(() => _isBottomNavVisible = true);
-              }
-            } else if (notification.direction == ScrollDirection.reverse) {
-              if (_isBottomNavVisible) {
-                setState(() => _isBottomNavVisible = false);
-              }
-            }
-            return false;
-          },
+          onNotification: _handleScrollNotification,
           child: IndexedStack(
             index: _navigatorIndex,
             children: List.generate(5, (i) {
@@ -201,20 +257,14 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         ),
         bottomNavigationBar: AnimatedSlide(
           duration: const Duration(milliseconds: 300),
-          offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1.5),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-            child: SlidingNavBar(
-              backgroundColor: AppColors.cardFront,
-              activeColor: AppColors.primary,
-              inactiveColor: AppColors.textSecondary,
-              selectedIndex: _currentIndex,
-              onTap: _switchTab,
-              items: _navItems,
-            ),
+          offset: _isNavBarShown ? Offset.zero : const Offset(0, 1.5),
+          child: SlidingNavBar(
+            backgroundColor: AppColors.cardFront,
+            activeColor: AppColors.primary,
+            inactiveColor: AppColors.textSecondary,
+            selectedIndex: _currentIndex,
+            onTap: _switchTab,
+            items: _navItems,
           ),
         ),
       ),

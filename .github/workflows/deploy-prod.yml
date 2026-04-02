@@ -1,8 +1,9 @@
 name: Deploy — Production
 
-on:
-  push:
-    branches: [main]
+# on:
+#   push:
+#     branches: [main]
+on: workflow_dispatch # temporarily disabled — uncomment above when ready to release
 
 env:
   REGISTRY: ghcr.io

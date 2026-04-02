@@ -14,3 +14,17 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+New API Usage
+
+// Hide nav bar on a screen (ignores scroll)
+MainLayoutScreen.hideNavBar();
+
+// Show nav bar and re-enable scroll behavior
+MainLayoutScreen.showNavBar();
+
+// Lock nav bar visible (ignores scroll, stays visible)
+MainLayoutScreen.lockNavBar();
+
+// Or use the enum directly for more control
+MainLayoutScreen.setNavVisibility(NavBarVisibility.hidden);
