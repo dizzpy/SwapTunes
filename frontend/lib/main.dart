@@ -26,6 +26,9 @@ import 'features/creator/presentation/viewmodels/creator_viewmodel.dart';
 import 'features/profile/data/datasources/profile_remote_datasource.dart';
 import 'features/profile/data/repositories/profile_repository.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
+import 'features/collab/data/datasources/collab_remote_datasource.dart';
+import 'features/collab/data/repositories/collab_repository.dart';
+import 'features/collab/presentation/viewmodels/collab_viewmodel.dart';
 
 /// Entry point for the SwapTunes application.
 ///
@@ -85,6 +88,9 @@ Future<void> main() async {
   final creatorRepository = CreatorRepository(
     CreatorRemoteDatasource(apiClient),
   );
+  final collabRepository = CollabRepository(
+    CollabRemoteDatasource(apiClient),
+  );
 
   runApp(
     MultiProvider(
@@ -97,6 +103,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => FeedViewmodel(feedRepository)),
         ChangeNotifierProvider(
           create: (_) => CreatorViewmodel(creatorRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CollabViewmodel(collabRepository),
         ),
         Provider<ApiClient>.value(value: apiClient),
         Provider<ProfileRepository>.value(value: profileRepository),

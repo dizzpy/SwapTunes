@@ -176,14 +176,12 @@ class _FeedScreenState extends State<FeedScreen> {
             AppIconButton(
               icon: AppAssets.icon.menu,
               variant: AppIconButtonVariant.filled,
-              width: 44,
-              height: 44,
+              size: 44,
             ),
             AppIconButton(
               icon: AppAssets.icon.notification,
               variant: AppIconButtonVariant.filled,
-              width: 44,
-              height: 44,
+              size: 44,
             ),
           ],
         ),

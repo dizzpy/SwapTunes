@@ -10,8 +10,8 @@ class AppIconButton extends StatelessWidget {
   final dynamic icon;
   final VoidCallback? onTap;
   final AppIconButtonVariant variant;
-  final double width;
-  final double height;
+  // Always square — only one size param to enforce 1:1 ratio everywhere.
+  final double size;
   final double iconSize;
 
   const AppIconButton({
@@ -19,9 +19,8 @@ class AppIconButton extends StatelessWidget {
     required this.icon,
     this.onTap,
     this.variant = AppIconButtonVariant.filled,
-    this.width = 48,
-    this.height = 48,
-    this.iconSize = 22, // Adjusted to match Figma proportion
+    this.size = 48,
+    this.iconSize = 22,
   });
 
   @override
@@ -62,8 +61,8 @@ class AppIconButton extends StatelessWidget {
       },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: width,
-        height: height,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: bgColor,
           shape: shape,

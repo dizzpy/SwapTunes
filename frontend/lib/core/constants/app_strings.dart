@@ -11,6 +11,7 @@ class AppStrings {
   static const discover = _DiscoverStrings();
   static const messaging = _MessagingStrings();
   static const creator = _CreatorStrings();
+  static const collab = _CollabStrings();
 }
 
 class _MessagingStrings {
@@ -130,7 +131,8 @@ class _CreatorStrings {
   final String featureEngageTitle = 'Engage with Listeners';
   final String featureEngageSubtitle = 'Grow your audience and fanbase';
   final String featurePortfolioTitle = 'Showcase Your Portfolio';
-  final String featurePortfolioSubtitle = 'Display your links and social profiles';
+  final String featurePortfolioSubtitle =
+      'Display your links and social profiles';
   final String continueToSetupBtn = 'Continue to Setup';
 
   // Creator Setup screen
@@ -265,4 +267,96 @@ class _DiscoverStrings {
   final String importError = 'Failed to import playlist. Please try again.';
   final String retry = 'Retry';
   final String loadMore = 'Load more';
+}
+
+class _CollabStrings {
+  const _CollabStrings();
+
+  // Screen titles
+  final String screenTitle = 'Collaborations';
+  final String detailTitle = 'Collaboration';
+  final String manageTitle = 'My Collaborations';
+  final String newCollabTitle = 'New Collaboration';
+  final String editCollabTitle = 'Edit Collaboration';
+
+  // Filter
+  final String filterAll = 'All';
+
+  // Feed
+  final String noCollabsFound = 'No collaborations found';
+  final String noCollabsSubtitle = 'Check back later or adjust your filter';
+  final String loadingError =
+      'Failed to load collaborations. Please try again.';
+
+  // Manage screen
+  final String manageInfoBanner = 'Manage your active collaboration posts';
+  final String activePosts = 'Active Posts';
+  final String noMyCollabs = "You haven't posted any collaborations yet";
+  final String noMyCollabsSubtitle =
+      'Tap the button above to create your first post';
+
+  // Card actions
+  final String editAction = 'Edit';
+  final String deleteAction = 'Delete';
+  final String editComingSoon = 'Edit feature coming soon';
+
+  // Delete dialog
+  final String deleteDialogTitle = 'Delete Post?';
+  final String deleteDialogBody =
+      'This action cannot be undone. Are you sure you want to delete this collaboration post?';
+  final String deleteDialogCancel = 'Cancel';
+  final String deleteDialogConfirm = 'Delete';
+  final String deleteSuccess = 'Post deleted';
+  final String deleteError = 'Failed to delete post. Please try again.';
+
+  // Detail screen
+  final String aboutProject = 'About this Project';
+  final String lookingForSection = 'Looking For';
+  final String genresSection = 'Genres & Styles';
+  final String viewProfile = 'View';
+  final String yourPost = 'Your Post';
+  final String editPost = 'Edit Post';
+  final String deletePost = 'Delete';
+  final String deleteConfirmMessage =
+      'Are you sure you want to delete this collaboration? This cannot be undone.';
+
+  // Create form
+  final String titleFieldLabel = 'What are you looking for?';
+  final String titleFieldHint = 'e.g. Vocalist for R&B track';
+  final String descriptionFieldLabel = 'Description';
+  final String descriptionFieldHint =
+      'Tell potential collaborators about your project, style and goals...';
+  final String lookingForSectionTitle = "I'm Looking for";
+  final String lookingForSectionSubtitle = 'Select all that apply';
+  final String genreSectionTitle = 'Genre / Style';
+  final String genreSectionSubtitle = 'Choose up to 3 genres';
+  final String projectTypeSectionTitle = 'Project Type';
+  final String projectTypeSectionSubtitle = 'Select your compensation model';
+  final String postButton = 'Post Collaboration';
+  final String postSuccess = 'Collaboration posted successfully!';
+  final String postError = 'Failed to post collaboration. Please try again.';
+  final String editButton = 'Save Changes';
+  final String editSuccess = 'Collaboration updated successfully!';
+  final String editError = 'Failed to update collaboration. Please try again.';
+
+  // Validation
+  final String titleRequired = 'Please enter a title (min 5 characters)';
+  final String descriptionRequired =
+      'Please enter a description (min 10 characters)';
+  final String lookingForRequired = 'Please select at least one role';
+
+  // Project type options
+  final String paidProject = 'Paid Project';
+  final String paidProjectDesc = 'Direct payment for work';
+  final String revenueShare = 'Revenue Share';
+  final String revenueShareDesc = 'Share profits from the project';
+  final String forFun = 'For Fun/Experience';
+  final String forFunDesc = 'Non-commercial collaboration';
+
+  // Message button
+  final String messageButton = 'Message';
+
+  // Generic
+  final String retry = 'Retry';
+  final String createNewCollab = 'Create New Collab';
 }

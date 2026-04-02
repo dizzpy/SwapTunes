@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_icon_button.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../collab/presentation/screens/collab_details_screen.dart';
 import '../../../messaging/data/models/chat_conversation_model.dart';
 import '../../../messaging/presentation/screens/single_chat_screen.dart';
 import '../../data/repositories/profile_repository.dart';
@@ -126,8 +127,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: AppIconButton(
               icon: Icons.arrow_back_ios_new,
               variant: AppIconButtonVariant.filled,
-              width: 40,
-              height: 40,
+              size: 40,
               iconSize: 20,
               onTap: () => Navigator.pop(context),
             ),
@@ -327,6 +327,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           onTabChanged: (index) {
                             setState(() => _selectedTabIndex = index);
                             if (index == 0) _viewmodel.loadUserPosts();
+                            if (index == 1 && profile.isCreator) {
+                              _viewmodel.loadUserCollabs();
+                            }
                           },
                         ),
                         const SizedBox(height: 24),
@@ -339,6 +342,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           posts: _viewmodel.posts,
                           isPostsLoading: _viewmodel.isPostsLoading,
                           onPostDeleted: isOwn ? _viewmodel.removePost : null,
+                          collabs: _viewmodel.collabs,
+                          isCollabsLoading: _viewmodel.isCollabsLoading,
+                          onCollabTap: (collab) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CollabDetailsScreen(collabId: collab.id),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 32),
                       ],

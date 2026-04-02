@@ -23,10 +23,20 @@ class SingleChatScreen extends StatefulWidget {
   /// immediately so the header shows the participant info right away.
   final String? recipientId;
 
+  /// Pre-fills the message input on open (e.g. from a collab post CTA).
+  final String? initialMessage;
+
+  /// When set, shows a dismissable collab quote block above the input.
+  final String? collabTitle;
+  final String? collabCreator;
+
   const SingleChatScreen({
     super.key,
     required this.conversation,
     this.recipientId,
+    this.initialMessage,
+    this.collabTitle,
+    this.collabCreator,
   });
 
   @override
@@ -40,12 +50,17 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
   late final String _currentUserId;
   bool _isInitializing = false;
   int _lastMessageCount = 0;
+  bool _showQuoteBlock = false;
 
   @override
   void initState() {
     super.initState();
     _currentUserId = context.read<StorageService>().getUserId() ?? '';
     _scrollController.addListener(_onScroll);
+    if (widget.initialMessage != null) {
+      _messageController.text = widget.initialMessage!;
+    }
+    _showQuoteBlock = widget.collabTitle != null;
 
     if (widget.recipientId != null) {
       // Navigate was instant — resolve conversation ID in the background.
@@ -178,6 +193,7 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
     _messageController.clear();
+    if (_showQuoteBlock) setState(() => _showQuoteBlock = false);
     _viewmodel?.sendMessage(text);
   }
 
@@ -221,6 +237,12 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
                           ),
                         const SizedBox(height: 16),
                         Expanded(child: _buildMessageList()),
+                        if (_showQuoteBlock && widget.collabTitle != null)
+                          _CollabQuoteBlock(
+                            collabTitle: widget.collabTitle!,
+                            collabCreator: widget.collabCreator,
+                            onDismiss: () => setState(() => _showQuoteBlock = false),
+                          ),
                         ChatInputField(
                           controller: _messageController,
                           onSend: _handleSend,
@@ -320,5 +342,85 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
       return AppStrings.messaging.yesterdayLabel;
     }
     return AppStrings.messaging.lastWeekLabel;
+  }
+}
+
+class _CollabQuoteBlock extends StatelessWidget {
+  final String collabTitle;
+  final String? collabCreator;
+  final VoidCallback onDismiss;
+
+  const _CollabQuoteBlock({
+    required this.collabTitle,
+    this.collabCreator,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      decoration: BoxDecoration(
+        color: AppColors.cardFront,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.25)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            // Green left accent bar
+            Container(
+              width: 3,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      collabCreator != null ? '@$collabCreator\'s collab' : 'Collab post',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      collabTitle,
+                      style: AppTextStyles.bodySecondary.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: onDismiss,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Icon(
+                  Icons.close,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
