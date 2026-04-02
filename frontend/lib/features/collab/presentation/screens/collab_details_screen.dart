@@ -39,7 +39,7 @@ class _CollabDetailsScreenState extends State<CollabDetailsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      MainLayoutScreen.setNavVisible(false);
+      MainLayoutScreen.hideNavBar();
       context.read<CollabViewmodel>().loadCollabById(widget.collabId);
     });
   }
@@ -47,7 +47,7 @@ class _CollabDetailsScreenState extends State<CollabDetailsScreen> {
   @override
   void dispose() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      MainLayoutScreen.setNavVisible(true);
+      MainLayoutScreen.showNavBar();
     });
     super.dispose();
   }
@@ -667,7 +667,7 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(
