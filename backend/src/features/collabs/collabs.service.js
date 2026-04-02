@@ -89,3 +89,19 @@ export const getMyCollabs = async (creatorId, query) => {
   if (error) throw { statusCode: 400, code: 'FETCH_MY_COLLABS_FAILED', message: error.message }
   return data
 }
+
+// Get collabs by user id (public profile view).
+export const getUserCollabs = async (userId, query) => {
+  const { from, to } = getPagination(query.page, query.limit)
+
+  const { data, error } = await supabase
+    .from('collaborations')
+    .select('*, creator:users(id, username, full_name, avatar_url, is_verified)')
+    .eq('creator_id', userId)
+    .eq('status', 'open')
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw { statusCode: 400, code: 'FETCH_USER_COLLABS_FAILED', message: error.message }
+  return data
+}
