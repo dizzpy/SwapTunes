@@ -31,6 +31,7 @@ class FollowsSheet extends StatefulWidget {
   }) {
     return showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

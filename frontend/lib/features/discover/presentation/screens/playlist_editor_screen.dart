@@ -370,6 +370,7 @@ class _PlaylistEditorContentState extends State<_PlaylistEditorContent> {
     AppHaptics.sheetOpen();
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: const BoxDecoration(

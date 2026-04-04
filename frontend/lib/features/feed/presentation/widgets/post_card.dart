@@ -205,6 +205,7 @@ class _PostCardState extends State<PostCard> {
                     AppHaptics.sheetOpen();
                     showModalBottomSheet(
                       context: context,
+                      useRootNavigator: true,
                       backgroundColor: Colors.transparent,
                       isScrollControlled: true,
                       builder: (ctx) => PostOptionsSheet(
@@ -252,6 +253,7 @@ class _PostCardState extends State<PostCard> {
                 onLabelTap: () {
                   showModalBottomSheet(
                     context: context,
+                    useRootNavigator: true,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
                     builder: (context) => PostLikesSheet(postId: widget.postId),

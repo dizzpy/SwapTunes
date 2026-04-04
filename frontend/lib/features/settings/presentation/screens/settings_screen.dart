@@ -127,6 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),

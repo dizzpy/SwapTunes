@@ -145,6 +145,7 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
   void _showDeleteSheet(String messageId) {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

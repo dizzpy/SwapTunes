@@ -158,6 +158,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
   }) async {
     await showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -316,6 +317,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

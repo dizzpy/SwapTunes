@@ -11,6 +11,7 @@ import '../../../../core/theme/app_text_styles.dart';
 void showProfileImagePickerSheet(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (_) => const ProfileImagePickerSheet(),

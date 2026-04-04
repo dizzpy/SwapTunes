@@ -80,6 +80,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _onAvatarTap() async {
     await showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
