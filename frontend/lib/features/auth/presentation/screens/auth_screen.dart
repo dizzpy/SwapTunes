@@ -11,7 +11,7 @@ import '../../../../shared/widgets/input_box.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/auth_background.dart';
-import '../widgets/magic_link_input.dart';
+import '../widgets/email_input.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -30,8 +30,8 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  /// Sends a magic link to the entered email (replaces old email/password login).
-  Future<void> _handleMagicLinkLogin() async {
+  /// Sends an OTP to the entered email.
+  Future<void> _handleEmailLogin() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,23 +49,15 @@ class _AuthScreenState extends State<AuthScreen> {
 
     setState(() => _isProcessing = true);
     final auth = context.read<AuthViewmodel>();
-    final success = await auth.sendMagicLink(email);
+    final success = await auth.sendOtp(email);
 
     if (mounted) {
       setState(() => _isProcessing = false);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Magic link sent to $email! Check your inbox.'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        // Show OTP input modal
+        _handleSignUpEmail();
       } else {
-        final error = auth.errorMessage ?? 'Failed to send magic link';
+        final error = auth.errorMessage ?? 'Failed to send code';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error),
@@ -106,13 +98,15 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  /// Opens the magic link email modal.
-  void _handleSignUpMagicLink() {
+  /// Opens the email input modal.
+  void _handleSignUpEmail() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
-      builder: (_) => const MagicLinkInput(),
+      builder: (_) => const EmailInput(),
     );
   }
 
@@ -161,8 +155,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
 
                   PrimaryButton(
-                    text: 'Send Magic Link',
-                    onPressed: _isProcessing ? () {} : _handleMagicLinkLogin,
+                    text: 'Send Code',
+                    onPressed: _isProcessing ? () {} : _handleEmailLogin,
                   ),
 
                   const SizedBox(height: 28),
@@ -209,7 +203,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   Center(
                     child: GestureDetector(
-                      onTap: _handleSignUpMagicLink,
+                      onTap: _handleSignUpEmail,
                       child: Text.rich(
                         TextSpan(
                           text: AppStrings.auth.noAccount,

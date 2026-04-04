@@ -298,6 +298,81 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     ProfileImageViewer.show(context, url);
   }
 
+  // ── Settings Sheet ────────────────────────────────────────────────
+
+  void _showSettingsSheet(BuildContext ctx) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: AppColors.cardFront,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Settings title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Settings',
+                  style: AppTextStyles.heading3,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Divider(color: AppColors.outline, height: 1),
+              
+              // Logout option
+              ListTile(
+                leading: const Icon(
+                  Icons.logout_outlined,
+                  color: AppColors.danger,
+                ),
+                title: Text(
+                  'Logout',
+                  style: AppTextStyles.bodyPrimary.copyWith(
+                    color: AppColors.danger,
+                  ),
+                ),
+                onTap: () async {
+                  Navigator.pop(context); // Close sheet first
+                  
+                  final confirmed = await AppConfirmDialog.show(
+                    ctx,
+                    title: 'Logout',
+                    message: 'Are you sure you want to logout?',
+                    confirmLabel: 'Logout',
+                    cancelLabel: 'Cancel',
+                    isDanger: true,
+                  );
+                  
+                  if (confirmed == true && ctx.mounted) {
+                    await ctx.read<AuthViewmodel>().logout();
+                  }
+                },
+              ),
+              
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── Bio inline edit ──────────────────────────────────────────────
 
   Future<void> _onBioTap() async {
@@ -413,22 +488,24 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
             onRefresh: _onRefresh,
             color: AppColors.primary,
             backgroundColor: AppColors.cardFront,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SafeArea(bottom: false, child: const SizedBox(height: 16)),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SafeArea(bottom: false, child: const SizedBox(height: 16)),
 
-                  // Cover & Avatar (tappable)
-                  ProfileCoverHeader(
-                    coverUrl: profile.coverUrl,
-                    avatarUrl: profile.avatarUrl,
-                    isCreatorMode: profile.isCreator,
-                    onAvatarTap: _onAvatarTap,
-                    onCoverTap: _onCoverTap,
-                  ),
-                  const SizedBox(height: 64),
+                      // Cover & Avatar (tappable)
+                      ProfileCoverHeader(
+                        coverUrl: profile.coverUrl,
+                        avatarUrl: profile.avatarUrl,
+                        isCreatorMode: profile.isCreator,
+                        onAvatarTap: _onAvatarTap,
+                        onCoverTap: _onCoverTap,
+                      ),
+                      const SizedBox(height: 64),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -650,7 +727,32 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                 ],
               ),
             ),
-          );
+            
+            // Settings button in top-right corner
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.cardFront.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.settings_outlined,
+                        color: AppColors.textWhite,
+                      ),
+                      onPressed: () => _showSettingsSheet(context),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
         },
       ),
     );

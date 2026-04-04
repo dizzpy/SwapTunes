@@ -28,12 +28,29 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   bool get isAuthenticated => false;
   @override
   bool get isLoggedIn => false;
+  
+  // OTP getters
+  @override
+  String? get pendingEmail => null;
+  @override
+  String? get otpError => null;
+  @override
+  int get resendSecondsRemaining => 0;
+  @override
+  bool get canResendOtp => true;
+  
   @override
   Future<void> signInWithGoogle() async {}
   @override
   Future<void> signInWithSpotify() async {}
   @override
-  Future<bool> sendMagicLink(String email) async => false;
+  Future<bool> sendOtp(String email) async => false;
+  @override
+  Future<bool> verifyOtp(String token) async => false;
+  @override
+  Future<bool> resendOtp() async => false;
+  @override
+  void reset() {}
   @override
   Future<bool> handleDeepLink(Uri uri) async => false;
   @override

@@ -81,7 +81,21 @@ class _OnboardingStrings {
 
   final String signInBtn = 'Sign In';
   final String createAccount = 'Create an account';
-  final String continueMagicLink = 'Continue with Magic Link';
+  final String continueWithEmail = 'Continue with Email';
+  
+  // Email input screen
+  final String emailInputTitle = 'Sign in with Email';
+  final String emailInputSubtitle = 'Enter your email and we\'ll send you a verification code.';
+  final String sendCodeBtn = 'Send Code';
+  
+  // OTP input screen
+  final String otpTitle = 'Enter verification code';
+  final String otpSubtitle = 'We sent an 8-digit code to';
+  final String otpResend = 'Resend code';
+  final String otpResendIn = 'Resend in';
+  final String otpInvalid = 'Invalid code. Please try again.';
+  final String otpExpired = 'Code expired. Please request a new one.';
+  final String otpVerifying = 'Verifying...';
 }
 
 class _ConnectSpotifyStrings {

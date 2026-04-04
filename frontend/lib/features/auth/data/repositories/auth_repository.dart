@@ -48,9 +48,21 @@ class AuthRepository {
     await _supabaseAuth.signInWithSpotify();
   }
 
-  /// Sends a magic link to the given [email] for passwordless login.
-  Future<void> signInWithMagicLink(String email) async {
-    await _supabaseAuth.signInWithMagicLink(email);
+  // ── OTP Sign-In ────────────────────────────────────────
+
+  /// Sends a 6-digit OTP code to the given [email].
+  Future<void> sendOtp(String email) async {
+    await _supabaseAuth.sendOtp(email);
+  }
+
+  /// Verifies the OTP [token] for the given [email].
+  /// Syncs the resulting JWT to storage on success.
+  Future<void> verifyOtp({
+    required String email,
+    required String token,
+  }) async {
+    await _supabaseAuth.verifyOtp(email: email, token: token);
+    await syncTokenToStorage();
   }
 
   // ── Session Handling ───────────────────────────────────
