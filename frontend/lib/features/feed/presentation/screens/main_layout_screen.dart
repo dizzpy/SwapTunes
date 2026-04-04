@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:swaptune/features/discover/presentation/screens/discover_screen.dart';
@@ -134,17 +135,21 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   }
 
   void _setNavVisibility(NavBarVisibility visibility) {
-    setState(() {
-      _navVisibility = visibility;
-      // Update shown state based on visibility mode
-      switch (visibility) {
-        case NavBarVisibility.visible:
-          _isNavBarShown = true;
-        case NavBarVisibility.hidden:
-          _isNavBarShown = false;
-        case NavBarVisibility.locked:
-          _isNavBarShown = true;
-      }
+    // Defer setState so callers (e.g. initState of a child route) never
+    // trigger a rebuild while the current frame is still being built/laid out.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _navVisibility = visibility;
+        switch (visibility) {
+          case NavBarVisibility.visible:
+            _isNavBarShown = true;
+          case NavBarVisibility.hidden:
+            _isNavBarShown = false;
+          case NavBarVisibility.locked:
+            _isNavBarShown = true;
+        }
+      });
     });
   }
 

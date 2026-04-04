@@ -61,4 +61,32 @@ class _Icons {
 
   // Messaging
   final dynamic arrowUp = HugeIcons.strokeRoundedArrowUp02;
+
+  // Settings
+  final dynamic settings = HugeIcons.strokeRoundedSettings01;
+  final dynamic userEdit = HugeIcons.strokeRoundedUserEdit01;
+  final dynamic lockPassword = HugeIcons.strokeRoundedLockPassword;
+  final dynamic spotify = HugeIcons.strokeRoundedMusicNote01;
+  final dynamic google = HugeIcons.strokeRoundedGoogle;
+  final dynamic starCreator = HugeIcons.strokeRoundedStarCircle;
+  final dynamic bellNotification = HugeIcons.strokeRoundedNotification02;
+  final dynamic activityHeart = HugeIcons.strokeRoundedHeartCheck;
+  final dynamic messageAlert = HugeIcons.strokeRoundedMessageNotification01;
+  final dynamic collabHandshake = HugeIcons.strokeRoundedUserSharing;
+  final dynamic privateEye = HugeIcons.strokeRoundedViewOff;
+  final dynamic dmLock = HugeIcons.strokeRoundedMessageLock01;
+  final dynamic blockedUser = HugeIcons.strokeRoundedUserBlock01;
+  final dynamic mutedUser = HugeIcons.strokeRoundedVolumeOff;
+  final dynamic playlist = HugeIcons.strokeRoundedPlaylist02;
+  final dynamic genreFilter = HugeIcons.strokeRoundedFilterVertical;
+  final dynamic hideLike = HugeIcons.strokeRoundedFavouriteSquare;
+  final dynamic themeMoon = HugeIcons.strokeRoundedMoon01;
+  final dynamic language = HugeIcons.strokeRoundedLanguageCircle;
+  final dynamic appInfo = HugeIcons.strokeRoundedInformationCircle;
+  final dynamic terms = HugeIcons.strokeRoundedFile01;
+  final dynamic privacyShield = HugeIcons.strokeRoundedShieldUser;
+  final dynamic licenses = HugeIcons.strokeRoundedBook01;
+  final dynamic logout = HugeIcons.strokeRoundedLogout01;
+  final dynamic deleteAccount = HugeIcons.strokeRoundedDelete02;
+  final dynamic chevronRight = HugeIcons.strokeRoundedArrowRight01;
 }

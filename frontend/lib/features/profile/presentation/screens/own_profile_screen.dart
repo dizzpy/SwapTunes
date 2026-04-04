@@ -24,6 +24,7 @@ import '../widgets/profile_tab_content.dart';
 import '../widgets/follows_sheet.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../dev/presentation/screens/dev_tools_screen.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 
 /// Own profile screen — displayed as the Profile tab in bottom navigation.
 class OwnProfileScreen extends StatefulWidget {
@@ -298,78 +299,11 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     ProfileImageViewer.show(context, url);
   }
 
-  // ── Settings Sheet ────────────────────────────────────────────────
+  // ── Settings Navigation ───────────────────────────────────────────
 
-  void _showSettingsSheet(BuildContext ctx) {
-    showModalBottomSheet(
-      context: ctx,
-      backgroundColor: AppColors.cardFront,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.outline,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Settings title
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Settings',
-                  style: AppTextStyles.heading3,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Divider(color: AppColors.outline, height: 1),
-              
-              // Logout option
-              ListTile(
-                leading: const Icon(
-                  Icons.logout_outlined,
-                  color: AppColors.danger,
-                ),
-                title: Text(
-                  'Logout',
-                  style: AppTextStyles.bodyPrimary.copyWith(
-                    color: AppColors.danger,
-                  ),
-                ),
-                onTap: () async {
-                  Navigator.pop(context); // Close sheet first
-                  
-                  final confirmed = await AppConfirmDialog.show(
-                    ctx,
-                    title: 'Logout',
-                    message: 'Are you sure you want to logout?',
-                    confirmLabel: 'Logout',
-                    cancelLabel: 'Cancel',
-                    isDanger: true,
-                  );
-                  
-                  if (confirmed == true && ctx.mounted) {
-                    await ctx.read<AuthViewmodel>().logout();
-                  }
-                },
-              ),
-              
-              const SizedBox(height: 10),
-            ],
-          ),
-        ),
-      ),
+  void _openSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SettingsScreen()),
     );
   }
 
@@ -744,7 +678,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                         Icons.settings_outlined,
                         color: AppColors.textWhite,
                       ),
-                      onPressed: () => _showSettingsSheet(context),
+                      onPressed: _openSettings,
                     ),
                   ),
                 ),
