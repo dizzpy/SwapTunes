@@ -34,6 +34,56 @@ export const getDiscoverPlaylists = async (query) => {
   return data
 }
 
+// Get suggested users service method interacting with the database.
+export const getSuggestedUsers = async (userId, limit = 20) => {
+  // Get IDs the current user already follows
+  const { data: following, error: followErr } = await supabase
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', userId)
+
+  if (followErr) throw { statusCode: 400, code: 'FETCH_SUGGESTED_USERS_FAILED', message: followErr.message }
+
+  const followingIds = (following || []).map((f) => f.following_id)
+  const excludeIds = [userId, ...followingIds]
+
+  let qb = supabase
+    .from('users')
+    .select('id, username, full_name, avatar_url, user_type')
+    .limit(limit)
+
+  qb = qb.not('id', 'in', `(${excludeIds.join(',')})`)
+
+  const { data, error } = await qb
+  if (error) throw { statusCode: 400, code: 'FETCH_SUGGESTED_USERS_FAILED', message: error.message }
+  return data || []
+}
+
+// Get trending genres sorted by playlist count.
+export const getTrendingGenres = async (limit = 10) => {
+  const { data: playlists, error } = await supabase
+    .from('playlists')
+    .select('genre_tags')
+    .eq('is_public', true)
+
+  if (error) throw { statusCode: 400, code: 'FETCH_TRENDING_FAILED', message: error.message }
+
+  const genreCount = {}
+  for (const playlist of playlists || []) {
+    for (const genre of playlist.genre_tags || []) {
+      const trimmed = genre.trim()
+      if (trimmed) {
+        genreCount[trimmed] = (genreCount[trimmed] || 0) + 1
+      }
+    }
+  }
+
+  return Object.entries(genreCount)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, limit)
+    .map(([genre]) => genre)
+}
+
 // Search service method interacting with the database.
 export const search = async (queryTerm, type = 'all', queryParams) => {
   const { from, to } = getPagination(queryParams.page, queryParams.limit)

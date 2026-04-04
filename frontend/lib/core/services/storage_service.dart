@@ -55,6 +55,18 @@ class StorageService {
     return _prefs.getBool(_onboardingCompleteKey) ?? false;
   }
 
+  // ── Recent Searches ────────────────────────────────────
+
+  static const String _recentSearchesKey = 'recent_searches';
+
+  Future<void> saveRecentSearches(List<String> queries) async {
+    await _prefs.setStringList(_recentSearchesKey, queries);
+  }
+
+  List<String> getRecentSearches() {
+    return _prefs.getStringList(_recentSearchesKey) ?? [];
+  }
+
   // ── Clear All ──────────────────────────────────────────
 
   /// Wipes all stored data (used on logout).

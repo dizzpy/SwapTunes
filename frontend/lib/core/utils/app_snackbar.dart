@@ -144,7 +144,7 @@ class _UndoSnackbarContentState extends State<_UndoSnackbarContent>
           // Circular countdown ring with remaining seconds in center
           AnimatedBuilder(
             animation: _controller,
-            builder: (_, __) {
+            builder: (_, _) {
               final seconds =
                   (5 * (1.0 - _controller.value)).ceil().clamp(0, 5);
               return SizedBox(

@@ -53,7 +53,9 @@ class ApiConstants {
   // ── Discover ───────────────────────────────────────────
   static const String discoverPlaylists = '/discover/playlists';
   static const String discoverGenres = '/discover/genres';
+  static const String discoverUsers = '/discover/users';
   static const String discoverSearch = '/discover/search';
+  static const String discoverTrending = '/discover/trending';
 
   // ── Playlists ──────────────────────────────────────────
   static const String playlists = '/playlists';

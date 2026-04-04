@@ -1,42 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/shimmer.dart';
+import '../widgets/genre_chip.dart';
 import '../../data/repositories/discover_repository.dart';
-import '../viewmodels/genre_detail_viewmodel.dart';
+import '../viewmodels/featured_playlists_viewmodel.dart';
 import '../widgets/playlist_card.dart';
 import 'playlist_detail_screen.dart';
 
-class GenreDetailScreen extends StatelessWidget {
-  final String genre;
-
-  const GenreDetailScreen({super.key, required this.genre});
+class FeaturedPlaylistsScreen extends StatelessWidget {
+  const FeaturedPlaylistsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (ctx) => GenreDetailViewModel(
-        genre: genre,
-        repository: ctx.read<DiscoverRepository>(),
-      ),
-      child: _GenreDetailContent(genre: genre),
+      create: (ctx) =>
+          FeaturedPlaylistsViewModel(ctx.read<DiscoverRepository>()),
+      child: const _FeaturedPlaylistsContent(),
     );
   }
 }
 
-class _GenreDetailContent extends StatefulWidget {
-  final String genre;
-
-  const _GenreDetailContent({required this.genre});
+class _FeaturedPlaylistsContent extends StatefulWidget {
+  const _FeaturedPlaylistsContent();
 
   @override
-  State<_GenreDetailContent> createState() => _GenreDetailContentState();
+  State<_FeaturedPlaylistsContent> createState() =>
+      _FeaturedPlaylistsContentState();
 }
 
-class _GenreDetailContentState extends State<_GenreDetailContent> {
+class _FeaturedPlaylistsContentState extends State<_FeaturedPlaylistsContent> {
   late final ScrollController _scrollController;
 
   @override
@@ -56,29 +51,68 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
     if (!_scrollController.hasClients) return;
     final threshold = _scrollController.position.maxScrollExtent - 200;
     if (_scrollController.offset >= threshold) {
-      context.read<GenreDetailViewModel>().loadMore();
+      context.read<FeaturedPlaylistsViewModel>().loadMore();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<GenreDetailViewModel>();
+    final viewModel = context.watch<FeaturedPlaylistsViewModel>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
-      body: viewModel.isLoading
-          ? const _PlaylistGridShimmer()
-          : viewModel.error != null
-          ? _buildError(context)
-          : RefreshIndicator(
-              color: AppColors.primary,
-              backgroundColor: AppColors.cardFront,
-              onRefresh: viewModel.refresh,
-              child: viewModel.playlists.isEmpty
-                  ? _buildEmpty()
-                  : _buildList(context, viewModel),
-            ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Genre filter chips ──────────────────────────
+          if (viewModel.genres.isNotEmpty)
+            _buildGenreFilters(viewModel),
+
+          // ── Content ─────────────────────────────────────
+          Expanded(
+            child: viewModel.isLoading
+                ? const _PlaylistGridShimmer()
+                : viewModel.error != null
+                ? _buildError(context, viewModel)
+                : RefreshIndicator(
+                    color: AppColors.primary,
+                    backgroundColor: AppColors.cardFront,
+                    onRefresh: viewModel.refresh,
+                    child: viewModel.playlists.isEmpty
+                        ? _buildEmpty()
+                        : _buildGrid(context, viewModel),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenreFilters(FeaturedPlaylistsViewModel viewModel) {
+    return SizedBox(
+      height: 56,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        scrollDirection: Axis.horizontal,
+        itemCount: viewModel.genres.length + 1, // +1 for "All"
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return GenreChip(
+              label: 'All',
+              isSelected: viewModel.activeGenre == null,
+              onTap: () => viewModel.setGenre(null),
+            );
+          }
+          final genre = viewModel.genres[index - 1];
+          return GenreChip(
+            label: genre,
+            isSelected: viewModel.activeGenre == genre,
+            onTap: () => viewModel.setGenre(genre),
+          );
+        },
+      ),
     );
   }
 
@@ -106,13 +140,16 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
         ),
       ),
       title: Text(
-        widget.genre,
+        'Featured Playlists',
         style: AppTextStyles.heading3.copyWith(color: AppColors.textWhite),
       ),
     );
   }
 
-  Widget _buildList(BuildContext context, GenreDetailViewModel viewModel) {
+  Widget _buildGrid(
+    BuildContext context,
+    FeaturedPlaylistsViewModel viewModel,
+  ) {
     return GridView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -122,25 +159,28 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
         mainAxisSpacing: 12,
         childAspectRatio: 0.72,
       ),
-      // +1 for the footer (loader or bottom padding)
       itemCount: viewModel.playlists.length + 1,
       itemBuilder: (context, index) {
         if (index == viewModel.playlists.length) {
           return _buildFooter(viewModel);
         }
-        final item = viewModel.playlists[index];
+        final playlist = viewModel.playlists[index];
         return PlaylistCard(
-          title: item.title,
-          subtitle: item.subtitle,
-          imageUrl: item.imageUrl,
-          heroTag: item.id,
+          title: playlist.name,
+          subtitle: playlist.genreTags.isNotEmpty
+              ? playlist.genreTags.join(', ')
+              : playlist.ownerUsername,
+          imageUrl: playlist.coverImageUrl,
+          heroTag: playlist.id,
           onTap: () async {
-            final vm = context.read<GenreDetailViewModel>();
+            final vm = context.read<FeaturedPlaylistsViewModel>();
             final changed = await Navigator.push<bool>(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    PlaylistDetailScreen(playlistId: item.id, heroTag: item.id),
+                builder: (_) => PlaylistDetailScreen(
+                  playlistId: playlist.id,
+                  heroTag: playlist.id,
+                ),
               ),
             );
             if (changed == true) vm.refresh();
@@ -150,7 +190,7 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
     );
   }
 
-  Widget _buildFooter(GenreDetailViewModel viewModel) {
+  Widget _buildFooter(FeaturedPlaylistsViewModel viewModel) {
     if (viewModel.isLoadingMore) {
       return const AppShimmer(child: _PlaylistCardSkeleton());
     }
@@ -174,16 +214,9 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  AppStrings.discover.noPlaylistsInGenre,
+                  'No playlists available',
                   style: AppTextStyles.bodyPrimary.copyWith(
                     color: AppColors.textWhite,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppStrings.discover.noPlaylistsSubtitle,
-                  style: AppTextStyles.bodySecondaryWhite.copyWith(
-                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -194,14 +227,16 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
     );
   }
 
-  Widget _buildError(BuildContext context) {
-    final viewModel = context.read<GenreDetailViewModel>();
+  Widget _buildError(
+    BuildContext context,
+    FeaturedPlaylistsViewModel viewModel,
+  ) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            AppStrings.discover.loadingError,
+            'Failed to load playlists',
             style: AppTextStyles.bodySecondaryWhite.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -211,7 +246,7 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
           TextButton(
             onPressed: viewModel.retry,
             child: Text(
-              AppStrings.discover.retry,
+              'Retry',
               style: AppTextStyles.bodyPrimary.copyWith(
                 color: AppColors.primary,
               ),
@@ -262,7 +297,12 @@ class _PlaylistCardSkeleton extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: ShimmerBox(width: double.infinity, radius: 16)),
+          Expanded(
+            child: ShimmerBox(
+              width: double.infinity,
+              radius: 16,
+            ),
+          ),
           SizedBox(height: 12),
           ShimmerBox(width: 110, height: 14, radius: 6),
           SizedBox(height: 8),

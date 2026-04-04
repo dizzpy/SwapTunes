@@ -21,6 +21,28 @@ export const discoverPlaylists = async (req, res, next) => {
   }
 }
 
+// Suggested users controller handler.
+export const suggestedUsers = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20
+    const users = await discoverService.getSuggestedUsers(req.user.id, limit)
+    success(res, users)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Trending genres controller handler.
+export const trendingGenres = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10
+    const genres = await discoverService.getTrendingGenres(limit)
+    success(res, genres)
+  } catch (err) {
+    next(err)
+  }
+}
+
 // Search controller handler.
 export const search = async (req, res, next) => {
   try {
