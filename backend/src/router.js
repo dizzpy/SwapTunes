@@ -15,7 +15,11 @@ import uploadsRoutes from './features/uploads/uploads.routes.js'
 const router = Router()
 
 router.use('/health', healthRoutes)
-router.use('/dev', devRoutes)
+
+// Only expose dev/debug routes in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/dev', devRoutes)
+}
 
 router.use('/auth', authRoutes)
 router.use('/users', usersRoutes)
