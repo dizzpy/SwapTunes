@@ -151,10 +151,7 @@ export const deleteMessage = async (userId, conversationId, messageId) => {
     throw { statusCode: 403, code: 'FORBIDDEN', message: 'You can only delete your own messages' }
   }
 
-  const { error } = await supabase
-    .from('messages')
-    .update({ is_deleted: true })
-    .eq('id', messageId)
+  const { error } = await supabase.from('messages').update({ is_deleted: true }).eq('id', messageId)
 
   if (error) throw { statusCode: 400, code: 'DELETE_MSG_FAILED', message: error.message }
   return { success: true }

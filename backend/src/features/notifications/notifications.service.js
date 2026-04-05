@@ -20,15 +20,11 @@ class NotificationsService {
 
   async _sendPush(userId, actorId, type, referenceId) {
     try {
-      const { data: actor } = await supabase
-        .from('users')
-        .select('username')
-        .eq('id', actorId)
-        .single()
+      const { data: actor } = await supabase.from('users').select('username').eq('id', actorId).single()
 
       const actorName = actor?.username ? `@${actor.username}` : 'Someone'
       await oneSignalService.sendPushNotification(userId, { type, actorName, referenceId })
-    } catch (_) {
+    } catch {
       // Push failure must never surface to the caller
     }
   }
@@ -64,10 +60,7 @@ class NotificationsService {
   }
 
   async deleteNotification(userId, notificationId) {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .match({ id: notificationId, user_id: userId })
+    const { error } = await supabase.from('notifications').delete().match({ id: notificationId, user_id: userId })
     if (error) throw { statusCode: 400, code: 'DELETE_NOTIF_FAILED', message: error.message }
     return { success: true }
   }

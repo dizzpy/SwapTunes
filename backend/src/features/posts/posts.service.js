@@ -100,7 +100,9 @@ export const likePost = async (userId, postId) => {
         referenceId: postId
       })
     }
-  } catch (_) { /* notification is non-critical */ }
+  } catch {
+    /* notification is non-critical */
+  }
 
   return { success: true }
 }
@@ -139,7 +141,9 @@ export const addComment = async (userId, postId, content) => {
         referenceId: postId
       })
     }
-  } catch (_) { /* notification is non-critical */ }
+  } catch {
+    /* notification is non-critical */
+  }
 
   return comment
 }

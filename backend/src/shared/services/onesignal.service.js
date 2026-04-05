@@ -8,7 +8,7 @@ const notificationTitles = {
   comment: (actor) => `${actor} commented on your post`,
   follow: (actor) => `${actor} started following you`,
   message: (actor) => `${actor} sent you a message`,
-  collab: (actor) => `${actor} is interested in your collab`,
+  collab: (actor) => `${actor} is interested in your collab`
 }
 
 class OneSignalService {
@@ -46,20 +46,17 @@ class OneSignalService {
           include_aliases: { external_id: [userId] },
           headings: { en: 'SwapTunes' },
           contents: { en: body },
-          data: { type, reference_id: referenceId ?? null },
+          data: { type, reference_id: referenceId ?? null }
         },
         {
           headers: {
             Authorization: `Key ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
+            'Content-Type': 'application/json'
+          }
         }
       )
     } catch (err) {
-      logger.error(
-        { err: err?.response?.data ?? err.message, userId, type },
-        'OneSignal push failed'
-      )
+      logger.error({ err: err?.response?.data ?? err.message, userId, type }, 'OneSignal push failed')
     }
   }
 }

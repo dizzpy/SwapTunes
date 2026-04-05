@@ -26,11 +26,7 @@ export const getProfile = async (username, requesterId) => {
   // Fetch creator_profiles separately so a join RLS issue never kills the whole query
   data.creator_profiles = []
   if (data.user_type === 'creator') {
-    const { data: cp } = await supabase
-      .from('creator_profiles')
-      .select('*')
-      .eq('user_id', data.id)
-      .maybeSingle()
+    const { data: cp } = await supabase.from('creator_profiles').select('*').eq('user_id', data.id).maybeSingle()
     if (cp) data.creator_profiles = [cp]
   }
 
@@ -60,7 +56,7 @@ export const getProfile = async (username, requesterId) => {
         .select('*', { count: 'exact', head: true })
         .eq('creator_id', data.id)
       collabsCount = count ?? 0
-    } catch (_) {
+    } catch {
       collabsCount = 0
     }
   }
@@ -142,7 +138,11 @@ export const updateProfile = async (userId, data) => {
       const daysSince = (Date.now() - new Date(user.username_changed_at).getTime()) / (1000 * 60 * 60 * 24)
       if (daysSince < 7) {
         const daysLeft = Math.ceil(7 - daysSince)
-        throw { statusCode: 429, code: 'USERNAME_COOLDOWN', message: `You can change your username in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.` }
+        throw {
+          statusCode: 429,
+          code: 'USERNAME_COOLDOWN',
+          message: `You can change your username in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
+        }
       }
     }
 

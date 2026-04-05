@@ -57,7 +57,7 @@ export const deleteMessage = async (req, res, next) => {
     const result = await conversationsService.deleteMessage(
       req.user.id,
       req.params.conversationId,
-      req.params.messageId,
+      req.params.messageId
     )
     success(res, result)
   } catch (err) {

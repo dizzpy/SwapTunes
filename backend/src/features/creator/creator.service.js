@@ -85,17 +85,10 @@ export const updateCreatorProfile = async (userId, data) => {
 // The creator_profiles row is KEPT so data is preserved for re-activation.
 export const deactivateCreator = async (userId) => {
   // Close all open collaborations for this creator
-  await supabase
-    .from('collaborations')
-    .update({ status: 'closed' })
-    .eq('creator_id', userId)
-    .eq('status', 'open')
+  await supabase.from('collaborations').update({ status: 'closed' }).eq('creator_id', userId).eq('status', 'open')
 
   // Flip user_type back to listener
-  const { error } = await supabase
-    .from('users')
-    .update({ user_type: 'listener' })
-    .eq('id', userId)
+  const { error } = await supabase.from('users').update({ user_type: 'listener' }).eq('id', userId)
 
   if (error) throw { statusCode: 400, code: 'DEACTIVATION_FAILED', message: error.message }
 }

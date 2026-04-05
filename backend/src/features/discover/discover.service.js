@@ -5,7 +5,7 @@ import { getPagination } from '../../shared/utils/pagination.js'
 export const getGenres = async () => {
   const [{ data: playlists, error: e1 }, { data: userGenres, error: e2 }] = await Promise.all([
     supabase.from('playlists').select('genre_tags').eq('is_public', true),
-    supabase.from('user_genres').select('genre'),
+    supabase.from('user_genres').select('genre')
   ])
 
   if (e1) throw { statusCode: 400, code: 'FETCH_GENRES_FAILED', message: e1.message }
@@ -47,10 +47,7 @@ export const getSuggestedUsers = async (userId, limit = 20) => {
   const followingIds = (following || []).map((f) => f.following_id)
   const excludeIds = [userId, ...followingIds]
 
-  let qb = supabase
-    .from('users')
-    .select('id, username, full_name, avatar_url, user_type')
-    .limit(limit)
+  let qb = supabase.from('users').select('id, username, full_name, avatar_url, user_type').limit(limit)
 
   qb = qb.not('id', 'in', `(${excludeIds.join(',')})`)
 
@@ -61,10 +58,7 @@ export const getSuggestedUsers = async (userId, limit = 20) => {
 
 // Get trending genres sorted by playlist count.
 export const getTrendingGenres = async (limit = 10) => {
-  const { data: playlists, error } = await supabase
-    .from('playlists')
-    .select('genre_tags')
-    .eq('is_public', true)
+  const { data: playlists, error } = await supabase.from('playlists').select('genre_tags').eq('is_public', true)
 
   if (error) throw { statusCode: 400, code: 'FETCH_TRENDING_FAILED', message: error.message }
 

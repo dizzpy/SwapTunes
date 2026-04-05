@@ -24,7 +24,7 @@ export const importPlaylists = async (user, playlistIds) => {
     track_count: item.tracks.total,
     is_public: item.public === true,
     source_platform: 'spotify',
-    primary_url: `https://open.spotify.com/playlist/${item.id}`,
+    primary_url: `https://open.spotify.com/playlist/${item.id}`
   }))
 
   // Insert or upsert
@@ -44,10 +44,7 @@ export const getAvailableSpotifyPlaylists = async (user) => {
   const items = await fetchSpotifyPlaylists(token)
 
   // fetch already imported
-  const { data: existing } = await supabase
-    .from('playlists')
-    .select('spotify_playlist_id')
-    .eq('user_id', user.id)
+  const { data: existing } = await supabase.from('playlists').select('spotify_playlist_id').eq('user_id', user.id)
   const existingIds = existing ? existing.map((e) => e.spotify_playlist_id).filter(Boolean) : []
 
   return items.map((item) => ({
@@ -56,7 +53,7 @@ export const getAvailableSpotifyPlaylists = async (user) => {
     track_count: item.tracks.total,
     is_public: item.public,
     cover_image_url: item.images && item.images.length > 0 ? item.images[0].url : null,
-    is_imported: existingIds.includes(item.id),
+    is_imported: existingIds.includes(item.id)
   }))
 }
 
@@ -108,7 +105,7 @@ export const createPlaylist = async (userId, data) => {
     occasion_tags: data.occasion_tags ?? [],
     vocal_style: data.vocal_style ?? null,
     language: data.language ?? null,
-    track_count: data.track_count ?? 0,
+    track_count: data.track_count ?? 0
   }
 
   const { data: created, error } = await supabase
@@ -142,7 +139,7 @@ export const updatePlaylist = async (userId, playlistId, data) => {
     'occasion_tags',
     'vocal_style',
     'language',
-    'track_count',
+    'track_count'
   ]
 
   const update = {}
@@ -172,9 +169,7 @@ export const deletePlaylist = async (userId, playlistId) => {
 
 // Like playlist service method interacting with the database.
 export const likePlaylist = async (userId, playlistId) => {
-  const { error } = await supabase
-    .from('playlist_likes')
-    .insert({ user_id: userId, playlist_id: playlistId })
+  const { error } = await supabase.from('playlist_likes').insert({ user_id: userId, playlist_id: playlistId })
 
   if (error) {
     // 23505 = unique_violation — already liked, treat as success
