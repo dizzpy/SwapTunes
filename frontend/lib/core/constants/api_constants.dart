@@ -87,5 +87,5 @@ class ApiConstants {
 
   // ── Notifications ──────────────────────────────────────
   static const String notifications = '/notifications';
-  static const String notificationsRead = '/notifications/read';
+  static const String notificationsMarkAllRead = '/notifications/read-all';
 }

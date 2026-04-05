@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/onesignal_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_snackbar.dart';
@@ -28,6 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     MainLayoutScreen.hideNavBar();
+    _loadNotifPrefs();
   }
 
   @override
@@ -36,7 +39,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  // ── Local UI state (no ViewModel until backend is wired) ─────────
+  void _loadNotifPrefs() {
+    final storage = context.read<StorageService>();
+    setState(() {
+      _pushNotifications = storage.pushNotificationsEnabled;
+      _activityNotifications = storage.activityNotificationsEnabled;
+      _messageNotifications = storage.messageNotificationsEnabled;
+      _collabNotifications = storage.collabNotificationsEnabled;
+    });
+  }
+
+  Future<void> _onPushToggled(bool value) async {
+    setState(() => _pushNotifications = value);
+    await context.read<StorageService>().setPushNotificationsEnabled(value);
+    if (value) {
+      await OnesignalService.optIn();
+    } else {
+      await OnesignalService.optOut();
+    }
+  }
+
+  Future<void> _onActivityToggled(bool value) async {
+    setState(() => _activityNotifications = value);
+    await context.read<StorageService>().setActivityNotificationsEnabled(value);
+  }
+
+  Future<void> _onMessageToggled(bool value) async {
+    setState(() => _messageNotifications = value);
+    await context.read<StorageService>().setMessageNotificationsEnabled(value);
+  }
+
+  Future<void> _onCollabToggled(bool value) async {
+    setState(() => _collabNotifications = value);
+    await context.read<StorageService>().setCollabNotificationsEnabled(value);
+  }
+
+  // ── Local UI state ────────────────────────────────────────────────
   bool _pushNotifications = true;
   bool _activityNotifications = true;
   bool _messageNotifications = true;
@@ -248,34 +286,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: AppAssets.icon.bellNotification,
                 title: _s.pushNotifications,
                 value: _pushNotifications,
-                onChanged: (v) => setState(() => _pushNotifications = v),
+                onChanged: _onPushToggled,
               ),
               SettingsToggleTile(
                 icon: AppAssets.icon.activityHeart,
                 title: _s.activityNotifications,
                 subtitle: _s.activitySubtitle,
                 value: _activityNotifications,
-                onChanged: _pushNotifications
-                    ? (v) => setState(() => _activityNotifications = v)
-                    : null,
+                onChanged: _pushNotifications ? _onActivityToggled : null,
               ),
               SettingsToggleTile(
                 icon: AppAssets.icon.messageAlert,
                 title: _s.messageNotifications,
                 subtitle: _s.messageSubtitle,
                 value: _messageNotifications,
-                onChanged: _pushNotifications
-                    ? (v) => setState(() => _messageNotifications = v)
-                    : null,
+                onChanged: _pushNotifications ? _onMessageToggled : null,
               ),
               SettingsToggleTile(
                 icon: AppAssets.icon.collabHandshake,
                 title: _s.collabNotifications,
                 subtitle: _s.collabSubtitle,
                 value: _collabNotifications,
-                onChanged: _pushNotifications
-                    ? (v) => setState(() => _collabNotifications = v)
-                    : null,
+                onChanged: _pushNotifications ? _onCollabToggled : null,
               ),
             ],
           ),

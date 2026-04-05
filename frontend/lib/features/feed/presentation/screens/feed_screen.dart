@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_icon_button.dart';
 import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../notifications/data/datasources/notification_datasource.dart';
+import '../../../notifications/data/repositories/notification_repository.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
+import '../../../notifications/presentation/viewmodels/notification_viewmodel.dart';
 import '../../data/models/post_model.dart';
 import '../../presentation/viewmodels/feed_viewmodel.dart';
 import '../widgets/feed_skeleton.dart';
@@ -23,19 +29,31 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final ScrollController _scrollController = ScrollController();
+  late final NotificationViewmodel _notificationVm;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
+    final apiClient = context.read<ApiClient>();
+    final currentUserId = context.read<StorageService>().getUserId() ?? '';
+    _notificationVm = NotificationViewmodel(
+      NotificationRepository(NotificationDatasource(apiClient)),
+      currentUserId,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FeedViewmodel>().loadFeed();
+      _notificationVm.loadNotifications();
+      _notificationVm.subscribeToNotifications();
     });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _notificationVm.dispose();
     super.dispose();
   }
 
@@ -178,10 +196,55 @@ class _FeedScreenState extends State<FeedScreen> {
               variant: AppIconButtonVariant.filled,
               size: 44,
             ),
-            AppIconButton(
-              icon: AppAssets.icon.notification,
-              variant: AppIconButtonVariant.filled,
-              size: 44,
+            ListenableBuilder(
+              listenable: _notificationVm,
+              builder: (context, _) {
+                final count = _notificationVm.unreadCount;
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    AppIconButton(
+                      icon: AppAssets.icon.notification,
+                      variant: AppIconButtonVariant.filled,
+                      size: 44,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider.value(
+                            value: _notificationVm,
+                            child: const NotificationsScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (count > 0)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.danger,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(minWidth: 18),
+                          child: Text(
+                            count > 99 ? '99+' : '$count',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ],
         ),

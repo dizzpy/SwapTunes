@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'app/app.dart';
 import 'core/network/api_client.dart';
+import 'core/services/onesignal_service.dart';
 import 'core/network/api_interceptor.dart';
 import 'core/services/isar_service.dart';
 import 'core/services/storage_service.dart';
@@ -38,6 +39,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
+
+  // Initialize OneSignal push notifications
+  await OnesignalService.initialize();
 
   // Initialize Supabase
   final supabaseAuthService = SupabaseAuthService();

@@ -67,6 +67,27 @@ class StorageService {
     return _prefs.getStringList(_recentSearchesKey) ?? [];
   }
 
+  // ── Notification Preferences ──────────────────────────
+
+  static const _keyPushEnabled = 'notif_push_enabled';
+  static const _keyActivityEnabled = 'notif_activity_enabled';
+  static const _keyMessageEnabled = 'notif_message_enabled';
+  static const _keyCollabEnabled = 'notif_collab_enabled';
+
+  bool get pushNotificationsEnabled => _prefs.getBool(_keyPushEnabled) ?? true;
+  bool get activityNotificationsEnabled => _prefs.getBool(_keyActivityEnabled) ?? true;
+  bool get messageNotificationsEnabled => _prefs.getBool(_keyMessageEnabled) ?? true;
+  bool get collabNotificationsEnabled => _prefs.getBool(_keyCollabEnabled) ?? true;
+
+  Future<void> setPushNotificationsEnabled(bool value) =>
+      _prefs.setBool(_keyPushEnabled, value);
+  Future<void> setActivityNotificationsEnabled(bool value) =>
+      _prefs.setBool(_keyActivityEnabled, value);
+  Future<void> setMessageNotificationsEnabled(bool value) =>
+      _prefs.setBool(_keyMessageEnabled, value);
+  Future<void> setCollabNotificationsEnabled(bool value) =>
+      _prefs.setBool(_keyCollabEnabled, value);
+
   // ── Clear All ──────────────────────────────────────────
 
   /// Wipes all stored data (used on logout).

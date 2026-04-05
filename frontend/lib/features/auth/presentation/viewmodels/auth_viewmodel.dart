@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/spotify_constants.dart';
 import '../../../../core/network/network_exceptions.dart';
+import '../../../../core/services/onesignal_service.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
 
@@ -139,6 +140,7 @@ class AuthViewmodel extends ChangeNotifier {
     try {
       _currentUser = await _repository.getCurrentUser();
       _status = AuthStatus.profileLoaded;
+      OnesignalService.login(_currentUser!.id);
     } on UnauthorizedException catch (e) {
       if (e.message == 'User not found') {
         // Profile not set up yet — user needs onboarding
@@ -456,6 +458,7 @@ class AuthViewmodel extends ChangeNotifier {
   /// Clears local state, persisted tokens, and Supabase session.
   Future<void> logout() async {
     await _repository.logout();
+    OnesignalService.logout();
     _currentUser = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();

@@ -40,6 +40,17 @@ class MainLayoutScreen extends StatefulWidget {
     state._switchTab(profileIndex);
   }
 
+  /// Switches to the Inbox (Chats) tab and refreshes its list.
+  static void switchToInbox() {
+    final state = _key.currentState;
+    if (state == null) return;
+    final isCreator = state._isCreator;
+    final inboxIndex = isCreator ? 3 : 2;
+    state._tabKeys[inboxIndex].currentState?.popUntil((route) => route.isFirst);
+    state._switchTab(inboxIndex);
+    ChatsListScreen.refresh();
+  }
+
   /// Set the nav bar visibility mode.
   /// - [NavBarVisibility.visible]: Normal behavior with scroll hide/show
   /// - [NavBarVisibility.hidden]: Force hide, ignores scroll
