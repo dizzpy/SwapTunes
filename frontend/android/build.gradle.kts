@@ -16,6 +16,22 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 subprojects {
+    afterEvaluate {
+        if (hasProperty("android")) {
+            configure<com.android.build.gradle.BaseExtension> {
+                if (namespace == null || namespace!!.isEmpty()) {
+                    var namespaceToUse = project.group.toString()
+                    if (namespaceToUse.isEmpty()) {
+                        namespaceToUse = "dev.dizzpy.swaptunes." + project.name
+                    }
+                    namespace = namespaceToUse
+                }
+            }
+        }
+    }
+}
+
+subprojects {
     project.evaluationDependsOn(":app")
 }
 
