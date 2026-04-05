@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Centralized API endpoint constants for the SwapTunes backend.
 ///
 /// All route paths are relative to [baseUrl].
@@ -5,8 +7,8 @@ class ApiConstants {
   ApiConstants._();
 
   // ── Base ───────────────────────────────────────────────
-  // TODO: load from environment variable / --dart-define for production builds.
-  static const String baseUrl = 'http://localhost:3000/api/v1';
+  static String get baseUrl =>
+      dotenv.env['BACKEND_URL'] ?? 'http://localhost:3000/api/v1';
 
   // ── Health ─────────────────────────────────────────────
   static const String health = '/health';
