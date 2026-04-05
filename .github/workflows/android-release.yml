@@ -1,0 +1,127 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version name (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-and-release:
+    name: Build & Release Android APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_REDIRECT_SCHEME=io.supabase.swaptune
+          SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
+          BACKEND_URL=https://backend.swaptunes.v2.dizzpy.dev/api/v1
+          EOF
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Build Release App Bundle
+        run: flutter build appbundle --release
+
+      - name: Get version from pubspec or input
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rename APK
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/swaptunes-v${VERSION}.apk
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name != '' && github.ref_name || format('v{0}', steps.version.outputs.VERSION) }}
+          release_name: SwapTunes v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## SwapTunes Android Release v${{ steps.version.outputs.VERSION }}
+            
+            ### What's New
+            - Latest features and improvements
+            
+            ### Installation
+            1. Download the APK file below
+            2. Enable "Install from Unknown Sources" on your Android device
+            3. Open the APK file to install
+            
+            ### Backend
+            Connected to: https://backend.swaptunes.v2.dizzpy.dev
+          draft: false
+          prerelease: false
+
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: frontend/build/app/outputs/flutter-apk/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
+          asset_name: swaptunes-v${{ steps.version.outputs.VERSION }}.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload App Bundle to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: frontend/build/app/outputs/bundle/release/app-release.aab
+          asset_name: swaptunes-v${{ steps.version.outputs.VERSION }}.aab
+          asset_content_type: application/octet-stream
