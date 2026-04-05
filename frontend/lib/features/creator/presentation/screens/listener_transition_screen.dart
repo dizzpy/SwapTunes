@@ -6,30 +6,27 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../../features/feed/presentation/screens/main_layout_screen.dart';
 import '../../../../features/profile/data/repositories/profile_repository.dart';
 import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../viewmodels/creator_viewmodel.dart';
-import '../../data/models/creator_profile_form.dart';
-import 'creator_success_screen.dart';
 
-class CreatorLoadingScreen extends StatefulWidget {
-  final CreatorProfileForm formData;
-
-  const CreatorLoadingScreen({super.key, required this.formData});
+/// Loading screen shown when switching from creator to listener mode.
+class ListenerTransitionScreen extends StatefulWidget {
+  const ListenerTransitionScreen({super.key});
 
   @override
-  State<CreatorLoadingScreen> createState() => _CreatorLoadingScreenState();
+  State<ListenerTransitionScreen> createState() => _ListenerTransitionScreenState();
 }
 
-class _CreatorLoadingScreenState extends State<CreatorLoadingScreen>
+class _ListenerTransitionScreenState extends State<ListenerTransitionScreen>
     with SingleTickerProviderStateMixin {
   static const _steps = [
-    (text: 'Setting up your creator profile...', duration: 2000),
-    (text: 'Give us a sec...', duration: 1500),
-    (text: 'Grooving...', duration: 1000),
-    (text: 'Vibing...', duration: 1000),
-    (text: 'Harmonizing...', duration: 1000),
-    (text: "You're all set!", duration: 1500),
+    (text: 'Switching to listener mode...', duration: 1500),
+    (text: 'Closing open collaborations...', duration: 1200),
+    (text: 'Saving your creator profile...', duration: 1000),
+    (text: 'Almost there...', duration: 1000),
+    (text: 'All set!', duration: 800),
   ];
 
   int _stepIndex = 0;
@@ -43,10 +40,11 @@ class _CreatorLoadingScreenState extends State<CreatorLoadingScreen>
   @override
   void initState() {
     super.initState();
-    _startSequence();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      MainLayoutScreen.hideNavBar();
       _callApi();
     });
+    _startSequence();
   }
 
   @override
@@ -54,36 +52,30 @@ class _CreatorLoadingScreenState extends State<CreatorLoadingScreen>
     for (final t in _timers) {
       t.cancel();
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      MainLayoutScreen.showNavBar();
+    });
     super.dispose();
   }
 
   Future<void> _callApi() async {
-    final vm = context.read<CreatorViewmodel>();
+    final creatorVm = context.read<CreatorViewmodel>();
     final authVm = context.read<AuthViewmodel>();
     final profileRepo = context.read<ProfileRepository>();
-    final f = widget.formData;
 
-    final success = await vm.setupCreator(
-      roleTitle: f.roleTitle ?? '',
-      specializations: f.specializations,
-      location: f.location,
-      soundcloudUrl: f.soundcloudUrl,
-      youtubeUrl: f.youtubeUrl,
-      spotifyArtistUrl: f.spotifyArtistUrl,
-      appleMusicUrl: f.appleMusicUrl,
-      portfolioUrl: f.portfolioUrl,
-    );
-
+    final success = await creatorVm.deactivateCreator();
     if (!mounted) return;
 
     if (success) {
-      await authVm.refreshCurrentUser();
       final username = authVm.currentUser?.username ?? '';
-      if (username.isNotEmpty) profileRepo.invalidateCache(username);
+      if (username.isNotEmpty) {
+        profileRepo.invalidateCache(username);
+      }
+      await authVm.refreshCurrentUser();
       _apiSuccess = true;
     } else {
       _apiSuccess = false;
-      _apiError = vm.errorMessage ?? 'Setup failed. Please try again.';
+      _apiError = creatorVm.errorMessage ?? 'Switch failed. Please try again.';
     }
 
     _maybeNavigate();
@@ -136,11 +128,11 @@ class _CreatorLoadingScreenState extends State<CreatorLoadingScreen>
     _navigated = true;
 
     if (_apiSuccess == true) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CreatorSuccessScreen()),
-      );
+      AppSnackbar.success('Switched to listener mode');
+      // Pop back to profile screen which will auto-refresh
+      Navigator.of(context).pop();
     } else {
-      AppSnackbar.error(_apiError ?? 'Setup failed. Please try again.');
+      AppSnackbar.error(_apiError ?? 'Switch failed. Please try again.');
       Navigator.of(context).pop();
     }
   }

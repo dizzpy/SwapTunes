@@ -113,8 +113,27 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     if (isCreator != _isCreator) {
       setState(() {
         _isCreator = isCreator;
-        // If creator tab was selected and we switched to listener, reset to home
-        if (!isCreator && _currentIndex == 2) _currentIndex = 0;
+        // Remap tab indices when switching between creator and listener modes
+        if (!isCreator) {
+          // Creator → Listener: remap indices since Collab tab is removed
+          // Creator: 0=Home, 1=Discover, 2=Collab, 3=Inbox, 4=Profile
+          // Listener: 0=Home, 1=Discover, 2=Inbox, 3=Profile
+          if (_currentIndex == 2) {
+            // Was on Collab tab (creator-only), go to Home
+            _currentIndex = 0;
+          } else if (_currentIndex > 2) {
+            // Inbox (3→2) or Profile (4→3)
+            _currentIndex = _currentIndex - 1;
+          }
+        } else {
+          // Listener → Creator: remap indices since Collab tab is added
+          // Listener: 0=Home, 1=Discover, 2=Inbox, 3=Profile
+          // Creator: 0=Home, 1=Discover, 2=Collab, 3=Inbox, 4=Profile
+          if (_currentIndex >= 2) {
+            // Inbox (2→3) or Profile (3→4)
+            _currentIndex = _currentIndex + 1;
+          }
+        }
       });
     }
   }

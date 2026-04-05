@@ -40,7 +40,9 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
         context.read<StorageService>().getUserId() ?? '';
 
     _viewmodel = ChatsListViewmodel(repository, currentUserId);
-    _viewmodel.loadConversations();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewmodel.loadConversations();
+    });
     _viewmodel.subscribeToInboxUpdates();
   }
 

@@ -11,7 +11,7 @@ import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../../collab/presentation/screens/collab_details_screen.dart';
 import '../../../creator/data/models/creator_profile_form.dart';
 import '../../../creator/presentation/screens/become_a_creator.dart';
-import '../../../creator/presentation/viewmodels/creator_viewmodel.dart';
+import '../../../creator/presentation/screens/listener_transition_screen.dart';
 import '../../data/repositories/profile_repository.dart';
 import 'edit_profile_screen.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
@@ -104,26 +104,12 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     );
     if (confirmed != true || !mounted) return;
 
-    final creatorVm = context.read<CreatorViewmodel>();
-    final authVm = context.read<AuthViewmodel>();
-    final profileRepo = context.read<ProfileRepository>();
-
-    final success = await creatorVm.deactivateCreator();
-    if (!mounted) return;
-
-    if (success) {
-      final username = authVm.currentUser?.username ?? '';
-      if (username.isNotEmpty) {
-        profileRepo.invalidateCache(username);
-      }
-      // Auth listener will handle the refresh automatically
-      await authVm.refreshCurrentUser();
-      if (mounted) {
-        AppSnackbar.success('Switched to listener mode');
-      }
-    } else {
-      AppSnackbar.error(creatorVm.errorMessage ?? 'Switch failed. Try again.');
-    }
+    // Navigate to loading screen which handles the API call
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const ListenerTransitionScreen(),
+      ),
+    );
   }
 
   // ── Image editing ────────────────────────────────────────────────
