@@ -233,6 +233,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
               AppHaptics.sheetOpen();
               showModalBottomSheet(
                 context: context,
+                useRootNavigator: true,
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
                 builder: (ctx) => PostOptionsSheet(
@@ -408,6 +409,7 @@ class _CommentTile extends StatelessWidget {
     final feedVm = context.read<FeedViewmodel>();
     showModalBottomSheet<String>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => EditContentSheet(
@@ -426,6 +428,7 @@ class _CommentTile extends StatelessWidget {
     AppHaptics.longPress();
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(

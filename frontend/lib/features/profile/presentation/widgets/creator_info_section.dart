@@ -106,6 +106,7 @@ class CreatorInfoSection extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

@@ -12,6 +12,7 @@ class AppStrings {
   static const messaging = _MessagingStrings();
   static const creator = _CreatorStrings();
   static const collab = _CollabStrings();
+  static const settings = _SettingsStrings();
 }
 
 class _MessagingStrings {
@@ -81,7 +82,21 @@ class _OnboardingStrings {
 
   final String signInBtn = 'Sign In';
   final String createAccount = 'Create an account';
-  final String continueMagicLink = 'Continue with Magic Link';
+  final String continueWithEmail = 'Continue with Email';
+  
+  // Email input screen
+  final String emailInputTitle = 'Sign in with Email';
+  final String emailInputSubtitle = 'Enter your email and we\'ll send you a verification code.';
+  final String sendCodeBtn = 'Send Code';
+  
+  // OTP input screen
+  final String otpTitle = 'Enter verification code';
+  final String otpSubtitle = 'We sent an 8-digit code to';
+  final String otpResend = 'Resend code';
+  final String otpResendIn = 'Resend in';
+  final String otpInvalid = 'Invalid code. Please try again.';
+  final String otpExpired = 'Code expired. Please request a new one.';
+  final String otpVerifying = 'Verifying...';
 }
 
 class _ConnectSpotifyStrings {
@@ -359,4 +374,120 @@ class _CollabStrings {
   // Generic
   final String retry = 'Retry';
   final String createNewCollab = 'Create New Collab';
+}
+
+class _SettingsStrings {
+  const _SettingsStrings();
+
+  // App bar
+  final String title = 'Settings';
+
+  // Section headers
+  final String sectionAccount = 'Account';
+  final String sectionCreator = 'Creator Mode';
+  final String sectionNotifications = 'Notifications';
+  final String sectionPrivacy = 'Privacy & Safety';
+  final String sectionMusic = 'Music & Content';
+  final String sectionAppearance = 'Appearance';
+  final String sectionAbout = 'About & Legal';
+  final String sectionDanger = 'Danger Zone';
+
+  // Account
+  final String editProfile = 'Edit Profile';
+  final String changePassword = 'Change Password';
+  final String changePasswordSubtitle = 'Update your login credentials';
+  final String spotifyTitle = 'Spotify';
+  final String spotifyValue = 'Connected';
+  final String googleTitle = 'Google';
+  final String googleValue = 'Linked';
+
+  // Creator
+  final String creatorProfile = 'Creator Profile';
+  final String creatorProfileSubtitle = 'Manage your specializations & portfolio';
+
+  // Notifications
+  final String pushNotifications = 'Push Notifications';
+  final String activityNotifications = 'Activity';
+  final String activitySubtitle = 'Likes, comments & follows';
+  final String messageNotifications = 'Messages';
+  final String messageSubtitle = 'New DM alerts';
+  final String collabNotifications = 'Collab Requests';
+  final String collabSubtitle = 'New matches for your collab posts';
+
+  // Privacy
+  final String privateAccount = 'Private Account';
+  final String privateAccountSubtitle = 'Only followers can see your content';
+  final String whoCanDm = 'Who Can DM Me';
+  final String whoCanDmDefault = 'Everyone';
+  final String blockedUsers = 'Blocked Users';
+  final String mutedUsers = 'Muted Users';
+
+  // Music
+  final String playlistSharing = 'Default Playlist Sharing';
+  final String playlistSharingDefault = 'Public';
+  final String genrePreferences = 'Genre Preferences';
+  final String genrePreferencesSubtitle = 'Update your music taste';
+  final String hideLikedPosts = 'Hide Liked Posts';
+  final String hideLikedPostsSubtitle = "Don't show likes on your profile";
+
+  // Appearance
+  final String theme = 'Theme';
+  final String language = 'Language';
+  final String themeLight = 'Light';
+  final String themeDark = 'Dark';
+  final String themeSystem = 'System';
+
+  // About
+  final String appVersion = 'App Version';
+  final String appVersionValue = '1.0.0';
+  final String termsOfService = 'Terms of Service';
+  final String privacyPolicy = 'Privacy Policy';
+  final String licenses = 'Licenses';
+
+  // Danger zone
+  final String logout = 'Log Out';
+  final String deleteAccount = 'Delete Account';
+  final String deleteAccountSubtitle = 'Permanently remove your account';
+
+  // Dialogs — logout
+  final String logoutTitle = 'Log Out';
+  final String logoutMessage = 'Are you sure you want to log out?';
+  final String logoutConfirm = 'Log Out';
+
+  // Dialogs — delete account
+  final String deleteTitle = 'Delete Account';
+  final String deleteMessage =
+      'This will permanently delete your account, posts, and all data. This action cannot be undone.';
+  final String deleteConfirm = 'Continue';
+  final String deleteFinalTitle = 'Are you absolutely sure?';
+  final String deleteFinalMessage =
+      'Your account will be permanently deleted. There is no going back.';
+  final String deleteFinalConfirm = 'Delete My Account';
+
+  // Generic
+  final String cancel = 'Cancel';
+  final String comingSoon = ' coming soon';
+  final String deleteNotAvailable = 'Account deletion is not available yet.';
+
+  // Picker titles
+  final String themePickerTitle = 'Theme';
+  final String languagePickerTitle = 'Language';
+  final String dmPickerTitle = 'Who can DM me';
+  final String playlistPickerTitle = 'Default Playlist Sharing';
+
+  // DM picker options
+  final String dmEveryone = 'Everyone';
+  final String dmFollowersOnly = 'Followers only';
+  final String dmNoOne = 'No one';
+
+  // Playlist picker options
+  final String playlistPublic = 'Public';
+  final String playlistFollowers = 'Followers only';
+  final String playlistPrivate = 'Private';
+
+  // Languages
+  final List<String> languages = const [
+    'English', 'Spanish', 'French', 'German', 'Portuguese',
+    'Japanese', 'Korean', 'Chinese (Simplified)', 'Arabic', 'Hindi',
+  ];
 }

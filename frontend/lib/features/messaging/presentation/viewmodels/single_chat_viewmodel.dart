@@ -21,9 +21,11 @@ class SingleChatViewmodel extends ChangeNotifier {
   bool _isSending = false;
   bool _hasMore = true;
   bool _isReconnecting = false;
+  bool _isPaginating = false;
   String? _error;
 
   RealtimeChannel? _channel;
+  Timer? _readDebounce;
 
   static const _pageSize = 30;
   int _tempIdCounter = 0;
@@ -42,27 +44,44 @@ class SingleChatViewmodel extends ChangeNotifier {
   bool get isSending => _isSending;
   bool get hasMore => _hasMore;
   bool get isReconnecting => _isReconnecting;
+  bool get isPaginating => _isPaginating;
   String? get error => _error;
 
   // ── Load ───────────────────────────────────────────────
 
-  /// Fetches the latest messages. Call this on screen open, then await it
-  /// before calling [markAsRead] to ensure messages are rendered first.
+  /// Loads messages with a stale-while-revalidate strategy:
+  ///
+  /// 1. Renders any cached messages instantly (no spinner shown because
+  ///    [_buildMessageList] only shows a spinner when messages are empty).
+  /// 2. Fetches fresh messages from the API in the background.
+  /// 3. Updates the UI silently if the fresh data differs.
+  ///
+  /// On first open with no cache, falls back to the normal loading spinner.
   Future<void> loadMessages() async {
-    _isLoading = true;
     _error = null;
+    _isLoading = true;
     notifyListeners();
 
+    // Phase 1 — show stale cache immediately so the screen feels instant.
+    final cached = await _repository.getCachedMessagesStale(conversationId);
+    if (cached != null && cached.isNotEmpty) {
+      _messages = cached.reversed.toList();
+      _hasMore = cached.length >= _pageSize;
+      notifyListeners(); // messages not empty → spinner hidden even with _isLoading
+    }
+
+    // Phase 2 — background refresh to pick up any new messages.
     try {
       final fetched = await _repository.getMessages(
         conversationId,
         limit: _pageSize,
+        forceRefresh: true,
       );
-      // Backend returns newest-first; reverse for chronological display.
       _messages = fetched.reversed.toList();
       _hasMore = fetched.length >= _pageSize;
     } catch (e) {
-      _error = _parseError(e);
+      // If we already have cached messages on screen, swallow the error.
+      if (_messages.isEmpty) _error = _parseError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -71,8 +90,9 @@ class SingleChatViewmodel extends ChangeNotifier {
 
   /// Loads messages older than the oldest currently loaded message.
   Future<void> loadMore() async {
-    if (!_hasMore || _isLoading || _messages.isEmpty) return;
+    if (!_hasMore || _isPaginating || _isLoading || _messages.isEmpty) return;
 
+    _isPaginating = true;
     final oldest = _messages.first.createdAt;
     try {
       final fetched = await _repository.getMessages(
@@ -83,9 +103,11 @@ class SingleChatViewmodel extends ChangeNotifier {
       // Prepend in chronological order.
       _messages = [...fetched.reversed, ..._messages];
       _hasMore = fetched.length >= _pageSize;
-      notifyListeners();
     } catch (_) {
       // Silent — pagination failure shouldn't disrupt the current view.
+    } finally {
+      _isPaginating = false;
+      notifyListeners();
     }
   }
 
@@ -108,6 +130,7 @@ class SingleChatViewmodel extends ChangeNotifier {
       isRead: false,
       isDeleted: false,
       createdAt: DateTime.now(),
+      status: MessageStatus.sending,
     );
 
     _messages = [..._messages, optimistic];
@@ -121,13 +144,28 @@ class SingleChatViewmodel extends ChangeNotifier {
           .map((m) => m.id == tempId ? confirmed : m)
           .toList();
     } catch (e) {
-      // Remove the optimistic message on failure.
-      _messages = _messages.where((m) => m.id != tempId).toList();
-      _error = _parseError(e);
+      // Mark as failed — keep it visible so the user can retry.
+      _messages = _messages
+          .map((m) => m.id == tempId ? m.copyWith(status: MessageStatus.failed) : m)
+          .toList();
     } finally {
       _isSending = false;
       notifyListeners();
     }
+  }
+
+  /// Retries sending a failed message.
+  ///
+  /// Removes the failed placeholder first so there is never two bubbles for
+  /// the same content, then delegates to [sendMessage] which adds a fresh
+  /// optimistic entry and handles the full send + failure cycle.
+  Future<void> retryMessage(String tempId) async {
+    final idx = _messages.indexWhere((m) => m.id == tempId);
+    if (idx == -1) return;
+    final text = _messages[idx].text;
+    _messages.removeAt(idx);
+    notifyListeners();
+    await sendMessage(text);
   }
 
   // ── Delete message ─────────────────────────────────────
@@ -179,6 +217,36 @@ class SingleChatViewmodel extends ChangeNotifier {
     }
   }
 
+  /// Debounced version used by the Realtime callback — coalesces rapid
+  /// incoming messages into a single API call 600 ms after the last one.
+  void _scheduleMarkAsRead() {
+    _readDebounce?.cancel();
+    _readDebounce = Timer(const Duration(milliseconds: 600), markAsRead);
+  }
+
+  /// Fetches the latest page of messages and merges any that arrived while
+  /// the WebSocket was disconnected (gap-fill after reconnect).
+  Future<void> _fillGap() async {
+    try {
+      final fresh = await _repository.getMessages(
+        conversationId,
+        limit: _pageSize,
+        forceRefresh: true,
+      );
+      if (fresh.isEmpty) return;
+      final existingIds = _messages.map((m) => m.id).toSet();
+      final newOnly = fresh.reversed
+          .where((m) => !existingIds.contains(m.id))
+          .toList();
+      if (newOnly.isNotEmpty) {
+        _messages = [..._messages, ...newOnly];
+        notifyListeners();
+      }
+    } catch (_) {
+      // Silent — gap-fill failure should not surface an error.
+    }
+  }
+
   // ── Realtime ───────────────────────────────────────────
 
   /// Subscribes to live message INSERT events for this conversation.
@@ -226,9 +294,9 @@ class SingleChatViewmodel extends ChangeNotifier {
             _messages = [..._messages, newMessage];
             notifyListeners();
 
-            // Auto-mark as read when a new message from the other user arrives.
+            // Debounced mark-as-read for messages from the other user.
             if (newMessage.senderId != currentUserId) {
-              markAsRead();
+              _scheduleMarkAsRead();
             }
           },
         )
@@ -260,6 +328,14 @@ class SingleChatViewmodel extends ChangeNotifier {
             _isReconnecting = reconnecting;
             notifyListeners();
           }
+          // Gap-fill on every successful (re)connect so missed messages are
+          // picked up regardless of whether the closed/error state was observed.
+          // The _messages.isNotEmpty guard skips the initial open (loadMessages
+          // handles that path already).
+          if (status == RealtimeSubscribeStatus.subscribed &&
+              _messages.isNotEmpty) {
+            _fillGap();
+          }
         });
   }
 
@@ -267,6 +343,7 @@ class SingleChatViewmodel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _readDebounce?.cancel();
     // Flush pending deletes immediately rather than cancelling them — if the
     // user navigates away within the 5-second undo window the message must
     // still be deleted on the server.

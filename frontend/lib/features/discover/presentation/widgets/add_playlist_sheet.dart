@@ -29,6 +29,7 @@ class AddPlaylistSheet extends StatelessWidget {
     AppHaptics.sheetOpen();
     return showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => AddPlaylistSheet(

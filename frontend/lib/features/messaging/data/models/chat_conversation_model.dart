@@ -2,6 +2,7 @@ class ChatConversationModel {
   final String id;
   final String participantId;
   final String participantName;
+  final String participantUsername;
   final String? participantAvatarUrl;
   final bool isOnline;
   final String lastMessage;
@@ -12,6 +13,7 @@ class ChatConversationModel {
     required this.id,
     required this.participantId,
     required this.participantName,
+    required this.participantUsername,
     this.participantAvatarUrl,
     required this.isOnline,
     required this.lastMessage,
@@ -37,6 +39,7 @@ class ChatConversationModel {
       id: json['id'] as String,
       participantId: participant['id'] as String? ?? '',
       participantName: participant['full_name'] as String? ?? '',
+      participantUsername: participant['username'] as String? ?? '',
       participantAvatarUrl: participant['avatar_url'] as String?,
       isOnline: false, // no presence system yet
       lastMessage: json['last_message'] as String? ?? '',
@@ -50,6 +53,7 @@ class ChatConversationModel {
   Map<String, dynamic> toJson() => {
     'id': id,
     'participant_id': participantId,
+    'participant_username': participantUsername,
     'last_message': lastMessage,
     'last_message_at': lastMessageAt.toIso8601String(),
     'unread_count': unreadCount,

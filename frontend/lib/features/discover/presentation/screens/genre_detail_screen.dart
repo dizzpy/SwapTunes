@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/genre_detail_viewmodel.dart';
 import '../widgets/playlist_card.dart';
@@ -67,9 +68,7 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
       body: viewModel.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            )
+          ? const _PlaylistGridShimmer()
           : viewModel.error != null
           ? _buildError(context)
           : RefreshIndicator(
@@ -153,17 +152,8 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
 
   Widget _buildFooter(GenreDetailViewModel viewModel) {
     if (viewModel.isLoadingMore) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-            strokeWidth: 2,
-          ),
-        ),
-      );
+      return const AppShimmer(child: _PlaylistCardSkeleton());
     }
-    // Bottom padding to clear the nav bar
     return const SizedBox(height: 120);
   }
 
@@ -227,6 +217,56 @@ class _GenreDetailContentState extends State<_GenreDetailContent> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shimmer skeletons ───────────────────────────────────────────────────────
+
+class _PlaylistGridShimmer extends StatelessWidget {
+  const _PlaylistGridShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.72,
+        ),
+        itemCount: 6,
+        itemBuilder: (_, _) => const _PlaylistCardSkeleton(),
+      ),
+    );
+  }
+}
+
+class _PlaylistCardSkeleton extends StatelessWidget {
+  const _PlaylistCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardFront,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.outline),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: ShimmerBox(width: double.infinity, radius: 16)),
+          SizedBox(height: 12),
+          ShimmerBox(width: 110, height: 14, radius: 6),
+          SizedBox(height: 8),
+          ShimmerBox(width: 72, height: 11, radius: 6),
         ],
       ),
     );

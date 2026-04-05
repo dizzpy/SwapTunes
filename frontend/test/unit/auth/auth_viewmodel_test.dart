@@ -83,27 +83,28 @@ void main() {
 
   // ── sendMagicLink ──────────────────────────────────────────────────────
 
-  group('sendMagicLink', () {
-    test('happy path — returns true and sets awaitingMagicLink', () async {
-      when(() => mockRepo.signInWithMagicLink(any()))
+  group('sendOtp', () {
+    test('happy path — returns true and sets awaitingOtp', () async {
+      when(() => mockRepo.sendOtp(any()))
           .thenAnswer((_) async {});
 
-      final result = await vm.sendMagicLink('test@example.com');
+      final result = await vm.sendOtp('test@example.com');
 
       expect(result, true);
-      expect(vm.status, AuthStatus.awaitingMagicLink);
+      expect(vm.status, AuthStatus.awaitingOtp);
+      expect(vm.pendingEmail, 'test@example.com');
       expect(vm.isLoading, false);
     });
 
     test('error path — returns false and sets error message', () async {
-      when(() => mockRepo.signInWithMagicLink(any()))
+      when(() => mockRepo.sendOtp(any()))
           .thenThrow(Exception('Invalid email'));
 
-      final result = await vm.sendMagicLink('bad-email');
+      final result = await vm.sendOtp('bad-email');
 
       expect(result, false);
       expect(vm.errorMessage, contains('Invalid email'));
-      expect(vm.status, isNot(AuthStatus.awaitingMagicLink));
+      expect(vm.status, isNot(AuthStatus.awaitingOtp));
     });
   });
 

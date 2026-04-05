@@ -44,7 +44,9 @@ class _CreatorLoadingScreenState extends State<CreatorLoadingScreen>
   void initState() {
     super.initState();
     _startSequence();
-    _callApi();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _callApi();
+    });
   }
 
   @override
@@ -158,6 +160,7 @@ class _CreatorLoadingScreenState extends State<CreatorLoadingScreen>
                 strokeWidth: 5,
                 waveCount: 8,
                 amplitudeFactor: 0.6,
+                arcFraction: 1.0,
               ),
               const Spacer(),
               Padding(

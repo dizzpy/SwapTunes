@@ -20,3 +20,4 @@ node_modules/
 # Local dev tools
 .claude/
 .mcp.json
+.agent/

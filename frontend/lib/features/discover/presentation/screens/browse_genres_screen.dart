@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/browse_genres_viewmodel.dart';
 import '../widgets/genre_card.dart';
@@ -32,9 +33,7 @@ class _BrowseGenresContent extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
       body: viewModel.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            )
+          ? const _GenreGridShimmer()
           : viewModel.error != null
           ? _buildError(context)
           : RefreshIndicator(
@@ -162,6 +161,64 @@ class _BrowseGenresContent extends StatelessWidget {
               style: AppTextStyles.bodyPrimary.copyWith(
                 color: AppColors.primary,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shimmer skeleton ────────────────────────────────────────────────────────
+
+class _GenreGridShimmer extends StatelessWidget {
+  const _GenreGridShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.4,
+        ),
+        itemCount: 8,
+        itemBuilder: (_, _) => const _GenreCardSkeleton(),
+      ),
+    );
+  }
+}
+
+class _GenreCardSkeleton extends StatelessWidget {
+  const _GenreCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardFront,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outline),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top accent bar placeholder
+          ShimmerBox(width: double.infinity, height: 6, radius: 0),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerBox(width: 88, height: 16, radius: 6),
+                SizedBox(height: 8),
+                ShimmerBox(width: 56, height: 12, radius: 6),
+              ],
             ),
           ),
         ],

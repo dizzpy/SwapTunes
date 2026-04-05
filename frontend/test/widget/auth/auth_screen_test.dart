@@ -11,10 +11,10 @@ import 'package:swaptune/features/auth/presentation/viewmodels/auth_viewmodel.da
 
 class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   final List<String> calls = [];
-  final bool _sendMagicLinkResult;
+  final bool _sendOtpResult;
 
-  _FakeAuthViewmodel({bool sendMagicLinkResult = true})
-      : _sendMagicLinkResult = sendMagicLinkResult;
+  _FakeAuthViewmodel({bool sendOtpResult = true})
+      : _sendOtpResult = sendOtpResult;
 
   @override
   bool get isLoading => false;
@@ -31,6 +31,16 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   @override
   bool get isLoggedIn => false;
 
+  // OTP getters
+  @override
+  String? get pendingEmail => null;
+  @override
+  String? get otpError => null;
+  @override
+  int get resendSecondsRemaining => 0;
+  @override
+  bool get canResendOtp => true;
+
   @override
   Future<void> signInWithGoogle() async => calls.add('signInWithGoogle');
 
@@ -38,10 +48,25 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   Future<void> signInWithSpotify() async => calls.add('signInWithSpotify');
 
   @override
-  Future<bool> sendMagicLink(String email) async {
-    calls.add('sendMagicLink:$email');
-    return _sendMagicLinkResult;
+  Future<bool> sendOtp(String email) async {
+    calls.add('sendOtp:$email');
+    return _sendOtpResult;
   }
+
+  @override
+  Future<bool> verifyOtp(String token) async {
+    calls.add('verifyOtp:$token');
+    return true;
+  }
+
+  @override
+  Future<bool> resendOtp() async {
+    calls.add('resendOtp');
+    return true;
+  }
+
+  @override
+  void reset() => calls.add('reset');
 
   @override
   Future<bool> handleDeepLink(Uri uri) async => false;

@@ -10,6 +10,7 @@ import '../../../../core/network/api_interceptor.dart';
 import '../../../../core/network/network_exceptions.dart';
 import '../models/playlist_model.dart';
 import '../models/spotify_playlist_model.dart';
+import '../models/suggested_user_model.dart';
 
 const int kDiscoverPageSize = 20;
 
@@ -24,6 +25,18 @@ class DiscoverRemoteDatasource {
   Future<List<String>> getGenres() async {
     final data = await _client.get(ApiConstants.discoverGenres) as List;
     return data.map((e) => e.toString()).toList();
+  }
+
+  // ── Suggested users ────────────────────────────────────
+
+  Future<List<SuggestedUserModel>> getSuggestedUsers({int limit = 20}) async {
+    final data = await _client.get(
+      ApiConstants.discoverUsers,
+      queryParams: {'limit': '$limit'},
+    ) as List;
+    return data
+        .map((e) => SuggestedUserModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   // ── Discover feed ──────────────────────────────────────
@@ -103,6 +116,31 @@ class DiscoverRemoteDatasource {
       );
     }
     return PlaylistModel.fromJson(data.first as Map<String, dynamic>);
+  }
+
+  // ── Trending genres ────────────────────────────────────
+
+  Future<List<String>> getTrendingGenres({int limit = 10}) async {
+    final data = await _client.get(
+      ApiConstants.discoverTrending,
+      queryParams: {'limit': '$limit'},
+    ) as List;
+    return data.map((e) => e.toString()).toList();
+  }
+
+  // ── Search ─────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> search(
+    String query, {
+    String type = 'all',
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final data = await _client.get(
+      ApiConstants.discoverSearch,
+      queryParams: {'q': query, 'type': type, 'page': '$page', 'limit': '$limit'},
+    ) as Map<String, dynamic>;
+    return data;
   }
 
   // ── Image upload ────────────────────────────────────────

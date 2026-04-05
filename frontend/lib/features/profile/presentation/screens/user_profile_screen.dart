@@ -69,6 +69,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       id: '',
       participantId: profile.id,
       participantName: profile.fullName,
+      participantUsername: profile.username,
       participantAvatarUrl: profile.avatarUrl,
       isOnline: false,
       lastMessage: '',

@@ -3,25 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/input_box.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import 'otp_input.dart';
 
 /// Bottom sheet widget that collects an email address and
-/// sends a Supabase magic link for passwordless authentication.
-class MagicLinkInput extends StatefulWidget {
-  const MagicLinkInput({super.key});
+/// sends an OTP code for passwordless authentication.
+class EmailInput extends StatefulWidget {
+  const EmailInput({super.key});
 
   @override
-  State<MagicLinkInput> createState() => _MagicLinkInputState();
+  State<EmailInput> createState() => _EmailInputState();
 }
 
-class _MagicLinkInputState extends State<MagicLinkInput> {
+class _EmailInputState extends State<EmailInput> {
   final _emailController = TextEditingController();
   bool _isSending = false;
-  bool _linkSent = false;
 
   @override
   void dispose() {
@@ -29,22 +30,37 @@ class _MagicLinkInputState extends State<MagicLinkInput> {
     super.dispose();
   }
 
-  Future<void> _sendMagicLink() async {
+  Future<void> _sendOtp() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) return;
 
     setState(() => _isSending = true);
     final auth = context.read<AuthViewmodel>();
-    final success = await auth.sendMagicLink(email);
+    final success = await auth.sendOtp(email);
 
     if (mounted) {
-      setState(() {
-        _isSending = false;
-        _linkSent = success;
-      });
+      setState(() => _isSending = false);
 
-      if (!success) {
-        final error = auth.errorMessage ?? 'Failed to send magic link';
+      if (success) {
+        // Close this sheet and open OTP input
+        Navigator.of(context).pop();
+        
+        // Small delay to ensure sheet is closed before opening new one
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        if (mounted) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            isDismissible: false,
+            enableDrag: false,
+            backgroundColor: Colors.transparent,
+            builder: (_) => const OtpInput(),
+          );
+        }
+      } else {
+        // Show error
+        final error = auth.errorMessage ?? 'Failed to send code';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error),
@@ -90,17 +106,13 @@ class _MagicLinkInputState extends State<MagicLinkInput> {
 
               // Title
               Text(
-                _linkSent ? 'Check your inbox!' : 'Sign in with Magic Link',
+                AppStrings.onboarding.emailInputTitle,
                 style: AppTextStyles.heading2,
               ),
               const SizedBox(height: 8),
 
               Text(
-                _linkSent
-                    ? 'We sent a login link to ${_emailController.text.trim()}. '
-                          'Tap the link in the email to sign in.'
-                    : 'Enter your email and we\'ll send you a magic link '
-                          'to sign in instantly — no password needed.',
+                AppStrings.onboarding.emailInputSubtitle,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySecondary.copyWith(
                   color: AppColors.textWhite.withValues(alpha: 0.6),
@@ -108,46 +120,28 @@ class _MagicLinkInputState extends State<MagicLinkInput> {
               ),
               const SizedBox(height: 28),
 
-              if (!_linkSent) ...[
-                // Email input
-                InputBox(
-                  hintText: 'your@email.com',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedMail01,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
+              // Email input
+              InputBox(
+                hintText: 'your@email.com',
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                prefixIcon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedMail01,
+                  color: Colors.white70,
+                  size: 20,
                 ),
-                const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 20),
 
-                // Send button
-                PrimaryButton(
-                  text: _isSending ? 'Sending...' : 'Send Magic Link',
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textWhite,
-                  onPressed: _isSending ? () {} : _sendMagicLink,
-                ),
-              ] else ...[
-                // Success state — allow resending
-                Icon(
-                  Icons.mark_email_read_outlined,
-                  color: AppColors.primary,
-                  size: 64,
-                ),
-                const SizedBox(height: 20),
-
-                TextButton(
-                  onPressed: _isSending ? null : _sendMagicLink,
-                  child: Text(
-                    'Resend link',
-                    style: AppTextStyles.bodyPrimary.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
+              // Send button
+              PrimaryButton(
+                text: _isSending
+                    ? 'Sending...'
+                    : AppStrings.onboarding.sendCodeBtn,
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.textWhite,
+                onPressed: _isSending ? () {} : _sendOtp,
+              ),
 
               const SizedBox(height: 20),
             ],

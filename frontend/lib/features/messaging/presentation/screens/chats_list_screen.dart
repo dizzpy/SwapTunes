@@ -8,6 +8,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../core/widgets/app_search_bar.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../data/repositories/messaging_repository.dart';
 import '../viewmodels/chats_list_viewmodel.dart';
@@ -39,7 +40,9 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
         context.read<StorageService>().getUserId() ?? '';
 
     _viewmodel = ChatsListViewmodel(repository, currentUserId);
-    _viewmodel.loadConversations();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewmodel.loadConversations();
+    });
     _viewmodel.subscribeToInboxUpdates();
   }
 
@@ -138,9 +141,7 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
 
   Widget _buildBody() {
     if (_viewmodel.isLoading && _viewmodel.conversations.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const _ChatsListShimmer();
     }
 
     if (_viewmodel.error != null && _viewmodel.conversations.isEmpty) {
@@ -202,6 +203,47 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _ChatsListShimmer extends StatelessWidget {
+  const _ChatsListShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView.builder(
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 7,
+        itemBuilder: (_, _) => Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.cardFront,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            children: [
+              const ShimmerCircle(size: 50),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(width: 120, height: 14, radius: 6),
+                    SizedBox(height: 6),
+                    ShimmerBox(height: 12, radius: 6),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const ShimmerBox(width: 36, height: 11, radius: 6),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

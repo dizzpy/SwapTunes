@@ -6,6 +6,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/chat_conversation_model.dart';
+import '../../../profile/presentation/screens/user_profile_screen.dart';
 
 class ChatAppBar extends StatelessWidget {
   final ChatConversationModel conversation;
@@ -38,65 +39,69 @@ class ChatAppBar extends StatelessWidget {
             ),
             const SizedBox(width: 4),
 
-            // Avatar
-            Hero(
-              tag: 'avatar-${conversation.participantId}',
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: conversation.participantAvatarUrl != null
-                      ? DecorationImage(
-                          image:
-                              NetworkImage(conversation.participantAvatarUrl!),
-                          fit: BoxFit.cover,
+            // Avatar + name — taps navigate to the participant's profile
+            Expanded(
+              child: GestureDetector(
+                onTap: conversation.participantUsername.isNotEmpty
+                    ? () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserProfileScreen(
+                              username: conversation.participantUsername,
+                            ),
+                          ),
                         )
-                      : null,
-                  color: conversation.participantAvatarUrl == null
-                      ? AppColors.outline
-                      : null,
+                    : null,
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    Hero(
+                      tag: 'avatar-${conversation.participantId}',
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: conversation.participantAvatarUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(
+                                    conversation.participantAvatarUrl!,
+                                  ),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                          color: conversation.participantAvatarUrl == null
+                              ? AppColors.outline
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          conversation.participantName,
+                          style: AppTextStyles.bodyPrimary,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          conversation.isOnline
+                              ? AppStrings.messaging.onlineStatus
+                              : AppStrings.messaging.offlineStatus,
+                          style: AppTextStyles.bodySecondary.copyWith(
+                            color: conversation.isOnline
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-
-            // User Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    conversation.participantName,
-                    style: AppTextStyles.bodyPrimary,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    conversation.isOnline
-                        ? AppStrings.messaging.onlineStatus
-                        : AppStrings.messaging.offlineStatus,
-                    style: AppTextStyles.bodySecondary.copyWith(
-                      color: conversation.isOnline
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // More Options (placeholder — no actions yet)
-            IconButton(
-              icon: HugeIcon(
-                icon: AppAssets.icon.more,
-                color: AppColors.textWhite,
-                size: 24,
-              ),
-              onPressed: null,
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(),
             ),
           ],
         ),

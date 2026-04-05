@@ -92,14 +92,18 @@ class PlaylistDetailData {
   /// Returns only platforms that have a URL configured.
   List<MapEntry<SourcePlatform, String>> get activeLinks {
     final links = <MapEntry<SourcePlatform, String>>[];
-    if (spotifyUrl != null)
+    if (spotifyUrl != null) {
       links.add(MapEntry(SourcePlatform.spotify, spotifyUrl!));
-    if (youtubeMusicUrl != null)
+    }
+    if (youtubeMusicUrl != null) {
       links.add(MapEntry(SourcePlatform.youtubeMusic, youtubeMusicUrl!));
-    if (appleMusicUrl != null)
+    }
+    if (appleMusicUrl != null) {
       links.add(MapEntry(SourcePlatform.appleMusic, appleMusicUrl!));
-    if (soundcloudUrl != null)
+    }
+    if (soundcloudUrl != null) {
       links.add(MapEntry(SourcePlatform.soundcloud, soundcloudUrl!));
+    }
     return links;
   }
 

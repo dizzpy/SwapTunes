@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../data/models/source_platform.dart';
 import '../../data/repositories/discover_repository.dart';
 import '../viewmodels/playlist_detail_viewmodel.dart';
@@ -50,9 +51,7 @@ class _PlaylistDetailContent extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: viewModel.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            )
+          ? const _PlaylistDetailShimmer()
           : viewModel.error != null
           ? _buildError(context, viewModel)
           : _buildContent(context, viewModel),
@@ -548,6 +547,88 @@ class _LikeButton extends StatelessWidget {
                     ? AppColors.danger
                     : AppColors.textSecondary,
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Loading shimmer ───────────────────────────────────────────────────────────
+
+class _PlaylistDetailShimmer extends StatelessWidget {
+  const _PlaylistDetailShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cover image area
+            const ShimmerBox(width: double.infinity, height: 320, radius: 0),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Platform badge
+                  const ShimmerBox(width: 80, height: 24, radius: 8),
+                  const SizedBox(height: 12),
+                  // Title
+                  const ShimmerBox(width: 220, height: 26, radius: 8),
+                  const SizedBox(height: 8),
+                  const ShimmerBox(width: 160, height: 20, radius: 8),
+                  const SizedBox(height: 16),
+                  // Description
+                  const ShimmerBox(width: double.infinity, height: 14, radius: 6),
+                  const SizedBox(height: 6),
+                  const ShimmerBox(width: 240, height: 14, radius: 6),
+                  const SizedBox(height: 24),
+                  // Owner row
+                  const Row(
+                    children: [
+                      ShimmerCircle(size: 28),
+                      SizedBox(width: 8),
+                      ShimmerBox(width: 130, height: 14, radius: 6),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // CTA button
+                  const ShimmerBox(width: double.infinity, height: 52, radius: 16),
+                  const SizedBox(height: 28),
+                  // Track list header
+                  const ShimmerBox(width: 80, height: 16, radius: 6),
+                  const SizedBox(height: 12),
+                  // Track rows
+                  ...List.generate(
+                    5,
+                    (_) => const Padding(
+                      padding: EdgeInsets.only(bottom: 20),
+                      child: Row(
+                        children: [
+                          ShimmerBox(width: 28, height: 14, radius: 4),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ShimmerBox(height: 14, radius: 6),
+                                SizedBox(height: 4),
+                                ShimmerBox(width: 100, height: 11, radius: 6),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

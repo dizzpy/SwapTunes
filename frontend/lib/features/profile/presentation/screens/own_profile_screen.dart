@@ -11,7 +11,7 @@ import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../../collab/presentation/screens/collab_details_screen.dart';
 import '../../../creator/data/models/creator_profile_form.dart';
 import '../../../creator/presentation/screens/become_a_creator.dart';
-import '../../../creator/presentation/viewmodels/creator_viewmodel.dart';
+import '../../../creator/presentation/screens/listener_transition_screen.dart';
 import '../../data/repositories/profile_repository.dart';
 import 'edit_profile_screen.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
@@ -24,6 +24,7 @@ import '../widgets/profile_tab_content.dart';
 import '../widgets/follows_sheet.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../dev/presentation/screens/dev_tools_screen.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 
 /// Own profile screen — displayed as the Profile tab in bottom navigation.
 class OwnProfileScreen extends StatefulWidget {
@@ -103,26 +104,12 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     );
     if (confirmed != true || !mounted) return;
 
-    final creatorVm = context.read<CreatorViewmodel>();
-    final authVm = context.read<AuthViewmodel>();
-    final profileRepo = context.read<ProfileRepository>();
-
-    final success = await creatorVm.deactivateCreator();
-    if (!mounted) return;
-
-    if (success) {
-      final username = authVm.currentUser?.username ?? '';
-      if (username.isNotEmpty) {
-        profileRepo.invalidateCache(username);
-      }
-      // Auth listener will handle the refresh automatically
-      await authVm.refreshCurrentUser();
-      if (mounted) {
-        AppSnackbar.success('Switched to listener mode');
-      }
-    } else {
-      AppSnackbar.error(creatorVm.errorMessage ?? 'Switch failed. Try again.');
-    }
+    // Navigate to loading screen which handles the API call
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const ListenerTransitionScreen(),
+      ),
+    );
   }
 
   // ── Image editing ────────────────────────────────────────────────
@@ -157,6 +144,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
   }) async {
     await showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -298,6 +286,14 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
     ProfileImageViewer.show(context, url);
   }
 
+  // ── Settings Navigation ───────────────────────────────────────────
+
+  void _openSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+    );
+  }
+
   // ── Bio inline edit ──────────────────────────────────────────────
 
   Future<void> _onBioTap() async {
@@ -307,6 +303,7 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: AppColors.cardFront,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -413,22 +410,24 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
             onRefresh: _onRefresh,
             color: AppColors.primary,
             backgroundColor: AppColors.cardFront,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SafeArea(bottom: false, child: const SizedBox(height: 16)),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SafeArea(bottom: false, child: const SizedBox(height: 16)),
 
-                  // Cover & Avatar (tappable)
-                  ProfileCoverHeader(
-                    coverUrl: profile.coverUrl,
-                    avatarUrl: profile.avatarUrl,
-                    isCreatorMode: profile.isCreator,
-                    onAvatarTap: _onAvatarTap,
-                    onCoverTap: _onCoverTap,
-                  ),
-                  const SizedBox(height: 64),
+                      // Cover & Avatar (tappable)
+                      ProfileCoverHeader(
+                        coverUrl: profile.coverUrl,
+                        avatarUrl: profile.avatarUrl,
+                        isCreatorMode: profile.isCreator,
+                        onAvatarTap: _onAvatarTap,
+                        onCoverTap: _onCoverTap,
+                      ),
+                      const SizedBox(height: 64),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -650,7 +649,32 @@ class _OwnProfileScreenState extends State<OwnProfileScreen> {
                 ],
               ),
             ),
-          );
+            
+            // Settings button in top-right corner
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.cardFront.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.settings_outlined,
+                        color: AppColors.textWhite,
+                      ),
+                      onPressed: _openSettings,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
         },
       ),
     );

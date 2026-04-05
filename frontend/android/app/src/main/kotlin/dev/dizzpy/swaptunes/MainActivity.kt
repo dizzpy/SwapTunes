@@ -1,4 +1,4 @@
-package dev.dizzpy.swaptune
+package dev.dizzpy.swaptunes
 
 import io.flutter.embedding.android.FlutterActivity
 

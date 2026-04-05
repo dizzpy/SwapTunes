@@ -15,7 +15,7 @@ class CachedMessages {
   @Index(unique: true, replace: true)
   late String conversationId;
 
-  /// Page-1 List<MessageModel> serialized as a JSON array string (newest-first).
+  /// Page-1 `List<MessageModel>` serialized as a JSON array string (newest-first).
   late String contentJson;
 
   /// When this entry was written to cache.

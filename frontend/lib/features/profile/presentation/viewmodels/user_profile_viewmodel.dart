@@ -38,14 +38,20 @@ class UserProfileViewmodel extends ChangeNotifier {
   List<CollabModel> get collabs => _collabs;
   bool get isCollabsLoading => _isCollabsLoading;
 
+  bool _disposed = false;
+
   UserProfileViewmodel(this._repository);
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
 
   /// Load any user profile by username (own or other).
   Future<void> loadProfile(String username) async {
     if (_isLoading) return;
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _profile = await _repository.getUserProfile(username);
@@ -53,7 +59,7 @@ class UserProfileViewmodel extends ChangeNotifier {
       _errorMessage = _parseError(e);
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -65,7 +71,7 @@ class UserProfileViewmodel extends ChangeNotifier {
     } catch (_) {
       // Silent — stale data stays on screen
     }
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Optimistically apply local profile edits before the API call returns.
@@ -89,7 +95,7 @@ class UserProfileViewmodel extends ChangeNotifier {
       username: username,
       genres: genres,
     );
-    notifyListeners();
+    _safeNotify();
   }
 
   /// Optimistic follow/unfollow toggle with 1-second debounce.
@@ -114,7 +120,7 @@ class UserProfileViewmodel extends ChangeNotifier {
             : oldStats.followers + 1,
       ),
     );
-    notifyListeners();
+    _safeNotify();
 
     _followDebounce = Timer(const Duration(milliseconds: 800), () async {
       try {
@@ -129,10 +135,10 @@ class UserProfileViewmodel extends ChangeNotifier {
           isFollowing: wasFollowing,
           stats: oldStats,
         );
-        notifyListeners();
+        _safeNotify();
       } finally {
         _isFollowLoading = false;
-        notifyListeners();
+        _safeNotify();
       }
     });
   }
@@ -141,7 +147,7 @@ class UserProfileViewmodel extends ChangeNotifier {
   Future<void> loadUserPosts() async {
     if (_profile == null || _isPostsLoading || _postsLoaded) return;
     _isPostsLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _posts = await _repository.getUserPosts(_profile!.id);
@@ -150,7 +156,7 @@ class UserProfileViewmodel extends ChangeNotifier {
       // Silently keep empty list on error
     } finally {
       _isPostsLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -158,7 +164,7 @@ class UserProfileViewmodel extends ChangeNotifier {
   Future<void> loadUserCollabs() async {
     if (_profile == null || _isCollabsLoading || _collabsLoaded) return;
     _isCollabsLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _collabs = await _repository.getUserCollabs(_profile!.id);
@@ -167,7 +173,7 @@ class UserProfileViewmodel extends ChangeNotifier {
       // Silently keep empty list on error
     } finally {
       _isCollabsLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -180,11 +186,12 @@ class UserProfileViewmodel extends ChangeNotifier {
         stats: _profile!.stats.copyWith(posts: current > 0 ? current - 1 : 0),
       );
     }
-    notifyListeners();
+    _safeNotify();
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _followDebounce?.cancel();
     super.dispose();
   }

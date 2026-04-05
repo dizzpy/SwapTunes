@@ -23,30 +23,27 @@ class SwapTuneApp extends StatelessWidget {
       title: 'SwapTune',
       theme: AppTheme.darkTheme,
       navigatorKey: NavigationService.navigatorKey,
-      home: const _AuthGate(),
+      builder: (context, child) {
+        return _AuthListener(child: child!);
+      },
+      home: const SplashScreen(),
     );
   }
 }
 
-/// Root widget that manages auth-based navigation.
+/// Root widget wrapper that manages auth-based navigation.
 ///
-/// Shows a splash screen during initial auth check, then navigates to the
-/// correct screen based on auth status:
-///   - unauthenticated → OnboardingScreen
-///   - authenticated (no profile) → ProfileSetupScreen
-///   - profileLoaded (returning user) → MainLayoutScreen
-///
-/// During the first-time setup flow (ProfileSetup → ConnectSpotify →
-/// WelcomeSuccess → Home), the gate deliberately steps back and lets
-/// the screens navigate manually to avoid hijacking the flow.
-class _AuthGate extends StatefulWidget {
-  const _AuthGate();
+/// Ensures the listener is placed above the Navigator so that
+/// it is never unmounted during pushAndRemoveAll navigation events.
+class _AuthListener extends StatefulWidget {
+  final Widget child;
+  const _AuthListener({required this.child});
 
   @override
-  State<_AuthGate> createState() => _AuthGateState();
+  State<_AuthListener> createState() => _AuthListenerState();
 }
 
-class _AuthGateState extends State<_AuthGate> {
+class _AuthListenerState extends State<_AuthListener> {
   AuthStatus? _lastHandledStatus;
   final _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSub;
@@ -76,13 +73,13 @@ class _AuthGateState extends State<_AuthGate> {
         _handleIncomingLink(initialUri);
       }
     } catch (e) {
-      debugPrint('[AuthGate] Failed to get initial link: $e');
+      debugPrint('[_AuthListener] Failed to get initial link: $e');
     }
 
     _linkSub = _appLinks.uriLinkStream.listen(
       (uri) => _handleIncomingLink(uri),
       onError: (Object e) {
-        debugPrint('[AuthGate] Deep link stream error: $e');
+        debugPrint('[_AuthListener] Deep link stream error: $e');
       },
     );
   }
@@ -95,11 +92,11 @@ class _AuthGateState extends State<_AuthGate> {
 
     if (uri.host == 'spotify-connect') {
       // Spotify connect callback — route to the Completer in AuthViewmodel
-      debugPrint('[AuthGate] Spotify connect callback: $uri');
+      debugPrint('[_AuthListener] Spotify connect callback: $uri');
       auth.handleSpotifyConnectCallback(uri);
     } else {
       // Supabase auth callback (OAuth / magic link)
-      debugPrint('[AuthGate] Auth callback: $uri');
+      debugPrint('[_AuthListener] Auth callback: $uri');
       auth.handleDeepLink(uri);
     }
   }
@@ -109,7 +106,13 @@ class _AuthGateState extends State<_AuthGate> {
   void _onAuthStatusChanged() {
     if (!mounted) return;
 
-    final status = context.read<AuthViewmodel>().status;
+    final auth = context.read<AuthViewmodel>();
+    final status = auth.status;
+
+    debugPrint(
+      '[_AuthListener] Status changed: $status (last: $_lastHandledStatus)',
+    );
+
     if (status == _lastHandledStatus) return;
 
     switch (status) {
@@ -117,6 +120,7 @@ class _AuthGateState extends State<_AuthGate> {
         // Logout or no session — reset flags and go to onboarding.
         _lastHandledStatus = status;
         _isInSetupFlow = false;
+        debugPrint('[_AuthListener] Navigating to OnboardingScreen');
         NavigationService.pushAndRemoveAll(const OnboardingScreen());
         break;
 
@@ -124,6 +128,7 @@ class _AuthGateState extends State<_AuthGate> {
         // Authenticated but no profile — enter the setup flow.
         _lastHandledStatus = status;
         _isInSetupFlow = true;
+        debugPrint('[_AuthListener] Navigating to ProfileSetupScreen');
         NavigationService.pushAndRemoveAll(const ProfileSetupScreen());
         break;
 
@@ -134,15 +139,22 @@ class _AuthGateState extends State<_AuthGate> {
           // User just completed profile setup → let the screen flow
           // (ProfileSetup → ConnectSpotify → WelcomeSuccess → Home)
           // navigate itself. Do NOT interfere here.
+          debugPrint('[_AuthListener] In setup flow, skipping navigation');
           break;
         }
 
         // Returning user with an existing profile — go straight to home.
+        debugPrint('[_AuthListener] Navigating to MainLayoutScreen');
         NavigationService.pushAndRemoveAll(MainLayoutScreen());
         break;
 
-      default:
+      case AuthStatus.awaitingOtp:
+      case AuthStatus.awaitingOAuth:
+      case AuthStatus.initial:
+        // Loading states, wait and do nothing.
+        _lastHandledStatus = status;
         break;
+
     }
   }
 
@@ -159,7 +171,6 @@ class _AuthGateState extends State<_AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    // Show splash while the auth state is still being determined.
-    return const SplashScreen();
+    return widget.child;
   }
 }
