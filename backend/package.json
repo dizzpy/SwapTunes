@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.{js,json}\"",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "lint-staged": {
     "src/**/*.{js,cjs,mjs}": [
