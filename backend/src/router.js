@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import devRoutes from './features/dev/dev.routes.js'
 import healthRoutes from './features/health/health.routes.js'
 import authRoutes from './features/auth/auth.routes.js'
 import usersRoutes from './features/users/users.routes.js'
@@ -9,10 +10,16 @@ import playlistsRoutes from './features/playlists/playlists.routes.js'
 import collabsRoutes from './features/collabs/collabs.routes.js'
 import conversationsRoutes from './features/messaging/conversations.routes.js'
 import notificationsRoutes from './features/notifications/notifications.routes.js'
+import uploadsRoutes from './features/uploads/uploads.routes.js'
 
 const router = Router()
 
 router.use('/health', healthRoutes)
+
+// Only expose dev/debug routes in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/dev', devRoutes)
+}
 
 router.use('/auth', authRoutes)
 router.use('/users', usersRoutes)
@@ -23,5 +30,6 @@ router.use('/playlists', playlistsRoutes)
 router.use('/collabs', collabsRoutes)
 router.use('/conversations', conversationsRoutes)
 router.use('/notifications', notificationsRoutes)
+router.use('/uploads', uploadsRoutes)
 
 export { router }

@@ -53,6 +53,20 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
+  static const TextStyle bodySecondaryWhite = TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textWhite,
+  );
+
+  static final TextStyle bodySecondary70 = TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textWhite.withValues(alpha: 0.7),
+  );
+
   // text.caption: 10 Regular
   static const TextStyle caption = TextStyle(
     fontFamily: 'Manrope',

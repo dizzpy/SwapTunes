@@ -38,10 +38,7 @@ class AuthRemoteDatasource {
   }) async {
     final result = await _client.post(
       ApiConstants.spotifyConnect,
-      body: {
-        'code': code,
-        'redirect_uri': redirectUri,
-      },
+      body: {'code': code, 'redirect_uri': redirectUri},
     );
     return result as Map<String, dynamic>;
   }

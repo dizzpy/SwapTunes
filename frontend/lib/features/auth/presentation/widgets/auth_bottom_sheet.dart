@@ -9,12 +9,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../viewmodels/auth_viewmodel.dart';
-import 'magic_link_input.dart';
+import 'email_input.dart';
 
 /// Bottom sheet shown on the onboarding screen with social login options.
 ///
 /// Connects to Supabase Auth via [AuthViewmodel] for Google OAuth,
-/// Spotify OAuth, and Magic Link (passwordless email) sign-in.
+/// Spotify OAuth, and OTP-based email sign-in.
 class AuthBottomSheet extends StatefulWidget {
   const AuthBottomSheet({super.key});
 
@@ -53,14 +53,14 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
     }
   }
 
-  /// Opens the magic link email input UI.
-  void _handleMagicLinkAuth() {
+  /// Opens the email input UI for OTP authentication.
+  void _handleEmailAuth() {
     Navigator.of(context).pop();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const MagicLinkInput(),
+      builder: (_) => const EmailInput(),
     );
   }
 
@@ -100,7 +100,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
               backgroundColor: AppColors.cardFront,
               foregroundColor: AppColors.textWhite,
               icon: SvgPicture.asset(
-                AppAssets.icons.googleLogo,
+                AppAssets.img.googleLogo,
                 width: 24,
                 height: 24,
               ),
@@ -114,7 +114,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
               backgroundColor: AppColors.greenDarkBg,
               foregroundColor: AppColors.textWhite,
               icon: SvgPicture.asset(
-                AppAssets.icons.spotifyLogo,
+                AppAssets.img.spotifyLogo,
                 width: 24,
                 height: 24,
               ),
@@ -122,10 +122,10 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
             ),
             const SizedBox(height: 12),
 
-            // Email / Magic link fallback button
+            // Email / OTP authentication button
             OutlinedAppButton(
-              text: AppStrings.onboarding.continueMagicLink,
-              onPressed: _isProcessing ? () {} : _handleMagicLinkAuth,
+              text: AppStrings.onboarding.continueWithEmail,
+              onPressed: _isProcessing ? () {} : _handleEmailAuth,
             ),
             const SizedBox(height: 20),
           ],

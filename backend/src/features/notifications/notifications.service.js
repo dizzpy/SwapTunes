@@ -1,5 +1,6 @@
 import { supabase } from '../../config/supabase.js'
 import { getPagination } from '../../shared/utils/pagination.js'
+import { oneSignalService } from '../../shared/services/onesignal.service.js'
 import { notificationsRepository } from './notifications.repository.js'
 
 class NotificationsService {
@@ -10,8 +11,22 @@ class NotificationsService {
   async createNotification({ userId, actorId, type, referenceId }) {
     if (userId === actorId) return // Don't notify yourself
 
-    // We delegate the database interaction to the repository we injected
+    // Write the in-app notification to the DB
     await this.repository.createNotification({ userId, actorId, type, referenceId })
+
+    // Fire push notification — non-blocking, failures are logged not thrown
+    this._sendPush(userId, actorId, type, referenceId)
+  }
+
+  async _sendPush(userId, actorId, type, referenceId) {
+    try {
+      const { data: actor } = await supabase.from('users').select('username').eq('id', actorId).single()
+
+      const actorName = actor?.username ? `@${actor.username}` : 'Someone'
+      await oneSignalService.sendPushNotification(userId, { type, actorName, referenceId })
+    } catch {
+      // Push failure must never surface to the caller
+    }
   }
 
   async getNotifications(userId, query) {
@@ -41,6 +56,12 @@ class NotificationsService {
   async markAllAsRead(userId) {
     const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', userId)
     if (error) throw { statusCode: 400, code: 'MARK_ALL_READ_FAILED', message: error.message }
+    return { success: true }
+  }
+
+  async deleteNotification(userId, notificationId) {
+    const { error } = await supabase.from('notifications').delete().match({ id: notificationId, user_id: userId })
+    if (error) throw { statusCode: 400, code: 'DELETE_NOTIF_FAILED', message: error.message }
     return { success: true }
   }
 }

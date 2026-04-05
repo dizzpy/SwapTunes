@@ -60,3 +60,13 @@ export const getMyCollabs = async (req, res, next) => {
     next(err)
   }
 }
+
+// Get collabs by user id controller handler.
+export const getUserCollabs = async (req, res, next) => {
+  try {
+    const collabs = await collabsService.getUserCollabs(req.params.userId, req.query)
+    success(res, collabs)
+  } catch (err) {
+    next(err)
+  }
+}

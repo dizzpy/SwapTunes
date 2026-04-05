@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:swaptune/core/theme/app_colors.dart';
 import 'package:swaptune/features/auth/presentation/widgets/welcome_success_widgets.dart';
+import 'package:swaptune/features/feed/presentation/screens/main_layout_screen.dart';
 
 class WelcomeSuccessScreen extends StatefulWidget {
   const WelcomeSuccessScreen({super.key});
@@ -106,16 +107,10 @@ class _WelcomeSuccessScreenState extends State<WelcomeSuccessScreen> {
 
   // Handles the finalize action to enter the app shell
   void _onContinueTapped() {
-    // TODO: Connect GoRouter routing logic directly to Home Shell navigation
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🎶 Welcome to SwapTunes!'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => MainLayoutScreen()),
+      (route) => false,
     );
-
-    _triggerConfetti();
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class AuthBackground extends StatelessWidget {
   const AuthBackground({super.key});
@@ -12,7 +13,7 @@ class AuthBackground extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF0F3D34), Color(0xFF081916)],
+              colors: [AppColors.authBgTop, AppColors.authBgBottom],
             ),
           ),
         ),
@@ -22,8 +23,8 @@ class AuthBackground extends StatelessWidget {
               center: const Alignment(0, -0.7),
               radius: 1.3,
               colors: [
-                const Color(0xFF1E6F5C).withValues(alpha: 0.55),
-                Colors.transparent,
+                AppColors.authGlow.withValues(alpha: 0.55),
+                AppColors.transparent,
               ],
             ),
           ),
@@ -34,8 +35,8 @@ class AuthBackground extends StatelessWidget {
               center: const Alignment(0, -0.9),
               radius: 1.6,
               colors: [
-                const Color(0xFF1E6F5C).withValues(alpha: 0.25),
-                Colors.transparent,
+                AppColors.authGlow.withValues(alpha: 0.25),
+                AppColors.transparent,
               ],
             ),
           ),

@@ -88,16 +88,27 @@ class SupabaseAuthService {
     );
   }
 
-  // ── Magic Link ─────────────────────────────────────────
+  // ── OTP Authentication ─────────────────────────────────
 
-  /// Sends a magic link to the given [email] for passwordless login.
+  /// Sends a 6-digit OTP code to the given [email] for passwordless login.
   ///
-  /// The user receives an email with a link that, when tapped,
-  /// opens the app via deep link and completes sign-in automatically.
-  Future<void> signInWithMagicLink(String email) async {
-    await _auth.signInWithOtp(
+  /// The user receives an email with the code. Use [verifyOtp] to complete sign-in.
+  Future<void> sendOtp(String email) async {
+    await _auth.signInWithOtp(email: email);
+  }
+
+  /// Verifies the OTP [token] for the given [email].
+  ///
+  /// Returns the auth response with session on success.
+  /// Throws on invalid or expired OTP.
+  Future<AuthResponse> verifyOtp({
+    required String email,
+    required String token,
+  }) async {
+    return await _auth.verifyOTP(
       email: email,
-      emailRedirectTo: SupabaseConstants.redirectUrl,
+      token: token,
+      type: OtpType.email,
     );
   }
 

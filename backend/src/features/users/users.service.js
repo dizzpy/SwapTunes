@@ -3,13 +3,12 @@ import { notificationsService } from '../notifications/notifications.service.js'
 import { getPagination } from '../../shared/utils/pagination.js'
 
 // Get profile service method interacting with the database.
-export const getProfile = async (username) => {
+export const getProfile = async (username, requesterId) => {
   const { data, error } = await supabase
     .from('users')
     .select(
       `
       *,
-      creator_profiles(*),
       user_genres(genre)
     `
     )
@@ -23,6 +22,13 @@ export const getProfile = async (username) => {
   delete data.user_genres
   delete data.spotify_access_token
   delete data.spotify_refresh_token
+
+  // Fetch creator_profiles separately so a join RLS issue never kills the whole query
+  data.creator_profiles = []
+  if (data.user_type === 'creator') {
+    const { data: cp } = await supabase.from('creator_profiles').select('*').eq('user_id', data.id).maybeSingle()
+    if (cp) data.creator_profiles = [cp]
+  }
 
   // Get follow stats
   const { count: followersCount } = await supabase
@@ -44,11 +50,15 @@ export const getProfile = async (username) => {
 
   let collabsCount = 0
   if (data.user_type === 'creator') {
-    const { count } = await supabase
-      .from('collaborations')
-      .select('*', { count: 'exact', head: true })
-      .eq('creator_id', data.id)
-    collabsCount = count
+    try {
+      const { count } = await supabase
+        .from('collaborations')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', data.id)
+      collabsCount = count ?? 0
+    } catch {
+      collabsCount = 0
+    }
   }
 
   data.stats = {
@@ -57,6 +67,18 @@ export const getProfile = async (username) => {
     posts: postsCount || 0,
     playlists: playlistsCount || 0,
     collabs: collabsCount || 0
+  }
+
+  // Check if requester follows this user (null for own profile)
+  if (requesterId && requesterId !== data.id) {
+    const { count: followCount } = await supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_id', requesterId)
+      .eq('following_id', data.id)
+    data.is_following = (followCount || 0) > 0
+  } else {
+    data.is_following = null
   }
 
   return data
@@ -99,7 +121,34 @@ export const unfollowUser = async (followerId, followingId) => {
 
 // Update profile service method interacting with the database.
 export const updateProfile = async (userId, data) => {
-  const { genres, ...updates } = data
+  const { genres, username, ...rest } = data
+  const updates = { ...rest }
+
+  // Username change — enforce 7-day cooldown
+  if (username !== undefined) {
+    const { data: user, error: fetchErr } = await supabase
+      .from('users')
+      .select('username, username_changed_at')
+      .eq('id', userId)
+      .single()
+
+    if (fetchErr) throw { statusCode: 400, code: 'FETCH_FAILED', message: fetchErr.message }
+
+    if (user.username_changed_at) {
+      const daysSince = (Date.now() - new Date(user.username_changed_at).getTime()) / (1000 * 60 * 60 * 24)
+      if (daysSince < 7) {
+        const daysLeft = Math.ceil(7 - daysSince)
+        throw {
+          statusCode: 429,
+          code: 'USERNAME_COOLDOWN',
+          message: `You can change your username in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
+        }
+      }
+    }
+
+    updates.username = username
+    updates.username_changed_at = new Date().toISOString()
+  }
 
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase.from('users').update(updates).eq('id', userId)

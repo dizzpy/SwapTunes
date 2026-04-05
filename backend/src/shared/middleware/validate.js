@@ -20,3 +20,21 @@ export const validate = (schema) => {
     }
   }
 }
+
+export const validateParams = (schema) => {
+  return (req, res, next) => {
+    const parsed = schema.safeParse(req.params)
+
+    if (!parsed.success) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_PARAMS',
+          message: 'Invalid URL parameters',
+          details: parsed.error.format()
+        }
+      })
+    }
+
+    next()
+  }
+}

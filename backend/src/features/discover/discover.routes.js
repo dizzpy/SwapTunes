@@ -4,7 +4,10 @@ import { requireAuth } from '../../shared/middleware/auth.js'
 
 const router = Router()
 
+router.get('/genres', requireAuth, discoverController.getGenres)
 router.get('/playlists', requireAuth, discoverController.discoverPlaylists)
+router.get('/users', requireAuth, discoverController.suggestedUsers)
+router.get('/trending', requireAuth, discoverController.trendingGenres)
 router.get('/search', requireAuth, discoverController.search)
 
 export default router
