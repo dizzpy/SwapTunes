@@ -118,9 +118,14 @@ class AuthRepository {
   }
 
   /// Fetches the authenticated user's profile from `/auth/me`.
+  ///
+  /// Also persists the user ID so StorageService.getUserId() is always
+  /// current — even on logins that don't go through setupProfile.
   Future<UserModel> getCurrentUser() async {
     final json = await _datasource.getCurrentUser();
-    return UserModel.fromJson(json);
+    final user = UserModel.fromJson(json);
+    await _storage.saveUserId(user.id);
+    return user;
   }
 
   /// Clears all locally stored auth data and signs out of Supabase.

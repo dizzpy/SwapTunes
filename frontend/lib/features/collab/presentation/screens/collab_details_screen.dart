@@ -700,6 +700,7 @@ class _MessageAction extends StatelessWidget {
           id: '',
           participantId: collab.creatorId,
           participantName: collab.creatorFullName,
+          participantUsername: collab.creatorUsername,
           participantAvatarUrl: collab.creatorAvatarUrl,
           isOnline: false,
           lastMessage: '',

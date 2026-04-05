@@ -127,6 +127,11 @@ class MessagingRepository {
     return message;
   }
 
+  /// Returns cached messages for [conversationId] regardless of TTL.
+  /// Returns null if no cache entry exists at all.
+  Future<List<MessageModel>?> getCachedMessagesStale(String conversationId) =>
+      _getStaleCachedMessages(conversationId);
+
   Future<void> markMessagesRead(String conversationId) =>
       _datasource.markMessagesRead(conversationId);
 
@@ -228,6 +233,7 @@ class MessagingRepository {
     'id': c.id,
     'participant_id': c.participantId,
     'participant_name': c.participantName,
+    'participant_username': c.participantUsername,
     'participant_avatar_url': c.participantAvatarUrl,
     'is_online': c.isOnline,
     'last_message': c.lastMessage,
@@ -243,6 +249,7 @@ class MessagingRepository {
         id: m['id'] as String,
         participantId: m['participant_id'] as String,
         participantName: m['participant_name'] as String? ?? '',
+        participantUsername: m['participant_username'] as String? ?? '',
         participantAvatarUrl: m['participant_avatar_url'] as String?,
         isOnline: (m['is_online'] as bool?) ?? false,
         lastMessage: m['last_message'] as String? ?? '',

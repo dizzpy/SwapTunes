@@ -37,7 +37,7 @@ class _AppShimmerState extends State<AppShimmer>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (_, __) {
+      builder: (_, _) {
         final t = _controller.value;
         // Sweep travels from -0.4 to 1.4 so it fully crosses any width
         final shimmerPos = -0.4 + t * 1.8;

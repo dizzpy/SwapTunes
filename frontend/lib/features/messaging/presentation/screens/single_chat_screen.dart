@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_snackbar.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../data/models/chat_conversation_model.dart';
 import '../../data/models/message_model.dart';
 import '../../data/repositories/messaging_repository.dart';
@@ -55,7 +59,12 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
   @override
   void initState() {
     super.initState();
-    _currentUserId = context.read<StorageService>().getUserId() ?? '';
+    // Prefer the live Supabase auth UUID — this matches sender_id in the
+    // messages table exactly. Fall back to StorageService for safety.
+    _currentUserId =
+        Supabase.instance.client.auth.currentUser?.id ??
+        context.read<StorageService>().getUserId() ??
+        '';
     _scrollController.addListener(_onScroll);
     if (widget.initialMessage != null) {
       _messageController.text = widget.initialMessage!;
@@ -164,7 +173,11 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.delete_outline, color: AppColors.danger),
+              leading: HugeIcon(
+                icon: AppAssets.icon.delete,
+                color: AppColors.danger,
+                size: 22,
+              ),
               title: Text(
                 AppStrings.messaging.deleteMessageAction,
                 style: TextStyle(color: AppColors.danger),
@@ -179,8 +192,15 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.close, color: AppColors.textSecondary),
-              title: Text(AppStrings.messaging.cancelAction, style: TextStyle(color: AppColors.textSecondary)),
+              leading: HugeIcon(
+                icon: AppAssets.icon.close,
+                color: AppColors.textSecondary,
+                size: 22,
+              ),
+              title: Text(
+                AppStrings.messaging.cancelAction,
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               onTap: () => Navigator.of(context).pop(),
             ),
             const SizedBox(height: 8),
@@ -213,9 +233,7 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
             ChatAppBar(conversation: widget.conversation),
 
             if (_isInitializing || _viewmodel == null)
-              const Expanded(
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Expanded(child: _MessageShimmer())
             else
               Expanded(
                 child: ListenableBuilder(
@@ -242,7 +260,8 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
                           _CollabQuoteBlock(
                             collabTitle: widget.collabTitle!,
                             collabCreator: widget.collabCreator,
-                            onDismiss: () => setState(() => _showQuoteBlock = false),
+                            onDismiss: () =>
+                                setState(() => _showQuoteBlock = false),
                           ),
                         ChatInputField(
                           controller: _messageController,
@@ -262,7 +281,7 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
   Widget _buildMessageList() {
     final vm = _viewmodel!;
     if (vm.isLoading && vm.messages.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const _MessageShimmer();
     }
 
     if (vm.error != null && vm.messages.isEmpty) {
@@ -309,21 +328,29 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
         widgets.add(const SizedBox(height: 24));
       }
 
-      final isFirstInGroup = prevMsg == null ||
+      final isFirstInGroup =
+          prevMsg == null ||
           prevMsg.senderId != msg.senderId ||
           !_isSameDay(prevMsg.createdAt, msg.createdAt);
-      final isLastInGroup = nextMsg == null ||
+      final isLastInGroup =
+          nextMsg == null ||
           nextMsg.senderId != msg.senderId ||
           !_isSameDay(nextMsg.createdAt, msg.createdAt);
 
-      widgets.add(MessageBubble(
-        text: msg.text,
-        isSent: isSent,
-        isFirst: isFirstInGroup,
-        isLast: isLastInGroup,
-        isDeleted: msg.isDeleted,
-        onLongPress: () => _showDeleteSheet(msg.id),
-      ));
+      widgets.add(
+        MessageBubble(
+          text: msg.text,
+          isSent: isSent,
+          isFirst: isFirstInGroup,
+          isLast: isLastInGroup,
+          isDeleted: msg.isDeleted,
+          status: msg.status,
+          onLongPress: () => _showDeleteSheet(msg.id),
+          onRetry: msg.status == MessageStatus.failed
+              ? () => _viewmodel?.retryMessage(msg.id)
+              : null,
+        ),
+      );
     }
 
     widgets.add(const SizedBox(height: 16));
@@ -343,6 +370,47 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
       return AppStrings.messaging.yesterdayLabel;
     }
     return AppStrings.messaging.lastWeekLabel;
+  }
+}
+
+class _MessageShimmer extends StatelessWidget {
+  const _MessageShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    const bubbles = [
+      (isSent: false, width: 180.0),
+      (isSent: false, width: 220.0),
+      (isSent: true, width: 150.0),
+      (isSent: true, width: 200.0),
+      (isSent: false, width: 160.0),
+      (isSent: false, width: 240.0),
+      (isSent: true, width: 130.0),
+      (isSent: false, width: 190.0),
+    ];
+
+    return AppShimmer(
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 24),
+          const Center(child: ShimmerBox(width: 80, height: 12, radius: 6)),
+          const SizedBox(height: 16),
+          ...bubbles.map(
+            (b) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Align(
+                alignment: b.isSent
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: ShimmerBox(width: b.width, height: 44, radius: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -388,7 +456,9 @@ class _CollabQuoteBlock extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      collabCreator != null ? '@$collabCreator\'s collab' : 'Collab post',
+                      collabCreator != null
+                          ? '@$collabCreator\'s collab'
+                          : 'Collab post',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,

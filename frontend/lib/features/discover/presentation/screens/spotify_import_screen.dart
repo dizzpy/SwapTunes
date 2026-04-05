@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/app_snackbar.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../../../features/auth/presentation/screens/connect_spotify_screen.dart'
     show ConnectSpotifyContext, ConnectSpotifyScreen;
 import '../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
@@ -45,9 +46,7 @@ class _SpotifyImportContent extends StatelessWidget {
       appBar: _buildAppBar(context),
       body: viewModel.isSpotifyConnected
           ? viewModel.isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  )
+                ? const _SpotifyPlaylistsShimmer()
                 : viewModel.error != null && viewModel.playlists.isEmpty
                 ? _buildLoadError(context, viewModel)
                 : _buildPlaylistList(context, viewModel)
@@ -379,6 +378,48 @@ class _SpotifyPlaylistTile extends StatelessWidget {
         Icons.music_note,
         color: AppColors.textSecondary,
         size: 24,
+      ),
+    );
+  }
+}
+
+class _SpotifyPlaylistsShimmer extends StatelessWidget {
+  const _SpotifyPlaylistsShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 8,
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        itemBuilder: (_, _) => Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.cardFront,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.outline),
+          ),
+          child: const Row(
+            children: [
+              ShimmerBox(width: 56, height: 56, radius: 10),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(width: 140, height: 14, radius: 6),
+                    SizedBox(height: 6),
+                    ShimmerBox(width: 90, height: 11, radius: 6),
+                  ],
+                ),
+              ),
+              SizedBox(width: 12),
+              ShimmerBox(width: 60, height: 30, radius: 10),
+            ],
+          ),
+        ),
       ),
     );
   }

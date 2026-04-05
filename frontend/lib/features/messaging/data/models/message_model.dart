@@ -1,3 +1,7 @@
+/// Transient delivery state for outgoing messages.
+/// Not persisted — server messages always have [status] == null (treated as sent).
+enum MessageStatus { sending, sent, failed }
+
 class MessageModel {
   final String id;
   final String conversationId;
@@ -7,6 +11,10 @@ class MessageModel {
   final bool isDeleted;
   final DateTime createdAt;
 
+  /// Null for all messages loaded from server / cache.
+  /// Only set on optimistic placeholders created during send.
+  final MessageStatus? status;
+
   const MessageModel({
     required this.id,
     required this.conversationId,
@@ -15,6 +23,7 @@ class MessageModel {
     required this.isRead,
     required this.isDeleted,
     required this.createdAt,
+    this.status,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +56,7 @@ class MessageModel {
     bool? isRead,
     bool? isDeleted,
     DateTime? createdAt,
+    MessageStatus? status,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -56,6 +66,7 @@ class MessageModel {
       isRead: isRead ?? this.isRead,
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
     );
   }
 }

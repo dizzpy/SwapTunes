@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/widgets/app_search_bar.dart';
+import '../../../../core/widgets/shimmer.dart';
 import '../../../feed/presentation/screens/main_layout_screen.dart';
 import '../../../profile/data/repositories/profile_repository.dart';
 import '../../../profile/presentation/screens/user_profile_screen.dart';
@@ -145,9 +146,7 @@ class _SearchScreenContentState extends State<_SearchScreenContent> {
 
   Widget _buildResults(BuildContext context, SearchViewModel viewModel) {
     if (viewModel.isSearching) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return const _SearchShimmer();
     }
 
     if (viewModel.error != null) {
@@ -474,6 +473,83 @@ class _SectionLabel extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SearchShimmer extends StatelessWidget {
+  const _SearchShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          const ShimmerBox(width: 60, height: 14, radius: 6),
+          const SizedBox(height: 12),
+          ...List.generate(
+            3,
+            (_) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.cardFront,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Row(
+                children: [
+                  ShimmerCircle(size: 48),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerBox(width: 120, height: 14, radius: 6),
+                        SizedBox(height: 6),
+                        ShimmerBox(width: 80, height: 11, radius: 6),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  ShimmerBox(width: 70, height: 32, radius: 20),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const ShimmerBox(width: 80, height: 14, radius: 6),
+          const SizedBox(height: 12),
+          ...List.generate(
+            4,
+            (_) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.cardFront,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(
+                children: [
+                  ShimmerBox(width: 48, height: 48, radius: 10),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerBox(width: 150, height: 14, radius: 6),
+                        SizedBox(height: 6),
+                        ShimmerBox(width: 100, height: 11, radius: 6),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

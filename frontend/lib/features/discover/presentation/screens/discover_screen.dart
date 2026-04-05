@@ -59,8 +59,8 @@ class _DiscoverScreenContent extends StatelessWidget {
           child: viewModel.isLoading
               ? const _DiscoverShimmer()
               : viewModel.error != null
-                  ? _buildError(context, viewModel)
-                  : _buildContent(context, viewModel),
+              ? _buildError(context, viewModel)
+              : _buildContent(context, viewModel),
         ),
       ),
     );
@@ -150,7 +150,9 @@ class _DiscoverScreenContent extends StatelessWidget {
             title: AppStrings.discover.featuredPlaylists,
             onSeeAll: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const FeaturedPlaylistsScreen()),
+              MaterialPageRoute(
+                builder: (_) => const FeaturedPlaylistsScreen(),
+              ),
             ),
           ),
         ),
@@ -197,12 +199,12 @@ class _DiscoverScreenContent extends StatelessWidget {
             title: AppStrings.discover.suggestForYou,
             onSeeAll: viewModel.suggestedUsers.length > 3
                 ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            SuggestedUsersScreen(viewModel: viewModel),
-                      ),
-                    )
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          SuggestedUsersScreen(viewModel: viewModel),
+                    ),
+                  )
                 : null,
           ),
         ),
@@ -221,8 +223,7 @@ class _DiscoverScreenContent extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        UserProfileScreen(username: user.username),
+                    builder: (_) => UserProfileScreen(username: user.username),
                   ),
                 ),
               );
@@ -353,7 +354,8 @@ class _DiscoverShimmer extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: widths.length,
         separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (_, i) => ShimmerBox(width: widths[i], height: 40, radius: 20),
+        itemBuilder: (_, i) =>
+            ShimmerBox(width: widths[i], height: 40, radius: 20),
       ),
     );
   }
@@ -381,10 +383,7 @@ class _DiscoverShimmer extends StatelessWidget {
             children: [
               // Cover image placeholder
               const Expanded(
-                child: ShimmerBox(
-                  width: double.infinity,
-                  radius: 16,
-                ),
+                child: ShimmerBox(width: double.infinity, radius: 16),
               ),
               const SizedBox(height: 12),
               // Title line
@@ -403,9 +402,7 @@ class _DiscoverShimmer extends StatelessWidget {
   Widget _userTilesSkeleton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: List.generate(3, (_) => _userTileSkeleton()),
-      ),
+      child: Column(children: List.generate(3, (_) => _userTileSkeleton())),
     );
   }
 
