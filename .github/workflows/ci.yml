@@ -67,10 +67,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - uses: subosito/flutter-action@v2
         with:
@@ -78,6 +78,16 @@ jobs:
 
       - name: Get packages
         run: flutter pub get
+
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          SUPABASE_URL=https://placeholder.supabase.co
+          SUPABASE_ANON_KEY=placeholder
+          SUPABASE_REDIRECT_SCHEME=io.supabase.swaptune
+          SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
+          BACKEND_URL=https://placeholder.dev/api/v1
+          EOF
 
       - name: Build debug APK
         run: flutter build apk --debug
