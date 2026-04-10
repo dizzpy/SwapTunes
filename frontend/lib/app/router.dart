@@ -13,4 +13,5 @@ class AppRoutes {
   static const String collabDetails = '/collab-details';
   static const String manageCollabs = '/manage-collabs';
   static const String newCollab = '/new-collab';
+  static const String collabMatch = '/collab-match';
 }

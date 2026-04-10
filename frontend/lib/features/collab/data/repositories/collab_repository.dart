@@ -1,4 +1,5 @@
 import '../datasources/collab_remote_datasource.dart';
+import '../models/collab_match_result.dart';
 import '../models/collab_model.dart';
 
 /// Repository for collaboration data.
@@ -41,4 +42,7 @@ class CollabRepository {
       _datasource.updateCollab(id, updates);
 
   Future<void> deleteCollab(String id) => _datasource.deleteCollab(id);
+
+  Future<List<CollabMatchResult>> getCollabMatches(String collabId) =>
+      _datasource.getCollabMatches(collabId);
 }

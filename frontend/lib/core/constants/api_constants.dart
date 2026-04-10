@@ -72,6 +72,7 @@ class ApiConstants {
   static const String collabs = '/collabs';
   static const String myCollabs = '/collabs/me';
   static String collabById(String id) => '/collabs/$id';
+  static String collabMatch(String id) => '/collabs/$id/match';
 
   // ── Conversations ──────────────────────────────────────
   static const String conversations = '/conversations';

@@ -371,6 +371,16 @@ class _CollabStrings {
   // Message button
   final String messageButton = 'Message';
 
+  // AI Collab Match
+  final String findMatchesButton = 'Find Matching Creators';
+  final String matchScreenTitle = 'Matched Creators';
+  final String matchSubtitle = 'AI found creators that match your collab';
+  final String matchScoreSuffix = '% Match';
+  final String matchViewProfile = 'View Profile';
+  final String noMatchesFound = 'No matching creators found';
+  final String noMatchesSubtitle = 'Try again later or update your listing';
+  final String matchError = 'Failed to find matches. Please try again.';
+
   // Generic
   final String retry = 'Retry';
   final String createNewCollab = 'Create New Collab';

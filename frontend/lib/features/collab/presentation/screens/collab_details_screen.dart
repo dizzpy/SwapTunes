@@ -19,6 +19,7 @@ import '../../../profile/presentation/screens/user_profile_screen.dart';
 import '../../data/models/collab_model.dart';
 import '../viewmodels/collab_viewmodel.dart';
 import '../widgets/tag_chip.dart';
+import 'collab_match_loading_screen.dart';
 import 'new_collaboration_screen.dart';
 
 /// Detail screen for a single collaboration post.
@@ -413,7 +414,7 @@ class _Content extends StatelessWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 120),
+                  SizedBox(height: isOwn ? 200 : 120),
                 ],
               ),
             ),
@@ -733,64 +734,84 @@ class _OwnPostActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: OutlinedAppButton(
-            text: AppStrings.collab.editPost,
-            height: 56,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedPencilEdit01,
-              color: AppColors.primary,
-              size: 18,
-            ),
-            borderColor: AppColors.primary,
-            textColor: AppColors.primary,
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      NewCollaborationScreen(existingCollab: collab),
+        GreenButton(
+          text: AppStrings.collab.findMatchesButton,
+          height: 56,
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => CollabMatchLoadingScreen(
+                  collabId: collab.id,
+                  collabTitle: collab.title,
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedAppButton(
-            text: AppStrings.collab.deletePost,
-            height: 56,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedDelete02,
-              color: AppColors.danger,
-              size: 18,
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedAppButton(
+                text: AppStrings.collab.editPost,
+                height: 56,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedPencilEdit01,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+                borderColor: AppColors.primary,
+                textColor: AppColors.primary,
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          NewCollaborationScreen(existingCollab: collab),
+                    ),
+                  );
+                },
+              ),
             ),
-            borderColor: AppColors.danger,
-            textColor: AppColors.danger,
-            onPressed: () async {
-              final confirmed = await AppConfirmDialog.show(
-                context,
-                title: AppStrings.collab.deleteDialogTitle,
-                message: AppStrings.collab.deleteConfirmMessage,
-                confirmLabel: AppStrings.collab.deleteDialogConfirm,
-                isDanger: true,
-              );
-              if (confirmed != true || !context.mounted) return;
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedAppButton(
+                text: AppStrings.collab.deletePost,
+                height: 56,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  color: AppColors.danger,
+                  size: 18,
+                ),
+                borderColor: AppColors.danger,
+                textColor: AppColors.danger,
+                onPressed: () async {
+                  final confirmed = await AppConfirmDialog.show(
+                    context,
+                    title: AppStrings.collab.deleteDialogTitle,
+                    message: AppStrings.collab.deleteConfirmMessage,
+                    confirmLabel: AppStrings.collab.deleteDialogConfirm,
+                    isDanger: true,
+                  );
+                  if (confirmed != true || !context.mounted) return;
 
-              final success = await context
-                  .read<CollabViewmodel>()
-                  .deleteCollab(collab.id);
-              if (!context.mounted) return;
+                  final success = await context
+                      .read<CollabViewmodel>()
+                      .deleteCollab(collab.id);
+                  if (!context.mounted) return;
 
-              if (success) {
-                AppSnackbar.success(AppStrings.collab.deleteSuccess);
-                Navigator.of(context, rootNavigator: true).pop();
-              } else {
-                AppSnackbar.error(AppStrings.collab.deleteError);
-              }
-            },
-          ),
+                  if (success) {
+                    AppSnackbar.success(AppStrings.collab.deleteSuccess);
+                    Navigator.of(context, rootNavigator: true).pop();
+                  } else {
+                    AppSnackbar.error(AppStrings.collab.deleteError);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );

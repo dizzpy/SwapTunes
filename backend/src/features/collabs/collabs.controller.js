@@ -70,3 +70,14 @@ export const getUserCollabs = async (req, res, next) => {
     next(err)
   }
 }
+
+// Get AI-matched creators for a collab listing controller handler.
+export const getCollabMatches = async (req, res, next) => {
+  try {
+    const { collabId } = req.params
+    const matches = await collabsService.findCollabMatches(collabId, req.user.id)
+    success(res, matches)
+  } catch (err) {
+    next(err)
+  }
+}
