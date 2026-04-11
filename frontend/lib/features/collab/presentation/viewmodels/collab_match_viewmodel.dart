@@ -42,6 +42,18 @@ class CollabMatchViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// Cancels an in-progress match fetch and resets state.
+  ///
+  /// Called when the user taps "Stop searching" on the loading screen.
+  /// The API call may still complete in the background but results
+  /// are discarded since state resets to [CollabMatchState.idle].
+  void cancelMatch() {
+    _state = CollabMatchState.idle;
+    _matches = [];
+    _errorMessage = null;
+    _notify();
+  }
+
   void reset() {
     _state = CollabMatchState.idle;
     _matches = [];

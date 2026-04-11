@@ -13,8 +13,9 @@ import '../../data/models/collab_match_result.dart';
 
 class MatchCard extends StatelessWidget {
   final CollabMatchResult match;
+  final String collabTitle;
 
-  const MatchCard({super.key, required this.match});
+  const MatchCard({super.key, required this.match, required this.collabTitle});
 
   @override
   Widget build(BuildContext context) {
@@ -102,11 +103,17 @@ class MatchCard extends StatelessWidget {
                       lastMessageAt: DateTime.fromMillisecondsSinceEpoch(0),
                       unreadCount: 0,
                     );
+                    final preFilledMessage =
+                        'Hey @${profile.username}! 👋 SwapTunes AI matched us ${match.matchScore}% compatible for my "$collabTitle" collab. '
+                        'Based on your profile as ${profile.roleTitle}, I think we could create something really special together. '
+                        'Would love to connect and explore this! 🎵';
+
                     Navigator.of(context, rootNavigator: true).push(
                       MaterialPageRoute(
                         builder: (_) => SingleChatScreen(
                           conversation: tempConversation,
                           recipientId: match.userId,
+                          initialMessage: preFilledMessage,
                         ),
                       ),
                     );
