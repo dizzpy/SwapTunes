@@ -47,7 +47,8 @@ class CollabPostCard extends StatelessWidget {
               _AuthorHeader(collab: collab),
               const SizedBox(height: 16),
             ],
-            _RoleBadge(role: collab.creatorUsername),
+            if (collab.lookingFor.isNotEmpty)
+              _RoleBadge(role: collab.lookingFor.first),
             const SizedBox(height: 8),
             Text(
               collab.title,
