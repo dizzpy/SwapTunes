@@ -1,4 +1,5 @@
 import { supabase } from '../../config/supabase.js'
+import { buildSongPlan } from '../../shared/services/ai.service.js'
 
 // Setup creator profile service method interacting with the database.
 // Handles both first-time setup and re-activation (user was creator before).
@@ -79,6 +80,24 @@ export const updateCreatorProfile = async (userId, data) => {
   }
 
   return profile
+}
+
+// Build a song plan using AI.
+export const buildSong = async ({ idea, genre, lyrics, type }) => {
+  return buildSongPlan({ idea, genre, lyrics, type })
+}
+
+// Save a song plan result to the database.
+export const saveSongPlan = async (userId, { title, data }) => {
+  const { data: saved, error } = await supabase
+    .from('saved_song_plans')
+    .insert([{ user_id: userId, title, data }])
+    .select('id, created_at')
+    .single()
+
+  if (error) throw { statusCode: 400, code: 'SAVE_FAILED', message: error.message }
+
+  return saved
 }
 
 // Deactivate creator — switches user_type back to listener and closes open collabs.

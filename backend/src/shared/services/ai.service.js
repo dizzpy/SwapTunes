@@ -72,3 +72,181 @@ Respond with valid JSON only, no extra text, no markdown:
     }
   }
 }
+
+// ─── Feature: AI Song Builder ──────────────────────────────────────────────
+
+export const buildSongPlan = async ({ idea, genre, lyrics, type }) => {
+  const model = getModel()
+  const isEDM = ['EDM', 'Electronic'].includes(genre)
+  const isInstrumental = type === 'instrumental'
+  const hasLyrics = lyrics && lyrics.trim().length > 0
+
+  let prompt
+
+  if (isEDM && isInstrumental) {
+    prompt = `
+You are a professional music producer assistant on SwapTunes.
+
+A creator wants to make an EDM track with this idea:
+"${idea}"
+
+Genre: ${genre}
+Type: Instrumental
+
+Create a complete EDM production plan.
+
+Respond with valid JSON only, no markdown:
+{
+  "title": "Creative track title",
+  "vibe": "Short punchy vibe description (max 8 words)",
+  "bpm": "138",
+  "key": "A Minor",
+  "genre": "${genre}",
+  "type": "instrumental",
+  "sampleHook": null,
+  "hasUserLyrics": false,
+  "sections": [
+    { "name": "Intro", "timestamp": "0:00", "direction": "What sounds and energy happen here", "userLyrics": null, "isUserLyrics": false, "isDrop": false },
+    { "name": "Buildup 1", "timestamp": "0:30", "direction": "Filter sweep, rising tension, snare rolls at 0:50", "userLyrics": null, "isUserLyrics": false, "isDrop": false },
+    { "name": "DROP 1", "timestamp": "1:00", "direction": "Full energy hits — describe the main drop elements", "userLyrics": null, "isUserLyrics": false, "isDrop": true }
+  ],
+  "instruments": ["808 kick", "Supersaw lead", "White noise sweep", "Atmospheric pad"]
+}
+
+Include: Intro, Buildup 1, Drop 1, Breakdown, Buildup 2, Drop 2, Outro.
+Mark all drop sections with isDrop: true.
+Keep directions short and production-practical (1-2 sentences each).
+    `.trim()
+  } else if (isInstrumental) {
+    prompt = `
+You are a professional music producer assistant on SwapTunes.
+
+A creator wants to make an instrumental track:
+"${idea}"
+
+Genre: ${genre}
+Type: Instrumental
+
+Create a complete arrangement plan.
+
+Respond with valid JSON only, no markdown:
+{
+  "title": "Creative track title",
+  "vibe": "Short punchy vibe (max 8 words)",
+  "bpm": "90",
+  "key": "D Major",
+  "genre": "${genre}",
+  "type": "instrumental",
+  "sampleHook": null,
+  "hasUserLyrics": false,
+  "sections": [
+    { "name": "Intro", "timestamp": "0:00", "direction": "What instruments enter, what's the energy", "userLyrics": null, "isUserLyrics": false, "isDrop": false }
+  ],
+  "instruments": ["instrument1", "instrument2", "instrument3"]
+}
+
+Include 5-7 sections. Focus on dynamics, instrument roles, and emotional arc.
+Always set isDrop: false for every section — isDrop is only for EDM tracks.
+    `.trim()
+  } else if (hasLyrics) {
+    prompt = `
+You are a professional songwriting assistant on SwapTunes.
+
+A creator has a song idea and some lyrics they've already written:
+
+Idea: "${idea}"
+Genre: ${genre}
+Their lyrics so far:
+"""
+${lyrics}
+"""
+
+Your job:
+1. Identify where their lyrics best fit in the song structure (most likely Verse 1)
+2. Build a complete song structure around them
+3. Suggest what to write for the remaining sections
+4. Generate a strong hook/chorus if they haven't written one
+
+Respond with valid JSON only, no markdown:
+{
+  "title": "Suggested song title",
+  "vibe": "Short punchy vibe (max 8 words)",
+  "bpm": "90",
+  "key": "C Minor",
+  "genre": "${genre}",
+  "type": "vocal",
+  "sampleHook": "A strong hook line for the chorus",
+  "hasUserLyrics": true,
+  "sections": [
+    { "name": "Verse 1", "timestamp": null, "direction": "Sets the scene — personal and specific", "userLyrics": "paste the user lyrics here exactly as they wrote", "isUserLyrics": true, "isDrop": false },
+    { "name": "Hook", "timestamp": null, "direction": "The emotional core — most memorable moment", "userLyrics": null, "isUserLyrics": false, "isDrop": false }
+  ],
+  "instruments": ["instrument1", "instrument2", "instrument3"]
+}
+
+Include 5-7 sections. Keep directions inspiring and practical (1-2 sentences each).
+Only one section should have isUserLyrics: true.
+Always set isDrop: false for every section — isDrop is only used in EDM tracks.
+    `.trim()
+  } else {
+    prompt = `
+You are a professional songwriting assistant on SwapTunes.
+
+A creator has this song idea:
+"${idea}"
+
+Genre: ${genre}
+Type: Vocal song
+
+Create a complete song writing plan — structure, what to write in each section, hook suggestion.
+
+Respond with valid JSON only, no markdown:
+{
+  "title": "Suggested song title",
+  "vibe": "Short punchy vibe (max 8 words)",
+  "bpm": "85",
+  "key": "A Minor",
+  "genre": "${genre}",
+  "type": "vocal",
+  "sampleHook": "A strong hook/chorus line",
+  "hasUserLyrics": false,
+  "sections": [
+    { "name": "Verse 1", "timestamp": null, "direction": "What to write here — specific, inspiring, 1-2 sentences", "userLyrics": null, "isUserLyrics": false, "isDrop": false }
+  ],
+  "instruments": ["instrument1", "instrument2", "instrument3"]
+}
+
+Include 5-7 sections (Verse 1, Pre-Hook, Hook, Verse 2, Bridge, Hook, Outro).
+Make directions feel like a creative brief, not a report.
+Keep each direction short, punchy and inspiring.
+Always set isDrop: false for every section — isDrop is only used in EDM tracks.
+    `.trim()
+  }
+
+  try {
+    const result = await model.generateContent(prompt)
+    return parseJsonResponse(result.response.text())
+  } catch (err) {
+    if (err.statusCode) throw err
+    const msg = err.message ?? ''
+    if (msg.includes('429') || msg.includes('Too Many Requests') || msg.includes('quota')) {
+      throw {
+        statusCode: 429,
+        code: 'AI_QUOTA_EXCEEDED',
+        message: 'AI is temporarily unavailable due to rate limits. Please try again in a few minutes.'
+      }
+    }
+    if (msg.includes('403') || msg.includes('API_KEY') || msg.includes('invalid')) {
+      throw {
+        statusCode: 503,
+        code: 'AI_NOT_CONFIGURED',
+        message: 'AI service is not properly configured. Contact support.'
+      }
+    }
+    throw {
+      statusCode: 502,
+      code: 'AI_BUILD_FAILED',
+      message: 'Song Builder is currently unavailable. Please try again.'
+    }
+  }
+}

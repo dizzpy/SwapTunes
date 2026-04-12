@@ -31,6 +31,9 @@ import 'features/collab/data/datasources/collab_remote_datasource.dart';
 import 'features/collab/data/repositories/collab_repository.dart';
 import 'features/collab/presentation/viewmodels/collab_match_viewmodel.dart';
 import 'features/collab/presentation/viewmodels/collab_viewmodel.dart';
+import 'features/creator/data/datasources/song_builder_datasource.dart';
+import 'features/creator/data/repositories/song_builder_repository.dart';
+import 'features/creator/presentation/viewmodels/song_builder_viewmodel.dart';
 
 /// Entry point for the SwapTunes application.
 ///
@@ -96,6 +99,9 @@ Future<void> main() async {
   final collabRepository = CollabRepository(
     CollabRemoteDatasource(apiClient),
   );
+  final songBuilderRepository = SongBuilderRepository(
+    SongBuilderDatasource(apiClient),
+  );
 
   runApp(
     MultiProvider(
@@ -114,6 +120,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => CollabMatchViewModel(collabRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SongBuilderViewModel(songBuilderRepository),
         ),
         Provider<ApiClient>.value(value: apiClient),
         Provider<ProfileRepository>.value(value: profileRepository),

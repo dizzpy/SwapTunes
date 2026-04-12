@@ -28,11 +28,14 @@ class ApiConstants {
   static String unfollow(String userId) => '/users/$userId/unfollow';
   static String userPosts(String userId) => '/users/$userId/posts';
   static String userCollabs(String userId) => '/users/$userId/collabs';
+  static String userSongs(String userId) => '/users/$userId/songs';
 
   // ── Creator ────────────────────────────────────────────
   static const String creatorSetup = '/creator/setup';
   static const String creatorProfile = '/creator/profile';
   static const String creatorDeactivate = '/creator/deactivate';
+  static const String songBuilder = '/creator/song-builder';
+  static const String songBuilderSave = '/creator/song-builder/save';
 
   // ── Uploads ────────────────────────────────────────────
   static const String uploadImage = '/uploads/image';

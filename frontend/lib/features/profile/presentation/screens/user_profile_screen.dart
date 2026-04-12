@@ -331,6 +331,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             if (index == 1 && profile.isCreator) {
                               _viewmodel.loadUserCollabs();
                             }
+                            if (index == 2 && profile.isCreator) {
+                              _viewmodel.loadUserSongs();
+                            }
                           },
                         ),
                         const SizedBox(height: 24),
@@ -345,6 +348,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           onPostDeleted: isOwn ? _viewmodel.removePost : null,
                           collabs: _viewmodel.collabs,
                           isCollabsLoading: _viewmodel.isCollabsLoading,
+                          songs: _viewmodel.songs,
+                          isSongsLoading: _viewmodel.isSongsLoading,
                           onCollabTap: (collab) {
                             Navigator.of(context).push(
                               MaterialPageRoute(

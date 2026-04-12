@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_strings.dart';
@@ -6,6 +7,7 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_icon_button.dart';
+import '../../../creator/presentation/screens/song_builder_input_screen.dart';
 import '../viewmodels/collab_viewmodel.dart';
 import '../widgets/collab_post_card.dart';
 import '../widgets/tag_chip.dart';
@@ -100,6 +102,13 @@ class _CollabScreenState extends State<CollabScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _SongBuilderBanner(
+            onTap: () => Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => const SongBuilderInputScreen(),
+              ),
+            ),
+          ),
           _FilterBar(
             filters: _filters,
             selected: vm.selectedFilter ?? AppStrings.collab.filterAll,
@@ -254,6 +263,82 @@ class _ErrorState extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  SONG CONCEPT BANNER
+// ─────────────────────────────────────────────
+
+class _SongBuilderBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SongBuilderBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAiMagic,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.songBuilder.entryButtonLabel,
+                    style: AppTextStyles.bodyPrimary.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Generate a full song concept with AI',
+                    style: AppTextStyles.bodySecondary.copyWith(
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: AppColors.primary,
+              size: 16,
             ),
           ],
         ),
