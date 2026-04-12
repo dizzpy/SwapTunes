@@ -2,6 +2,19 @@ import { supabase } from '../../config/supabase.js'
 import { notificationsService } from '../notifications/notifications.service.js'
 import { getPagination } from '../../shared/utils/pagination.js'
 
+// Get saved song plans for a user profile (public — shown on profile Songs tab).
+export const getUserSongs = async (userId) => {
+  const { data, error } = await supabase
+    .from('saved_song_plans')
+    .select('id, title, data, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw { statusCode: 400, code: 'FETCH_FAILED', message: error.message }
+
+  return data ?? []
+}
+
 // Get profile service method interacting with the database.
 export const getProfile = async (username, requesterId) => {
   const { data, error } = await supabase

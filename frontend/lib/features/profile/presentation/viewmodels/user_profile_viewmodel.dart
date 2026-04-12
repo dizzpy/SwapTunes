@@ -4,6 +4,7 @@ import '../../../../core/network/network_exceptions.dart';
 import '../../../collab/data/models/collab_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../../data/models/full_profile_model.dart';
+import '../../data/models/saved_song_plan_model.dart';
 import '../../data/repositories/profile_repository.dart';
 
 /// Viewmodel for both own-profile and public-profile screens.
@@ -27,6 +28,10 @@ class UserProfileViewmodel extends ChangeNotifier {
   bool _isCollabsLoading = false;
   bool _collabsLoaded = false;
 
+  List<SavedSongPlanModel> _songs = [];
+  bool _isSongsLoading = false;
+  bool _songsLoaded = false;
+
   FullProfileModel? get profile => _profile;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -37,6 +42,8 @@ class UserProfileViewmodel extends ChangeNotifier {
   bool get isPostsLoading => _isPostsLoading;
   List<CollabModel> get collabs => _collabs;
   bool get isCollabsLoading => _isCollabsLoading;
+  List<SavedSongPlanModel> get songs => _songs;
+  bool get isSongsLoading => _isSongsLoading;
 
   bool _disposed = false;
 
@@ -173,6 +180,23 @@ class UserProfileViewmodel extends ChangeNotifier {
       // Silently keep empty list on error
     } finally {
       _isCollabsLoading = false;
+      _safeNotify();
+    }
+  }
+
+  /// Load the Songs tab content for the current profile.
+  Future<void> loadUserSongs() async {
+    if (_profile == null || _isSongsLoading || _songsLoaded) return;
+    _isSongsLoading = true;
+    _safeNotify();
+
+    try {
+      _songs = await _repository.getUserSongs(_profile!.id);
+      _songsLoaded = true;
+    } catch (_) {
+      // Silently keep empty list on error
+    } finally {
+      _isSongsLoading = false;
       _safeNotify();
     }
   }

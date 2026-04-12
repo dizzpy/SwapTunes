@@ -22,6 +22,9 @@ router.get('/:userId/collabs', requireAuth, collabsController.getUserCollabs)
 router.get('/:userId/followers', requireAuth, usersController.getFollowers)
 router.get('/:userId/following', requireAuth, usersController.getFollowing)
 
+// User's saved song plans
+router.get('/:userId/songs', requireAuth, usersController.getUserSongs)
+
 // Follow / Unfollow logic
 router.post('/:userId/follow', requireAuth, usersController.followUser)
 router.delete('/:userId/unfollow', requireAuth, usersController.unfollowUser)

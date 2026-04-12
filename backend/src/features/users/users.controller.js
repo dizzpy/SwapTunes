@@ -64,3 +64,14 @@ export const getFollowing = async (req, res, next) => {
     next(err)
   }
 }
+
+// Get saved song plans controller handler.
+export const getUserSongs = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const data = await usersService.getUserSongs(userId)
+    success(res, data)
+  } catch (err) {
+    next(err)
+  }
+}

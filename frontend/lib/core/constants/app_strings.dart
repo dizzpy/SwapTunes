@@ -13,6 +13,7 @@ class AppStrings {
   static const creator = _CreatorStrings();
   static const collab = _CollabStrings();
   static const settings = _SettingsStrings();
+  static const songBuilder = _SongBuilderStrings();
 }
 
 class _MessagingStrings {
@@ -384,6 +385,78 @@ class _CollabStrings {
   // Generic
   final String retry = 'Retry';
   final String createNewCollab = 'Create New Collab';
+}
+
+class _SongBuilderStrings {
+  const _SongBuilderStrings();
+
+  // Entry point (collab screen banner)
+  final String entryButtonLabel = 'Song Builder';
+
+  // Input screen
+  final String inputTitle = 'Song Builder';
+  final String bannerTitle = 'Build your song';
+  final String bannerSubtitle =
+      'Describe your idea and AI will create a complete song plan for you';
+  final String ideaSection = "What's your idea?";
+  final String ideaHint =
+      'e.g. Smoky garage song about the language I dream in...';
+  final String ideaNote = 'Any language works — Sinhala, English, anything';
+  final String genreSection = 'Genre';
+  final String genreHint = 'Select a genre';
+  final String genreNote = 'EDM / Electronic unlocks a drop map output';
+  final String lyricsSection = 'Got some lyrics already? (optional)';
+  final String lyricsHint =
+      'Paste what you have so far...\nAI will build the rest around it';
+  final String typeSection = 'Type';
+  final String buildButton = '✨  Build My Song';
+
+  // Loading screen
+  final String loadingTitle = 'Building your song plan...';
+  final String loadingSubtitle = 'This usually takes a few seconds';
+
+  // Result screen
+  final String resultAppBarTitle = 'Song Plan';
+  final String structureSection = 'Song Structure';
+  final String instrumentsSection = 'Instruments';
+  final String vibeSection = 'Vibe';
+  final String viewStructureButton = 'View Song Structure';
+  final String regenerateButton = 'Regenerate';
+  final String sendButton = 'Send via Message';
+
+  // Structure sheet
+  final String structureSheetTitle = 'Song Structure';
+
+  // Save
+  final String saveSuccess = 'Song plan saved!';
+  final String saveError = 'Failed to save. Please try again.';
+  final String alreadySaved = 'Already saved';
+  final String saveDialogTitle = 'Save this song plan?';
+  final String saveDialogBody =
+      'This plan will be saved to your library and you can access it later.';
+  final String saveDialogConfirm = 'Save';
+  final String saveDialogCancel = 'Cancel';
+
+  // Regenerate confirmation dialog
+  final String regenDialogTitle = 'Generate a new plan?';
+  final String regenDialogBody =
+      'Your current song plan will be replaced with a new one.';
+  final String regenDialogConfirm = 'Regenerate';
+  final String regenDialogCancel = 'Keep current';
+
+  // Error states
+  final String errorTitle = 'Something went wrong';
+  final String errorGeneric = 'Failed to build song plan. Please try again.';
+  final String retryButton = 'Retry';
+  final String cancelButton = 'Cancel';
+
+  // Recipient sheet
+  final String recipientSheetTitle = 'Send Song Plan To';
+  final String suggestedSection = 'Suggested — Your Collab Matches';
+  final String searchHint = 'Or search all creators';
+  final String sendAction = 'Send';
+  final String noSuggestions = 'No collab matches yet';
+  final String noSuggestionsSubtitle = 'Search for a creator below';
 }
 
 class _SettingsStrings {
