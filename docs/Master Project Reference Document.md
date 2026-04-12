@@ -1,24 +1,22 @@
-
-
-> **Purpose:** This document is the single source of truth for the SwapTunes project. It is intended to be fed into AI coding agents, LLMs, and used as the foundation for generating university/academic documentation. Anyone (human or AI) reading this document should gain a complete understanding of the app — what it is, how it works, every screen, every feature, and every user flow.
+> **Purpose:** This is the canonical reference for the SwapTunes product and codebase. It is intended for AI coding agents, developers, and academic documentation workflows. The content below reflects implemented behavior in this repository as of April 2026.
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#1-project-overview)
-2. [Tech Stack](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#2-tech-stack)
-3. [User Types](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#3-user-types)
-4. [App Architecture Summary](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#4-app-architecture-summary)
-5. [Auth & Onboarding Flow](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#5-auth--onboarding-flow)
-6. [Listener Mode — All Screens & Features](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#6-listener-mode--all-screens--features)
-7. [Creator Mode — All Screens & Features](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#7-creator-mode--all-screens--features)
-8. [Shared Screens & Features](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#8-shared-screens--features)
-9. [User Flow Diagrams (Text)](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#9-user-flow-diagrams-text)
-10. [Navigation Structure](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#10-navigation-structure)
-11. [Key Integrations](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#11-key-integrations)
-12. [Terminology Glossary](https://claude.ai/chat/fb0beb1c-5d3a-4a59-8053-5a986baebd28#12-terminology-glossary)
-13. [Current Project Status (Backend Completion)](#13-current-project-status-backend-completion)
+1. [Project Overview](#1-project-overview)
+2. [Tech Stack](#2-tech-stack)
+3. [User Types](#3-user-types)
+4. [App Architecture Summary](#4-app-architecture-summary)
+5. [Auth and Onboarding Flow](#5-auth-and-onboarding-flow)
+6. [Listener Mode - Screens and Features](#6-listener-mode---screens-and-features)
+7. [Creator Mode - Screens and Features](#7-creator-mode---screens-and-features)
+8. [Shared Screens and Features](#8-shared-screens-and-features)
+9. [User Flow Diagrams (Text)](#9-user-flow-diagrams-text)
+10. [Navigation Structure](#10-navigation-structure)
+11. [Key Integrations](#11-key-integrations)
+12. [Terminology Glossary](#12-terminology-glossary)
+13. [Current Project Status](#13-current-project-status)
 
 ---
 
@@ -26,412 +24,322 @@
 
 **App Name:** SwapTunes
 
-**Platform:** Mobile App (iOS & Android)
+**Platform:** Flutter mobile app (iOS and Android)
 
-**Concept:** SwapTunes is a music-centric social networking platform that connects music listeners and music creators. It allows users to share their music taste via Spotify playlist imports, discover new music through a community feed, and enables artists, producers, and other music creators to find and collaborate with each other.
+**Concept:** SwapTunes is a music social app for listeners and creators. Users share posts, import and publish playlists, discover people with similar taste, message each other, and (for creators) use a collaboration marketplace.
 
 **Core Value Propositions:**
 
-- Listeners can share playlists, follow creators, and discover music through a social feed.
-- Creators (artists, producers, songwriters, etc.) get a dedicated profile mode with collaboration tools to find other creators for projects.
-- Spotify integration allows seamless playlist importing and music identity sharing.
-- A built-in messaging system allows direct communication between users.
-- A Collab marketplace lets creators post and find collaboration opportunities (e.g., "Need a mixing engineer", "Looking for vocalist for R&B track").
-
-**Target Users:**
-
-- Music listeners who want to share taste and discover new music socially.
-- Independent artists, producers, songwriters, mixing engineers, and other music creators who want to network and collaborate.
+- Listeners can post, follow, discover playlists/people, and chat.
+- Creators get an extended profile and a collab marketplace workflow.
+- Spotify connect/import supports music identity and playlist sharing.
+- Direct messaging is real-time enabled via Supabase channels.
+- Notification flows cover social and collaboration actions.
 
 ---
 
 ## 2. Tech Stack
 
-|Layer|Technology|
-|---|---|
-|Mobile Frontend|Flutter (primary) or Swift (iOS)|
-|Backend|Node.js with Express.js (REST API)|
-|Database|Supabase (PostgreSQL) or MongoDB|
-|Authentication|Google OAuth, Spotify OAuth, Magic Link|
-|Music Integration|Spotify API (playlist import, read-only)|
-|Real-time (Messaging)|Supabase Realtime or WebSockets via Node.js|
+| Layer              | Technology (Implemented)                                         |
+| ------------------ | ---------------------------------------------------------------- |
+| Mobile Frontend    | Flutter (Dart)                                                   |
+| Frontend State     | Provider (ChangeNotifier pattern)                                |
+| Backend            | Node.js + Express 5                                              |
+| Database           | Supabase PostgreSQL                                              |
+| Auth               | Supabase Auth (Google OAuth, Spotify OAuth, email OTP)           |
+| Music Integration  | Spotify Web API (read-only for playlist/profile data)            |
+| Realtime           | Supabase Realtime (messaging + inbox/notification sync patterns) |
+| Push Notifications | OneSignal                                                        |
+| File Uploads       | Multer + Uploadthing                                             |
+| Local Cache        | Isar (frontend), SharedPreferences                               |
+| Validation         | Zod (backend request/env validation)                             |
+| Logging/Security   | Pino, Helmet, CORS, express-rate-limit, compression              |
 
-**Notes for AI agents:**
+**Important implementation notes:**
 
-- The frontend is Flutter (Dart). All UI screens described in this document map to Flutter widgets/pages.
-- The backend exposes REST API endpoints consumed by the Flutter app.
-- Spotify integration is read-only: SwapTunes reads playlists and music data but never posts to Spotify on behalf of the user without explicit consent.
-- The database schema will need tables for: `users`, `creators`, `posts`, `playlists`, `collaborations`, `messages`, `conversations`, `follows`, `likes`, `comments`, `notifications`, `genres`.
+- The production data layer is Supabase/PostgreSQL (no MongoDB implementation in this repo).
+- The app code is Flutter; there is no Swift client implementation in this repo.
+- Backend runs behind `/api/v1` with route modules for auth, users, posts, discover, playlists, creator, collabs, conversations, notifications, uploads, health, and dev (non-production).
 
 ---
 
 ## 3. User Types
 
-SwapTunes has two distinct user modes. A user starts as a **Listener** and can optionally upgrade to a **Creator**.
+SwapTunes uses two runtime user modes from `users.user_type`:
 
 ### 3.1 Listener
 
-- Default account type after registration.
-- Can browse the home feed, discover playlists, follow creators and other listeners, send messages, and interact with posts (like, comment, report/hide).
-- Can import Spotify playlists to their profile.
-- Does NOT have access to the Collab page or Creator-specific features.
-- Can switch to Creator mode from their own Profile page.
+- Default mode after signup.
+- Bottom nav has 4 tabs: Home, Discover, Inbox, Profile.
+- Can create/interact with posts, browse discover content, import/manage playlists, follow users, and message.
+- Can upgrade to Creator from own profile.
 
 ### 3.2 Creator
 
-- An elevated account mode that a Listener opts into.
-- Has all Listener features PLUS:
-    - A dedicated **Collab** tab in the bottom navigation bar.
-    - A **Creator Profile** with additional fields: role/title, specialization genres, portfolio & external links (SoundCloud, YouTube, Apple Music, Spotify).
-    - Ability to post, browse, and manage **Collaborations**.
-    - A **"Collaborate"** button visible on their public profile for others to initiate collabs.
-    - Creator badge on their profile.
-    - Stat display includes "Collabs" count in addition to followers, following, and posts.
+- Elevated mode enabled by creator setup flow.
+- Bottom nav expands to 5 tabs by adding Collab.
+- Gets creator profile metadata (role, specializations, links, location).
+- Can create, edit, delete, and browse collaborations.
+- Can deactivate back to Listener mode.
 
 ---
 
 ## 4. App Architecture Summary
 
-The app has two navigation structures depending on user type:
+### 4.1 Frontend Architecture
 
-### Listener Bottom Navigation (4 tabs):
+- Entry point initializes dotenv, OneSignal, Supabase auth service, storage, API client/interceptor, and Isar.
+- Auth status listener at app root drives navigation:
+  - unauthenticated -> onboarding
+  - authenticated without profile -> profile setup
+  - profileLoaded -> main layout
+- Main layout uses nested navigators per tab and dynamically remaps tab indices when user mode switches listener <-> creator.
 
-1. Home
-2. Discover
-3. Inbox
-4. Profile
+### 4.2 Backend Architecture
 
-### Creator Bottom Navigation (5 tabs):
+- Express app middleware stack: Helmet, CORS, JSON parser, compression, Pino HTTP logger, global rate limiter.
+- Feature-first route/controller/service structure.
+- Centralized error middleware returns structured error payloads.
+- Background jobs initialize at boot (Spotify token refresh job).
 
-1. Home
-2. Discover
-3. Collab _(new tab, only for creators)_
-4. Inbox
-5. Profile
+### 4.3 Data Model Highlights
 
-All screens are mobile-first. Dark theme with green (`#1DB954` Spotify-green inspired) as the primary accent color.
+Core tables implemented include:
 
----
-
-## 5. Auth & Onboarding Flow
-
-### 5.1 Onboarding Screens (3 screens)
-
-- Three introductory onboarding slides that introduce the app's value proposition to new users.
-- The 3rd onboarding screen contains a **call-to-action button** that opens the **Auth Popup/Modal**.
-
-### 5.2 Auth Screen (Popup Modal)
-
-Triggered from the 3rd onboarding screen. Contains three sign-in/sign-up options:
-
-|Option|Description|
-|---|---|
-|Continue with Google|Standard Google OAuth sign-in|
-|Continue with Spotify|Spotify OAuth sign-in; imports user identity|
-|Continue with Magic Link|Email-based passwordless authentication|
-
-### 5.3 New User Flow (has no account)
-
-After authenticating for the first time, new users go through:
-
-1. **Profile Setup Page**
-    
-    - Upload profile photo
-    - Enter Full Name
-    - Enter Username (`@username`)
-    - Write a Bio ("Tell us about your vibe...")
-    - Select music genres they listen to (multi-select chips): Classical, Dubstep, Country, Jazz, Pop, Indie, Electronic, Gospel, etc. (Pick 3+)
-2. **Connect Spotify Page**
-    
-    - Prompts the user to connect their Spotify account.
-    - Explains: "Import your playlists and share your music taste."
-    - Privacy note: "We only read your playlists. We never post anything without asking."
-    - Two actions:
-        - **Connect Spotify Account** (green CTA button)
-        - **Skip for Now** (secondary button — user can connect later)
-3. **Registration Success / Welcome Page**
-    
-    - Confirmation screen with message: _"You're in! Let's turn your playlists into connections."_
-    - Single **Continue** button that takes the user to the Home Page.
-
-### 5.4 Returning User Flow (has account)
-
-- After authenticating, goes directly to the **Listener Home Page**.
-
-### 5.5 Auth Flow Summary
-
-```
-Start
-  → Onboarding (3 screens)
-    → Auth Screen (Popup)
-      → Has Account? 
-          YES → Home Page (Listener)
-          NO  → Profile Setup → Connect Spotify → Welcome Page → Home Page (Listener)
-```
+- users, user_genres, creator_profiles
+- posts, post_likes, comments, post_reports, hidden_posts
+- follows
+- playlists, playlist_likes
+- collaborations
+- conversations, messages
+- notifications
 
 ---
 
-## 6. Listener Mode — All Screens & Features
+## 5. Auth and Onboarding Flow
 
-### 6.1 Home Page
+### 5.1 Onboarding
 
-**App Bar (Top):**
+- Three-page onboarding carousel.
+- CTA on last page opens auth bottom sheet.
 
-- Left: Hamburger menu icon → opens Drawer (settings, account options)
-- Right: Bell icon → opens Notifications page
+### 5.2 Authentication Methods
 
-**Create Post Bar:**
+- Google OAuth
+- Spotify OAuth
+- Email OTP (passwordless code flow)
 
-- Profile avatar + "What's on your mind?" text input
-- Camera/image icon to attach media
+### 5.3 New User Setup
 
-**Feed (Scrollable):**
+1. Profile setup
 
-- Displays posts from followed users and suggested content
-- Each post card contains:
-    - User avatar, username, verified badge (if creator), timestamp
-    - 3-dot overflow menu (top right of post)
-    - Post content (text and/or image)
-    - Caption/description text
-    - Action bar: ❤️ Like count | 💬 Comment count
+- Avatar
+- Full name
+- Username
+- Bio
+- Genre selection (minimum 3)
 
-**Post Interactions:**
+2. Connect Spotify (optional)
 
-- **Like:** Tap heart icon to like/unlike
-- **Comment (PopUp):** Opens a comment sheet/modal showing all comments and a text input to add a new comment
-- **3-dot Menu (Post Options — Dialog Box):**
-    - Report post
-    - Hide post
+- Connect via external OAuth browser flow and callback
+- Skip available
 
-### 6.2 Discover Page
+3. Welcome success screen
 
-**App Bar:**
+- Continue to main app
 
-- Right: `+` (Create/Publish Playlist) icon and 🔍 (Search) icon
+### 5.4 Returning User
 
-**Browse by Genre Section:**
+- Existing session/profile goes directly to main layout.
 
-- Horizontal scrollable genre chips: Hip-Hop, Jazz, Rock, Classical, Reggae, etc.
-- "See All" link to view all genres
+### 5.5 Backend Auth Endpoints
 
-**Future Playlists Section:**
+- `POST /api/v1/auth/profile/setup`
+- `POST /api/v1/auth/spotify/connect`
+- `GET /api/v1/auth/me`
 
-- Horizontally scrollable playlist cards
-- Each card shows: playlist cover image, playlist name, short description
-- "See More" link
+---
 
-**Suggested for You Section:**
+## 6. Listener Mode - Screens and Features
 
-- Suggested creator/user cards with Follow button
-- Each card shows avatar, name, genre/role tag
+### 6.1 Home (Feed)
 
-**Search Page** (accessed via 🔍 icon):
+- Feed timeline with pull-to-refresh and pagination.
+- Post input entry point and create/edit/delete post flows.
+- Post interactions:
+  - Like/unlike
+  - Comment list/add/edit/delete
+  - Report post
+  - Hide post
+- Notification icon with unread badge and navigation to notification screen.
 
-- Search bar at top
-- Filter tabs: All | Users | Playlists | Creators | Albums
-- **Recent Searches** section with clear all option
-- **Trending** hashtag chips: #SummerVibes, #Collaboration, #Now, etc.
-- Results populate dynamically based on query and selected filter tab
+Backend endpoints used include:
 
-**Create / Publish Playlist** (accessed via `+` icon):
+- `GET /api/v1/posts/feed`
+- `POST /api/v1/posts`
+- `PATCH /api/v1/posts/:postId`
+- `DELETE /api/v1/posts/:postId`
+- `POST|DELETE /api/v1/posts/:postId/like`
+- `POST /api/v1/posts/:postId/report`
+- `POST /api/v1/posts/:postId/hide`
+- `GET|POST /api/v1/posts/:postId/comments`
+- `PATCH|DELETE /api/v1/posts/:postId/comments/:commentId`
 
-- If Spotify is not connected: prompts user to connect Spotify account
-- If Spotify is connected: shows **Import Playlist Screen**
-    - Displays "Connected as @username" with green indicator
-    - Lists all available Spotify playlists (e.g., "All the Stars — 31 tracks — Public/Private")
-    - User selects playlist(s) to import
-    - **Import Playlist** button to confirm
+### 6.2 Discover
+
+- Browse genres
+- Featured playlists
+- Suggested users with follow/unfollow actions
+- Search screen with filters supported by backend types:
+  - all
+  - users
+  - playlists
+  - creators
+- Add playlist action supports:
+  - Spotify import flow
+  - Manual playlist creation/editing
+
+Backend endpoints used include:
+
+- `GET /api/v1/discover/genres`
+- `GET /api/v1/discover/playlists`
+- `GET /api/v1/discover/users`
+- `GET /api/v1/discover/trending`
+- `GET /api/v1/discover/search`
+- `GET /api/v1/playlists/spotify/available`
+- `POST /api/v1/playlists/import`
+- `POST /api/v1/playlists/create`
+- `GET|PATCH|DELETE /api/v1/playlists/:playlistId`
+- `POST|DELETE /api/v1/playlists/:playlistId/like`
 
 ### 6.3 Inbox (Messaging)
 
-**Chat Home Page:**
+- Conversation list with unread counts and delete conversation action.
+- Single chat with:
+  - optimistic send
+  - retry failed sends
+  - read receipts
+  - soft-delete with undo window
+  - realtime subscription and reconnect gap-fill behavior
+- Isar cache strategy (stale-while-revalidate) for conversations and messages.
 
-- Search bar: "Search chat"
-- Conversations list: each item shows avatar, name, last message preview, timestamp, unread message count badge
+Backend endpoints used include:
 
-**Chat Messaging Page (Single Conversation):**
+- `GET|POST /api/v1/conversations`
+- `GET|POST /api/v1/conversations/:conversationId/messages`
+- `PATCH /api/v1/conversations/:conversationId/read`
+- `DELETE /api/v1/conversations/:conversationId/messages/:messageId`
+- `DELETE /api/v1/conversations/:conversationId`
 
-- App bar: back arrow, user avatar, name, online status, 3-dot menu
-- Message bubbles (sent = right/green, received = left/dark)
-- Message input bar at bottom with send button
-- Date separators between messages ("Last week", "Today")
+### 6.4 Profile (Own)
 
-### 6.4 Profile Page (Listener — Own)
+- Profile header (avatar + cover interactions)
+- Edit profile screen and inline bio editing
+- Follows sheets
+- Content tabs:
+  - Listener: Posts, Playlists
+- Settings access
+- Become Creator action
 
-**Header:**
+### 6.5 Profile (Other Users)
 
-- Cover/banner image
-- Profile avatar (overlapping banner)
-- Username, display name, verified badge (if applicable)
-- Bio text
-- Genre/interest hashtags (e.g., #dubstep, #techno, #trap)
-- Role tags (e.g., Producer/Engineer)
-- External links (SoundCloud, Spotify, YouTube, Apple Music) — shown as popup when tapped
-
-**Stats Row:**
-
-- Followers | Following | Posts | Playlists
-- Tapping Followers/Following opens a popup showing the list
-
-**Action Buttons (Own Profile):**
-
-- **Edit Profile** (PopUp modal to edit name, bio, genres, photo)
-- **Become a Creator** button → triggers Creator Setup Flow
-
-**Content Tabs:**
-
-- Posts tab
-- Playlists tab
-
-### 6.5 Profile Page (Listener — Public / Others)
-
-Same layout as own profile but action buttons change to:
-
-- **Follow** button
-- **Message** button
+- Public profile view
+- Follow/unfollow
+- Message
+- If target is creator, collaborative action entry point
 
 ---
 
-## 7. Creator Mode — All Screens & Features
+## 7. Creator Mode - Screens and Features
 
-### 7.1 Become a Creator Screen
+### 7.1 Become Creator
 
-- Accessed from own Profile page via "Become a Creator" button
-- Full-screen prompt with message: _"Ready to Become a Creator? Join the community of artists and start building your music network today."_
-- Lists benefits:
-    - Post Collaboration Opportunities
-    - Creator Badge
-    - Engage with listeners
-    - Find artists for your next track
-- **Continue to Setup** button → leads to Creator Setup Page
-- Back button (top left)
+- Intro screen describing creator benefits.
+- Continue to setup.
 
-### 7.2 Creator Setup Page
+### 7.2 Creator Setup
 
-- **Professional Information:**
-    - Your Role/Title field (e.g., "Music Producer")
-    - Location field (e.g., "Homagama, Sri Lanka")
-- **Specialization** (multi-select genre chips): Hip-Hop, Jazz, Rock, Classical, Reggae, Electronic, etc.
-- **Portfolio & Links:**
-    - SoundCloud Link field
-    - YouTube Link field
-    - Portfolio Link field
-- **Complete Setup** button (primary CTA)
+Fields include:
 
-### 7.3 Import Playlist Screen (Creator)
+- role/title
+- location
+- specializations (multi-select)
+- external links (SoundCloud, YouTube, Spotify artist, Apple Music, portfolio)
 
-- Same as Listener import flow but accessible during Creator setup or from Discover
-- Shows "Connected as @username" confirmation
-- Lists available Spotify playlists with track count and public/private status
-- Multi-select capability
-- **Import Playlist** button
+Backend endpoints:
 
-### 7.4 Creator Home Page
+- `POST /api/v1/creator/setup`
+- `PATCH /api/v1/creator/profile`
 
-- Same as Listener Home Page
-- Bottom nav now has 5 tabs: Home | Discover | **Collab** | Inbox | Profile
+### 7.3 Creator Deactivation
 
-### 7.5 Creator Discover Page
+- Confirmed transition flow back to listener mode with dedicated transition screen.
 
-- Same as Listener Discover Page
+Backend endpoint:
 
-### 7.6 Collab Page (Creator Only)
+- `POST /api/v1/creator/deactivate`
 
-**Collab Home Page:**
+### 7.4 Collab Tab (Creator Only)
 
-- Filter tabs at top: All | Vocalist | Producer | Mixing | Mastering | (more)
-- Lists collaboration posts from other creators
-- Each collab card shows:
-    - Creator avatar, name, role, timestamp
-    - Collab title (e.g., "Need Mixing & Mastering")
-    - Short description/preview
-    - Genre hashtags
-    - **View Details** button
-    - **Message** button
+- Filtered collab feed (All, Vocalist, Producer, Mixing, Mastering, Songwriter, Instrumentalist)
+- Collab details screen
+- Manage collaborations screen
+- New collaboration creation flow
 
-**Collab Details Page:**
+Backend endpoints:
 
-- Back button + 3-dot overflow menu
-- Creator info: avatar, name, follow button, timestamp
-- Collab title
-- Tags: #Collab, #Remont, #Mixing + "Become Brave" badge
-- Full description text
-- "I'm Looking for" section with role chips
-- Genre/Style tags
-- **Start Conversation** button (CTA)
+- `GET /api/v1/collabs`
+- `GET /api/v1/collabs/me`
+- `GET /api/v1/collabs/:collabId`
+- `POST|PATCH|DELETE /api/v1/collabs/:collabId` (create uses `/api/v1/collabs`)
 
-**Create New Collab (PopUp Modal):**
+### 7.5 Creator Profile Differences
 
-- "What are you looking for?" text input
-- Description textarea: "Tell potential collaborators about your project, style and goals"
-- **I'm Looking For** multi-select role chips: Vocalist, Producer, Mixing, Mastering, Songwriter, Instrumentalist
-- **Genre/Style** multi-select chips: Jazz, Rock, Classical, Electronic
-- **Payment Type** dropdown/toggle: Paid Project | Revenue Share | For Fun/Experience
-- **+ Create New Collab** button
-- **Start Conversation About This** button (to immediately message about the collab)
-
-**Manage Collaborations Page:**
-
-- Lists all collabs the creator has posted
-- Each item shows: title, posted date/time
-- Action buttons per collab: **View** | **Edit** | **Delete**
-
-### 7.7 Creator Profile Page (Own)
-
-Same as Listener own profile PLUS:
-
-- Stats row includes **Collabs** count: Followers | Following | Collabs | Posts | Songs
-- Content tabs: **Posts** | **Collabs** | **Songs**
-- No "Become a Creator" button (already a creator)
-- Edit Profile available
-
-### 7.8 Creator Profile Page (Public / Others)
-
-- Same as Listener public profile PLUS:
-- **Collaborate** button (in addition to Follow and Message)
-- Collab count in stats
-- Posts | Collabs | Songs tabs visible
-- "Need Mixing Engineer" collab post visible at bottom
-
-### 7.9 Platform Links Popup
-
-- Triggered when tapping external links on a creator's profile
-- Shows linked platforms:
-    - SoundCloud: soundcloud.com/dizzpysanchez
-    - Spotify: spotify.com/dizzpysanchez
-    - YouTube: soundcloud.com/dizzpysanchez
-    - Apple Music: applemusic.com/dizzpysanchez
+- Profile tabs become: Posts, Collabs, Songs (Songs tab is currently UI-level/placeholder style in parts of the app).
+- Creator stats include collab-related visibility and creator metadata sections.
 
 ---
 
-## 8. Shared Screens & Features
+## 8. Shared Screens and Features
 
-### 8.1 Settings Page
+### 8.1 Notifications
 
-- Accessible via Drawer (hamburger menu) from Home Page
-- Contains account settings, preferences, notification settings, connected accounts (Spotify), privacy, logout
+- Notification list with unread state handling.
+- Mark read, mark all read, and delete supported via API.
 
-### 8.2 Notifications Page
+Backend endpoints:
 
-- Accessible via bell icon in Home Page app bar
-- Lists activity notifications: new followers, likes, comments, collab requests, messages
+- `GET /api/v1/notifications`
+- `PATCH /api/v1/notifications/read-all`
+- `PATCH /api/v1/notifications/:notificationId/read`
+- `DELETE /api/v1/notifications/:notificationId`
 
-### 8.3 Drawer (Side Menu)
+### 8.2 Settings
 
-- Accessible from hamburger menu icon on Home Page
-- Contains navigation links to Settings and other utility pages
+- Notification preference toggles (push/activity/message/collab)
+- OneSignal opt-in/opt-out integration
+- Account/logout actions
+- Additional settings entries include some placeholders marked coming soon in UI
 
-### 8.4 Stats Popup (Followers/Following)
+### 8.3 Uploads
 
-- Triggered by tapping the follower or following count on any profile
-- Shows a popup/modal list of followers or following users
-- Each entry shows avatar, name, follow/unfollow button
+- Image upload endpoint with MIME/type and size constraints (10 MB max)
+- Backend stores via Uploadthing and returns hosted URL
 
-### 8.5 Edit Profile (PopUp)
+Backend endpoint:
 
-- Accessible from own Profile page
-- Fields: profile photo, name, username, bio, genre tags
-- Save / Cancel actions
+- `POST /api/v1/uploads/image`
+
+### 8.4 Health and Dev
+
+- Health route for service checks
+- Dev routes available only outside production
+
+Backend endpoints:
+
+- `GET /api/v1/health`
+- `GET /api/v1/health/detailed`
+- `/api/v1/dev/*` (non-production)
 
 ---
 
@@ -439,191 +347,166 @@ Same as Listener own profile PLUS:
 
 ### 9.1 Auth Flow
 
-```
+```text
 START
-  └─► Onboarding Screen 1
-        └─► Onboarding Screen 2
-              └─► Onboarding Screen 3 [CTA Button]
-                    └─► Auth Popup
-                          ├─► [Has Account] ──────────────────────────────► Listener Home Page
-                          └─► [No Account]
-                                └─► Profile Setup Page
-                                      └─► Connect Spotify Page
-                                            ├─► [Connect Spotify] ──► Welcome Page ──► Listener Home Page
-                                            └─► [Skip for Now]   ──► Welcome Page ──► Listener Home Page
+  -> Splash
+    -> Onboarding
+      -> Auth sheet (Google / Spotify / Email OTP)
+        -> Authenticated?
+          -> no: remain in auth flow
+          -> yes: profile exists?
+            -> no: Profile Setup -> Connect Spotify (optional) -> Welcome -> Main Layout
+            -> yes: Main Layout
 ```
 
-### 9.2 Creator Setup Flow
+### 9.2 Listener to Creator Flow
 
-```
-Listener Own Profile Page
-  └─► "Become a Creator" button
-        └─► Become a Creator Screen
-              └─► Continue to Setup
-                    └─► Creator Setup Page
-                          └─► Complete Setup
-                                └─► Creator Home Page (5-tab nav)
-```
-
-### 9.3 Listener Flow (Post-Auth)
-
-```
-IS AUTHENTICATED
-  ├─► HOME PAGE
-  │     └─► Scroll Feed
-  │           ├─► Create New Post (PopUp)
-  │           ├─► Comments (PopUp)
-  │           └─► Post Options: Report / Hide (Dialog Box)
-  │
-  ├─► DISCOVER PAGE
-  │     ├─► Explore Playlists by Genre
-  │     ├─► Search Page (🔍) — search users, playlists, creators, albums
-  │     └─► Create Playlist (+)
-  │           └─► Import from Spotify
-  │
-  ├─► INBOX
-  │     └─► Chat Home Page
-  │           └─► Single Chat Screen
-  │                 └─► Chat Options (PopUp)
-  │
-  └─► PROFILE PAGE
-        ├─► Own Profile
-        │     ├─► Edit Profile (PopUp)
-        │     └─► Become a Creator ──► Creator Setup Flow
-        └─► Others' Public Profile
-              └─► Stats Popup (followers/following count)
+```text
+Own Profile
+  -> Become a Creator
+    -> Creator Setup
+      -> Submit
+        -> Creator Success
+          -> Main Layout (Collab tab appears)
 ```
 
-### 9.4 Creator Flow (Post-Auth)
+### 9.3 Creator to Listener Flow
 
+```text
+Own Profile (Creator)
+  -> Switch to Listener (confirm)
+    -> Transition screen
+      -> POST /creator/deactivate
+        -> Main Layout remaps to listener tabs
 ```
-IS AUTHENTICATED (CREATOR)
-  ├─► HOME PAGE         [same as Listener]
-  ├─► DISCOVER PAGE     [same as Listener]
-  │
-  ├─► COLLAB PAGE
-  │     └─► Collab Home Page
-  │           ├─► Create New / Manage Collabs (PopUp)
-  │           │     ├─► Manage Collabs (view/edit/delete)
-  │           │     └─► Create New Collab
-  │           └─► View Single Collab Details
-  │
-  ├─► INBOX             [same as Listener]
-  │
-  └─► PROFILE PAGE
-        ├─► Own Profile (Creator)
-        │     └─► Edit Profile (PopUp)
-        └─► Others' Public Profile (Creator)
-              └─► Stats Popup (followers/following count)
+
+### 9.4 Messaging Flow
+
+```text
+Inbox list
+  -> Open conversation
+    -> Load cached messages (if available)
+    -> Refresh from API
+    -> Realtime subscribe for inserts/updates
+    -> Send/retry/delete/undo actions
 ```
 
 ---
 
 ## 10. Navigation Structure
 
-### Bottom Navigation Bar
+### 10.1 Bottom Navigation
 
-|Tab|Listener|Creator|Icon|
-|---|---|---|---|
-|Home|✅|✅|House icon|
-|Discover|✅|✅|Compass/grid icon|
-|Collab|❌|✅|Handshake/people icon|
-|Inbox|✅|✅|Chat bubble icon|
-|Profile|✅|✅|Person icon|
+| Tab      | Listener | Creator |
+| -------- | -------- | ------- |
+| Home     | Yes      | Yes     |
+| Discover | Yes      | Yes     |
+| Collab   | No       | Yes     |
+| Inbox    | Yes      | Yes     |
+| Profile  | Yes      | Yes     |
 
-### App Bar (Home Page)
+### 10.2 Major Screens
 
-- Left: Drawer/hamburger menu
-- Right: Notifications bell
+- Splash
+- Onboarding
+- Auth
+- Profile setup
+- Connect Spotify
+- Welcome success
+- Main layout tabs and nested tab navigators
 
-### App Bar (Discover Page)
+### 10.3 Dynamic Tab Behavior
 
-- Right: `+` Create Playlist, 🔍 Search
+- Main layout updates indices when switching between listener and creator modes to avoid navigation state loss.
 
 ---
 
 ## 11. Key Integrations
 
-### 11.1 Spotify Integration
+### 11.1 Supabase
 
-- **Auth:** Users can sign in via Spotify OAuth
-- **Playlist Import:** Read-only access to user's Spotify playlists
-- **Trigger points:**
-    - During onboarding (Connect Spotify screen)
-    - From Discover page (`+` button) if not yet connected
-    - During Creator Setup (Import Playlist Screen)
-- **Permissions:** Read-only. SwapTunes never posts to Spotify.
-- **Data used:** Playlist names, track counts, public/private status, playlist cover art
+- Auth provider and session lifecycle
+- PostgreSQL data storage
+- Realtime subscriptions (messaging and related live updates)
 
-### 11.2 Google OAuth
+### 11.2 Spotify
 
-- Standard sign-in via Google account
-- Used for authentication only
+- OAuth sign-in and connect flows
+- Read-only fetch/import of playlists
+- Access token refresh handled in backend job/service logic
 
-### 11.3 Magic Link Auth
+### 11.3 OneSignal
 
-- Email-based passwordless login
-- User enters email, receives a login link
+- Frontend initialization and user alias login/logout
+- Backend push send service for social events (like/comment/follow/message/collab)
+- Fail-safe design: push failure does not block in-app notification writes
+
+### 11.4 Uploadthing
+
+- Backend image upload pipeline for user-generated image assets
+
+### 11.5 Isar and Shared Preferences
+
+- Conversation/message cache and local preference storage
+
+### 11.6 Deep Links
+
+- OAuth and connect callbacks handled through app link listener at app root
 
 ---
 
 ## 12. Terminology Glossary
 
-|Term|Definition|
-|---|---|
-|Listener|Default user type; can browse, follow, post, and message|
-|Creator|Elevated user mode with collaboration and creator profile features|
-|Collab|A collaboration opportunity posted by a Creator seeking other music professionals|
-|Feed|The scrollable home page stream of posts from followed and suggested users|
-|Playlist|A Spotify playlist imported into SwapTunes and shared on the user's profile|
-|Magic Link|A passwordless email authentication method|
-|PopUp / Modal|A sheet or dialog that appears over the current screen without full navigation|
-|Dialog Box|A small confirmation or options dialog (e.g., Report / Hide post)|
-|Creator Badge|A verified-style badge shown on creator profiles and posts|
-|Collab Marketplace|The Collab page where creators post and browse collaboration opportunities|
-|Import Playlist|The process of connecting Spotify and pulling playlists into SwapTunes|
-|Onboarding|The 3-screen introductory flow shown to first-time app users|
+| Term                   | Definition                                                           |
+| ---------------------- | -------------------------------------------------------------------- |
+| Listener               | Default user mode with social/discovery/messaging features           |
+| Creator                | Elevated mode with collab marketplace and enriched profile           |
+| Collab                 | A creator collaboration listing (role/genre/payment descriptors)     |
+| Feed                   | Home timeline of posts and interactions                              |
+| Discover               | Genre, playlist, user suggestion, and search surfaces                |
+| OTP                    | Email one-time password login code                                   |
+| Profile Setup          | First-time post-auth user profile creation flow                      |
+| Connect Spotify        | OAuth flow to attach Spotify and enable playlist import              |
+| Realtime               | Supabase channel subscriptions for live updates                      |
+| Stale-While-Revalidate | UX pattern that shows cached data instantly, then refreshes from API |
 
 ---
 
-## 13. Current Project Status (Backend Completion)
+## 13. Current Project Status
 
-As of the current Phase, the **SwapTunes Backend** implementation is fully completed and covers the following major milestones:
+### 13.1 Backend Status
 
-**1. Project Setup & Infrastructure:** 
-- Node.js + Express project structured with global error handling, CORS, Helmet, and structured logging.
-- Supabase integration fully configured for Database (PostgreSQL) and Auth.
-- Git hooks (Husky, commitlint, lint-staged) configured to enforce Conventional Commits and code quality standards.
+**Completed and operational:**
 
-**2. Auth & User Accounts:**
-- Profiles and User Management API fully functional.
-- Authentication middlewares guarding listener, creator, and owner routes properly.
-- Follower/Following system implemented.
+- Full Express API module set under `/api/v1`
+- Auth/profile setup, creator upgrade/deactivation, social graph, feed CRUD/interactions
+- Playlist import/manual management + playlist likes
+- Collab marketplace CRUD
+- Conversations/messages APIs + read/delete flows
+- Notifications API + push integration service
+- Upload pipeline (Multer + Uploadthing)
+- Health endpoints, structured logging, rate limiting, compression, environment validation, global error handling
+- Background Spotify token refresh job initialization
 
-**3. Posts & Social Feed:**
-- CRUD operations for Posts.
-- Social feed algorithm functional with pagination.
-- Post interactions (likes, comments) and moderation features (report, hide) active.
+### 13.2 Frontend Status
 
-**4. Spotify Integration & Playlists:**
-- Spotify OAuth connection handled.
-- Secure fetching and importing of Spotify playlists into the database.
-- Automatic Spotify token refresh logic running.
+**Substantially implemented and integrated with backend:**
 
-**5. Creator Mode & Collaborations:**
-- Creator profile upgrades functional.
-- Collab marketplace API built and tested (users can post, browse, and manage collaboration requests).
+- Auth and onboarding flows wired to Supabase + backend profile setup
+- Main listener/creator tab shell implemented with dynamic mode switching
+- Feed, discover, messaging, profile, creator setup, collab, notifications, settings screens present and connected
+- Realtime messaging and local caching strategy implemented
+- OneSignal initialization and user/device auth hooks integrated
 
-**6. Messaging & Notifications:**
-- Direct Messaging system via REST implemented.
-- Activity notifications (likes, comments, follows, collabs, messages) correctly triggered via `notifications.service`.
+### 13.3 Remaining Work Focus (Polish/Release Readiness)
 
-**7. Discover & Search:**
-- Global search functionality spanning users, creators, and playlists.
-- Discover feed for featured playlists and suggested users content.
-
-*Next Steps:* The backend API is verified and ready. The project is now advancing to the **Frontend Track (Flutter Mobile Application)** development stage.
+- UI/UX polish and consistency passes across some secondary/edge screens
+- Validation of all edge-case error states and recovery paths
+- Broader automated test coverage and release QA hardening
+- Final production rollout checklist alignment
 
 ---
 
-_Document Version: 1.1 — Updated to reflect backend completion status._ _Last Updated: March 2026_ _Project: SwapTunes — Music Social Networking App_
+_Document Version: 1.2_  
+_Last Updated: April 2026_  
+_Project: SwapTunes - Music Social Networking App_

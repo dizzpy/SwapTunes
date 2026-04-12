@@ -1,5 +1,6 @@
 import { supabase } from '../../config/supabase.js'
 import { getPagination } from '../../shared/utils/pagination.js'
+import { matchCreatorsForCollab } from '../../shared/services/ai.service.js'
 
 // Create collab service method interacting with the database.
 export const createCollab = async (creatorId, data) => {
@@ -88,6 +89,54 @@ export const getMyCollabs = async (creatorId, query) => {
 
   if (error) throw { statusCode: 400, code: 'FETCH_MY_COLLABS_FAILED', message: error.message }
   return data
+}
+
+// Fetch all active creators except the requesting user for AI matching.
+export const getCreatorsForMatching = async (excludeUserId) => {
+  const { data, error } = await supabase
+    .from('creator_profiles')
+    .select(`
+      user_id,
+      role_title,
+      specializations,
+      users (
+        username,
+        avatar_url,
+        user_type
+      )
+    `)
+    .neq('user_id', excludeUserId)
+
+  if (error) throw { statusCode: 400, code: 'FETCH_CREATORS_FAILED', message: error.message }
+  return (data ?? []).filter((c) => c.users?.user_type === 'creator')
+}
+
+// Find the top matching creators for a collab listing using AI.
+export const findCollabMatches = async (collabId, requestingUserId) => {
+  const collab = await getCollabById(collabId)
+
+  if (collab.creator_id !== requestingUserId) {
+    throw { statusCode: 403, code: 'FORBIDDEN', message: 'You can only match on your own collab listings' }
+  }
+
+  const creators = await getCreatorsForMatching(requestingUserId)
+  if (!creators.length) return []
+
+  const aiResult = await matchCreatorsForCollab(collab, creators)
+
+  const enriched = aiResult.matches
+    .map((match) => {
+      const creator = creators.find((c) => c.user_id === match.userId)
+      return {
+        userId: match.userId,
+        matchScore: match.matchScore,
+        reason: match.reason,
+        profile: creator ?? null,
+      }
+    })
+    .filter((m) => m.profile !== null)
+
+  return enriched
 }
 
 // Get collabs by user id (public profile view).

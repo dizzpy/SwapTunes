@@ -19,6 +19,7 @@ import '../../../profile/presentation/screens/user_profile_screen.dart';
 import '../../data/models/collab_model.dart';
 import '../viewmodels/collab_viewmodel.dart';
 import '../widgets/tag_chip.dart';
+import '../../../ai/collab_match/presentation/screens/collab_match_loading_screen.dart';
 import 'new_collaboration_screen.dart';
 
 /// Detail screen for a single collaboration post.
@@ -131,6 +132,16 @@ class _LoadingStateState extends State<_LoadingState>
             ),
           ),
         ),
+        title: Text(
+          AppStrings.collab.detailTitle,
+          style: AppTextStyles.heading3,
+        ),
+        centerTitle: true,
+      ),
+      bottomNavigationBar: AnimatedBuilder(
+        animation: _shimmerController,
+        builder: (context, _) =>
+            _ShimmerBottomBar(progress: _shimmerController.value),
       ),
       body: AnimatedBuilder(
         animation: _shimmerController,
@@ -179,12 +190,12 @@ class _ShimmerContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Author card skeleton
+          // Author card — avatar + name/username/time + view profile button
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -202,42 +213,55 @@ class _ShimmerContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _block(width: 120, height: 14),
+                      _block(width: 130, height: 14),
                       const SizedBox(height: 8),
-                      _block(width: 80, height: 12),
+                      _block(width: 110, height: 12),
                     ],
                   ),
                 ),
-                _block(width: 72, height: 34, radius: 8),
+                const SizedBox(width: 12),
+                _block(width: 95, height: 34, radius: 8),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          // Title
-          _block(height: 22),
+          // Title (heading2) — two lines
+          _block(height: 24),
           const SizedBox(height: 10),
-          _block(width: 180, height: 22),
-          const SizedBox(height: 20),
-          // Badges row
-          Row(
-            children: [
-              _block(width: 110, height: 34, radius: 8),
-              const SizedBox(width: 12),
-              _block(width: 90, height: 34, radius: 8),
-            ],
+          _block(width: 200, height: 24),
+          const SizedBox(height: 16),
+          // MetadataRow — single payment chip
+          _block(width: 140, height: 36, radius: 8),
+          const SizedBox(height: 24),
+          // About card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.cardFront,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.outline.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _block(width: 150, height: 16),
+                const SizedBox(height: 12),
+                _block(height: 13),
+                const SizedBox(height: 8),
+                _block(height: 13),
+                const SizedBox(height: 8),
+                _block(width: 240, height: 13),
+                const SizedBox(height: 8),
+                _block(width: 180, height: 13),
+              ],
+            ),
           ),
-          const SizedBox(height: 28),
-          // About section title
-          _block(width: 120, height: 14),
-          const SizedBox(height: 12),
-          _block(height: 13),
-          const SizedBox(height: 8),
-          _block(height: 13),
-          const SizedBox(height: 8),
-          _block(width: 220, height: 13),
-          const SizedBox(height: 28),
-          // Looking for title
-          _block(width: 100, height: 14),
+          const SizedBox(height: 24),
+          // Looking For section
+          _block(width: 110, height: 16),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -246,9 +270,65 @@ class _ShimmerContent extends StatelessWidget {
               _block(width: 80, height: 32, radius: 20),
               _block(width: 100, height: 32, radius: 20),
               _block(width: 70, height: 32, radius: 20),
+              _block(width: 90, height: 32, radius: 20),
             ],
           ),
+          const SizedBox(height: 24),
+          // Genres section
+          _block(width: 80, height: 16),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _block(width: 90, height: 32, radius: 20),
+              _block(width: 75, height: 32, radius: 20),
+              _block(width: 110, height: 32, radius: 20),
+            ],
+          ),
+          const SizedBox(height: 120),
         ],
+      ),
+    );
+  }
+}
+
+class _ShimmerBottomBar extends StatelessWidget {
+  final double progress;
+
+  const _ShimmerBottomBar({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: const [
+        AppColors.skeletonBase,
+        AppColors.skeletonHighlight,
+        AppColors.skeletonBase,
+      ],
+      stops: [
+        (progress - 0.3).clamp(0.0, 1.0),
+        progress.clamp(0.0, 1.0),
+        (progress + 0.3).clamp(0.0, 1.0),
+      ],
+    );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(
+          top: BorderSide(color: AppColors.outline.withValues(alpha: 0.2)),
+        ),
+      ),
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     );
   }
@@ -351,6 +431,14 @@ class _Content extends StatelessWidget {
               style: AppTextStyles.heading3,
             ),
             centerTitle: true,
+            actions: isOwn
+                ? [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: _OverflowMenu(collab: collab),
+                    ),
+                  ]
+                : null,
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -362,16 +450,18 @@ class _Content extends StatelessWidget {
                   const SizedBox(height: 24),
                   Text(collab.title, style: AppTextStyles.heading2),
                   const SizedBox(height: 16),
-                  _ProjectTypeBadge(collab: collab),
+                  _MetadataRow(collab: collab),
                   const SizedBox(height: 24),
-                  _Section(
-                    title: AppStrings.collab.aboutProject,
-                    child: Text(
-                      collab.description,
-                      style: AppTextStyles.bodyPrimary.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                        height: 1.5,
+                  _AboutCard(
+                    child: _Section(
+                      title: AppStrings.collab.aboutProject,
+                      child: Text(
+                        collab.description,
+                        style: AppTextStyles.bodyPrimary.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -413,6 +503,7 @@ class _Content extends StatelessWidget {
                       ),
                     ),
                   ],
+                  // Single consistent bottom padding for both views
                   const SizedBox(height: 120),
                 ],
               ),
@@ -424,6 +515,8 @@ class _Content extends StatelessWidget {
     );
   }
 }
+
+// ── Author card with overflow menu for own posts ───────────────────────────
 
 class _AuthorCard extends StatelessWidget {
   final CollabModel collab;
@@ -448,51 +541,67 @@ class _AuthorCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  collab.creatorFullName,
-                  style: AppTextStyles.bodyPrimary.copyWith(fontSize: 17),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        collab.creatorFullName,
+                        style: AppTextStyles.bodyPrimary.copyWith(fontSize: 17),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isOwn) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          AppStrings.collab.yourPost,
+                          style: AppTextStyles.bodySecondary.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '@${collab.creatorUsername}',
-                  style: AppTextStyles.bodySecondary,
+                Row(
+                  children: [
+                    Text(
+                      '@${collab.creatorUsername}',
+                      style: AppTextStyles.bodySecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '·',
+                      style: AppTextStyles.bodySecondary.copyWith(
+                        color: AppColors.textSecondary.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      collab.timeAgo,
+                      style: AppTextStyles.bodySecondary.copyWith(
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          if (isOwn)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.cardFront,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.outline.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const HugeIcon(
-                    icon: HugeIcons.strokeRoundedPencilEdit01,
-                    color: AppColors.textSecondary,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    AppStrings.collab.yourPost,
-                    style: AppTextStyles.bodySecondary.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
+          if (!isOwn)
             GestureDetector(
               onTap: () => Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
@@ -531,6 +640,191 @@ class _AuthorCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+// ── Three-dot overflow menu (Edit / Delete) ────────────────────────────────
+
+class _OverflowMenu extends StatelessWidget {
+  final CollabModel collab;
+
+  const _OverflowMenu({required this.collab});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_OverflowAction>(
+      icon: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.cardFront,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.outline.withValues(alpha: 0.3),
+            width: 1.2,
+          ),
+        ),
+        child: const Center(
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedMoreVertical,
+            color: AppColors.textSecondary,
+            size: 20,
+          ),
+        ),
+      ),
+      padding: EdgeInsets.zero,
+      color: AppColors.cardFront,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.outline.withValues(alpha: 0.2)),
+      ),
+      offset: const Offset(0, 48),
+      onSelected: (action) => _handleAction(context, action),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _OverflowAction.edit,
+          child: Row(
+            children: [
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedPencilEdit01,
+                color: AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                AppStrings.collab.editPost,
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: _OverflowAction.delete,
+          child: Row(
+            children: [
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete02,
+                color: AppColors.danger,
+                size: 18,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                AppStrings.collab.deletePost,
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.danger,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleAction(BuildContext context, _OverflowAction action) {
+    switch (action) {
+      case _OverflowAction.edit:
+        Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+            builder: (_) => NewCollaborationScreen(existingCollab: collab),
+          ),
+        );
+      case _OverflowAction.delete:
+        _confirmDelete(context);
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: AppStrings.collab.deleteDialogTitle,
+      message: AppStrings.collab.deleteConfirmMessage,
+      confirmLabel: AppStrings.collab.deleteDialogConfirm,
+      isDanger: true,
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await context.read<CollabViewmodel>().deleteCollab(
+      collab.id,
+    );
+    if (!context.mounted) return;
+
+    if (success) {
+      AppSnackbar.success(AppStrings.collab.deleteSuccess);
+      Navigator.of(context, rootNavigator: true).pop();
+    } else {
+      AppSnackbar.error(AppStrings.collab.deleteError);
+    }
+  }
+}
+
+enum _OverflowAction { edit, delete }
+
+// ── Metadata row: payment chip + plain time text ───────────────────────────
+
+class _MetadataRow extends StatelessWidget {
+  final CollabModel collab;
+
+  const _MetadataRow({required this.collab});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Payment type — prominent filled chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedBriefcase01,
+                color: AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                collab.paymentTypeLabel,
+                style: AppTextStyles.bodySecondary.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── About section wrapped in a card ────────────────────────────────────────
+
+class _AboutCard extends StatelessWidget {
+  final Widget child;
+
+  const _AboutCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardFront,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.15)),
+      ),
+      child: child,
     );
   }
 }
@@ -578,67 +872,6 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-class _ProjectTypeBadge extends StatelessWidget {
-  final CollabModel collab;
-
-  const _ProjectTypeBadge({required this.collab});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const HugeIcon(
-                icon: HugeIcons.strokeRoundedBriefcase01,
-                color: AppColors.primary,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                collab.paymentTypeLabel,
-                style: AppTextStyles.bodySecondary.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.cardFront,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.outline.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const HugeIcon(
-                icon: HugeIcons.strokeRoundedClock01,
-                color: AppColors.textSecondary,
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Text(collab.timeAgo, style: AppTextStyles.bodySecondary),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _Section extends StatelessWidget {
   final String title;
   final Widget child;
@@ -658,6 +891,8 @@ class _Section extends StatelessWidget {
   }
 }
 
+// ── Clean bottom bar — single CTA for both views ──────────────────────────
+
 class _BottomBar extends StatelessWidget {
   final CollabModel collab;
   final bool isOwn;
@@ -667,23 +902,47 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(
           top: BorderSide(color: AppColors.outline.withValues(alpha: 0.2)),
         ),
       ),
-      child: SafeArea(
-        child: isOwn
-            ? _OwnPostActions(collab: collab)
-            : _MessageAction(collab: collab),
-      ),
+      child: isOwn
+          ? _FindMatchesAction(collab: collab)
+          : _MessageAction(collab: collab),
     );
   }
 }
 
-// ── Bottom bar actions ─────────────────────────────────────────────────────
+// ── Single CTA: Find Matching Creators (own post) ─────────────────────────
+
+class _FindMatchesAction extends StatelessWidget {
+  final CollabModel collab;
+
+  const _FindMatchesAction({required this.collab});
+
+  @override
+  Widget build(BuildContext context) {
+    return GreenButton(
+      text: AppStrings.collab.findMatchesButton,
+      height: 56,
+      onPressed: () {
+        Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+            builder: (_) => CollabMatchLoadingScreen(
+              collabId: collab.id,
+              collabTitle: collab.title,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Single CTA: Message (public post) ─────────────────────────────────────
 
 class _MessageAction extends StatelessWidget {
   final CollabModel collab;
@@ -722,77 +981,6 @@ class _MessageAction extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _OwnPostActions extends StatelessWidget {
-  final CollabModel collab;
-
-  const _OwnPostActions({required this.collab});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedAppButton(
-            text: AppStrings.collab.editPost,
-            height: 56,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedPencilEdit01,
-              color: AppColors.primary,
-              size: 18,
-            ),
-            borderColor: AppColors.primary,
-            textColor: AppColors.primary,
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      NewCollaborationScreen(existingCollab: collab),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedAppButton(
-            text: AppStrings.collab.deletePost,
-            height: 56,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedDelete02,
-              color: AppColors.danger,
-              size: 18,
-            ),
-            borderColor: AppColors.danger,
-            textColor: AppColors.danger,
-            onPressed: () async {
-              final confirmed = await AppConfirmDialog.show(
-                context,
-                title: AppStrings.collab.deleteDialogTitle,
-                message: AppStrings.collab.deleteConfirmMessage,
-                confirmLabel: AppStrings.collab.deleteDialogConfirm,
-                isDanger: true,
-              );
-              if (confirmed != true || !context.mounted) return;
-
-              final success = await context
-                  .read<CollabViewmodel>()
-                  .deleteCollab(collab.id);
-              if (!context.mounted) return;
-
-              if (success) {
-                AppSnackbar.success(AppStrings.collab.deleteSuccess);
-                Navigator.of(context, rootNavigator: true).pop();
-              } else {
-                AppSnackbar.error(AppStrings.collab.deleteError);
-              }
-            },
-          ),
-        ),
-      ],
     );
   }
 }

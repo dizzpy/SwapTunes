@@ -30,3 +30,25 @@ export const deactivateCreator = async (req, res, next) => {
     next(err)
   }
 }
+
+// Build a song plan using AI.
+export const songBuilder = async (req, res, next) => {
+  try {
+    const { idea, genre, lyrics, type } = req.validatedBody
+    const result = await creatorService.buildSong({ idea, genre, lyrics, type })
+    success(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Save a song plan result to the database.
+export const saveSongPlan = async (req, res, next) => {
+  try {
+    const { title, data } = req.validatedBody
+    const saved = await creatorService.saveSongPlan(req.user.id, { title, data })
+    success(res, saved, 201)
+  } catch (err) {
+    next(err)
+  }
+}

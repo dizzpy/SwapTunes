@@ -13,6 +13,7 @@ import '../../../collab/data/models/collab_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../models/full_profile_model.dart';
 import '../models/follow_user_model.dart';
+import '../models/saved_song_plan_model.dart';
 
 /// Raw HTTP layer for all profile-related API calls.
 ///
@@ -105,6 +106,14 @@ class ProfileRemoteDatasource {
             as List;
     return data
         .map((e) => CollabModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// GET /users/:userId/songs
+  Future<List<SavedSongPlanModel>> getUserSongs(String userId) async {
+    final data = await _client.get(ApiConstants.userSongs(userId)) as List;
+    return data
+        .map((e) => SavedSongPlanModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 

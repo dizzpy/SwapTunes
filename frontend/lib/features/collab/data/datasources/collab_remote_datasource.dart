@@ -86,4 +86,5 @@ class CollabRemoteDatasource {
   Future<void> deleteCollab(String id) async {
     await _client.delete(ApiConstants.collabById(id));
   }
+
 }

@@ -20,4 +20,7 @@ router.post('/', requireAuth, requireCreator, validate(collabSchema), collabsCon
 router.patch('/:collabId', requireAuth, requireCreator, collabsController.updateCollab)
 router.delete('/:collabId', requireAuth, requireCreator, collabsController.deleteCollab)
 
+// AI Collab Match — creator only
+router.post('/:collabId/match', requireAuth, requireCreator, collabsController.getCollabMatches)
+
 export default router

@@ -14,7 +14,8 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   SPOTIFY_CLIENT_ID: z.string().optional(),
   SPOTIFY_CLIENT_SECRET: z.string().optional(),
-  SPOTIFY_REDIRECT_URI: z.string().optional()
+  SPOTIFY_REDIRECT_URI: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional()
 })
 
 const parseEnvVars = () => {

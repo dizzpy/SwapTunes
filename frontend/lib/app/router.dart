@@ -13,4 +13,8 @@ class AppRoutes {
   static const String collabDetails = '/collab-details';
   static const String manageCollabs = '/manage-collabs';
   static const String newCollab = '/new-collab';
+  static const String collabMatch = '/collab-match';
+  static const String songBuilderInput = '/song-builder-input';
+  static const String songBuilderLoading = '/song-builder-loading';
+  static const String songBuilderResult = '/song-builder-result';
 }

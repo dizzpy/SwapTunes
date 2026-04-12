@@ -6,6 +6,8 @@ import '../../../../shared/widgets/wavy_prograss_indicator.dart';
 import '../../../collab/data/models/collab_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../../../feed/presentation/widgets/post_card.dart';
+import '../../data/models/saved_song_plan_model.dart';
+import 'saved_song_plan_card.dart';
 
 /// Animated content area that switches based on the selected tab.
 class ProfileTabContent extends StatelessWidget {
@@ -23,6 +25,10 @@ class ProfileTabContent extends StatelessWidget {
   final bool isCollabsLoading;
   final void Function(CollabModel collab)? onCollabTap;
 
+  // Songs tab data
+  final List<SavedSongPlanModel> songs;
+  final bool isSongsLoading;
+
   const ProfileTabContent({
     super.key,
     required this.selectedIndex,
@@ -34,6 +40,8 @@ class ProfileTabContent extends StatelessWidget {
     this.collabs = const [],
     this.isCollabsLoading = false,
     this.onCollabTap,
+    this.songs = const [],
+    this.isSongsLoading = false,
   });
 
   @override
@@ -45,7 +53,7 @@ class ProfileTabContent extends StatelessWidget {
     } else if (!isCreatorMode && selectedIndex == 1) {
       content = _buildPlaceholder('Playlists', 'Playlists will appear here');
     } else if (isCreatorMode && selectedIndex == 2) {
-      content = _buildPlaceholder('Songs', 'Songs will appear here');
+      content = _buildSongsTab();
     } else {
       content = _buildCollabsTab();
     }
@@ -100,6 +108,30 @@ class ProfileTabContent extends StatelessWidget {
             timeAgo: post.timeAgo,
             onPostDeleted: isOwnProfile ? onPostDeleted : null,
           ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSongsTab() {
+    if (isSongsLoading) {
+      return const Center(
+        key: ValueKey('SongsLoading'),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: WavyCircularIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+    if (songs.isEmpty) {
+      return _buildPlaceholder('Songs', 'No saved song plans yet');
+    }
+    return Column(
+      key: const ValueKey('Songs'),
+      children: songs.map((plan) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: SavedSongPlanCard(plan: plan),
         );
       }).toList(),
     );
