@@ -16,10 +16,140 @@ import '../widgets/song_structure_sheet.dart';
 import 'song_builder_loading_screen.dart';
 
 /// Overview card — Screen 1 of the Song Builder result flow.
-class SongBuilderResultScreen extends StatelessWidget {
+///
+/// On first load, plays a shimmer-wipe reveal: a glowing line sweeps
+/// top-to-bottom, unveiling each section as it passes.
+class SongBuilderResultScreen extends StatefulWidget {
   const SongBuilderResultScreen({super.key});
 
-  // ── Regenerate: show confirmation dialog first ──
+  @override
+  State<SongBuilderResultScreen> createState() =>
+      _SongBuilderResultScreenState();
+}
+
+class _SongBuilderResultScreenState extends State<SongBuilderResultScreen>
+    with TickerProviderStateMixin {
+  // ── Reveal animation ──
+  late final AnimationController _revealCtrl;
+  late final Animation<double> _revealProgress;
+  bool _revealStarted = false;
+
+  // Per-section fade controllers (created dynamically)
+  final List<AnimationController> _sectionCtrls = [];
+  final List<Animation<double>> _sectionFades = [];
+  final List<Animation<Offset>> _sectionSlides = [];
+
+  // Bottom bar
+  late final AnimationController _bottomCtrl;
+  late final Animation<double> _bottomFade;
+  late final Animation<Offset> _bottomSlide;
+
+  // How many sections we have (set when we know the result)
+  int _sectionCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Main reveal sweep — drives the glowing line position
+    _revealCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    );
+    _revealProgress = CurvedAnimation(
+      parent: _revealCtrl,
+      curve: Curves.easeInOutCubic,
+    );
+
+    // Bottom actions bar
+    _bottomCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _bottomFade = CurvedAnimation(
+      parent: _bottomCtrl,
+      curve: Curves.easeOutCubic,
+    );
+    _bottomSlide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _bottomCtrl, curve: Curves.easeOutCubic));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final vm = context.read<SongBuilderViewModel>();
+      if (vm.result != null && !_revealStarted) {
+        _buildSectionControllers(vm.result!);
+        _startReveal();
+      }
+    });
+  }
+
+  void _buildSectionControllers(SongBuilderResult result) {
+    if (_sectionCtrls.isNotEmpty) return; // already built
+
+    final isVocal = result.type == 'vocal';
+    final hasHook = isVocal && result.sampleHook != null;
+
+    _sectionCount = 4 + (hasHook ? 1 : 0) + 1;
+
+    for (int i = 0; i < _sectionCount; i++) {
+      final ctrl = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 500),
+      );
+      _sectionCtrls.add(ctrl);
+      _sectionFades.add(
+        CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic),
+      );
+      _sectionSlides.add(
+        Tween<Offset>(
+          begin: const Offset(0, 0.15),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic)),
+      );
+    }
+
+    // Trigger rebuild so the list picks up the new controllers
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _startReveal() async {
+    if (_revealStarted) return;
+    _revealStarted = true;
+
+    // Small pause before starting
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // Start the sweep line
+    _revealCtrl.forward();
+
+    // Stagger each section as the sweep passes it
+    for (int i = 0; i < _sectionCtrls.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 280));
+      if (!mounted) return;
+      _sectionCtrls[i].forward();
+    }
+
+    // Bottom bar appears last
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+    _bottomCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _revealCtrl.dispose();
+    _bottomCtrl.dispose();
+    for (final c in _sectionCtrls) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  // ── Regenerate ──
+
   void _onRegenerateTap(BuildContext context) {
     showDialog(
       context: context,
@@ -67,12 +197,13 @@ class SongBuilderResultScreen extends StatelessWidget {
 
   Future<void> _doRegenerate(BuildContext context) async {
     context.read<SongBuilderViewModel>().regenerate();
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SongBuilderLoadingScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SongBuilderLoadingScreen()));
   }
 
   // ── Save ──
+
   void _onSave(BuildContext context) {
     showDialog(
       context: context,
@@ -160,6 +291,16 @@ class SongBuilderResultScreen extends StatelessWidget {
     );
   }
 
+  // ── Wrap a widget with its section reveal animation ──
+
+  Widget _revealSection(int index, Widget child) {
+    if (index >= _sectionFades.length) return child;
+    return SlideTransition(
+      position: _sectionSlides[index],
+      child: FadeTransition(opacity: _sectionFades[index], child: child),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<SongBuilderViewModel>();
@@ -167,7 +308,24 @@ class SongBuilderResultScreen extends StatelessWidget {
 
     if (result == null) return const SizedBox.shrink();
 
+    // Controllers not built yet — build them, reveal will start after setState
+    if (_sectionCtrls.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _buildSectionControllers(result);
+        _startReveal();
+      });
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(backgroundColor: AppColors.background, elevation: 0),
+      );
+    }
+
     final isVocal = result.type == 'vocal';
+    final hasHook = isVocal && result.sampleHook != null;
+
+    // Build section index mapping
+    int idx = 0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -202,57 +360,113 @@ class SongBuilderResultScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              children: [
-                // ── Song title ──
-                Text(
-                  result.title,
-                  style: AppTextStyles.heading2.copyWith(height: 1.2),
+          // ── Sweep glow line (animated overlay) ──
+          AnimatedBuilder(
+            animation: _revealProgress,
+            builder: (context, _) {
+              return CustomPaint(
+                painter: _SweepLinePainter(
+                  progress: _revealProgress.value,
+                  primary: AppColors.primary,
                 ),
-                const SizedBox(height: 14),
+                size: Size.infinite,
+              );
+            },
+          ),
 
-                // ── Metadata chips ──
-                _MetaChips(result: result),
-                const SizedBox(height: 20),
+          // ── Content ──
+          Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                  children: [
+                    // Section 0: Title
+                    _revealSection(
+                      idx++,
+                      Text(
+                        result.title,
+                        style: AppTextStyles.heading2.copyWith(height: 1.2),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
 
-                // ── Hook line (vocal only) ──
-                if (isVocal && result.sampleHook != null) ...[
-                  _HookBlock(hook: result.sampleHook!),
-                  const SizedBox(height: 20),
-                ],
+                    // Section 1: Chips
+                    _revealSection(idx++, _MetaChips(result: result)),
+                    const SizedBox(height: 20),
 
-                // ── Vibe ──
-                _SmallCapsLabel(label: AppStrings.songBuilder.vibeSection),
-                const SizedBox(height: 8),
-                Text(
-                  result.vibe,
-                  style: AppTextStyles.bodyPrimary.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.5,
+                    // Section 2: Hook (optional)
+                    if (hasHook) ...[
+                      _revealSection(
+                        idx++,
+                        _HookBlock(hook: result.sampleHook!),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Section N: Vibe
+                    _revealSection(
+                      idx++,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _SmallCapsLabel(
+                            label: AppStrings.songBuilder.vibeSection,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            result.vibe,
+                            style: AppTextStyles.bodyPrimary.copyWith(
+                              color: AppColors.textSecondary,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Section N+1: Instruments
+                    _revealSection(
+                      idx++,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _SmallCapsLabel(
+                            label: AppStrings.songBuilder.instrumentsSection,
+                          ),
+                          const SizedBox(height: 10),
+                          InstrumentChipRow(instruments: result.instruments),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Section N+2: View Structure button
+                    _revealSection(
+                      idx++,
+                      _ViewStructureButton(
+                        onTap: () => _onViewStructure(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Bottom actions with reveal ──
+              SlideTransition(
+                position: _bottomSlide,
+                child: FadeTransition(
+                  opacity: _bottomFade,
+                  child: _BottomActions(
+                    onRegenerate: () => _onRegenerateTap(context),
+                    onSend: () => _onSend(context),
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                // ── Instruments ──
-                _SmallCapsLabel(label: AppStrings.songBuilder.instrumentsSection),
-                const SizedBox(height: 10),
-                InstrumentChipRow(instruments: result.instruments),
-                const SizedBox(height: 12),
-
-                // ── View Song Structure button ──
-                _ViewStructureButton(
-                  onTap: () => _onViewStructure(context),
-                ),
-              ],
-            ),
-          ),
-          _BottomActions(
-            onRegenerate: () => _onRegenerateTap(context),
-            onSend: () => _onSend(context),
+              ),
+            ],
           ),
         ],
       ),
@@ -261,7 +475,62 @@ class SongBuilderResultScreen extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-//  SAVE ICON BUTTON (AppBar action)
+//  SWEEP LINE PAINTER
+// ─────────────────────────────────────────────
+
+/// Paints a horizontal glowing green line that sweeps from top to bottom.
+/// [progress] goes from 0.0 (top) to 1.0 (bottom/gone).
+class _SweepLinePainter extends CustomPainter {
+  final double progress;
+  final Color primary;
+
+  _SweepLinePainter({required this.progress, required this.primary});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0 || progress >= 1) return;
+
+    final y = size.height * progress;
+
+    // Wide soft glow behind the line
+    final glowPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          primary.withValues(alpha: 0.0),
+          primary.withValues(alpha: 0.04),
+          primary.withValues(alpha: 0.08),
+          primary.withValues(alpha: 0.04),
+          primary.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
+      ).createShader(Rect.fromLTWH(0, y - 60, size.width, 120));
+
+    canvas.drawRect(Rect.fromLTWH(0, y - 60, size.width, 120), glowPaint);
+
+    // Sharp line
+    final linePaint = Paint()
+      ..color = primary.withValues(alpha: 0.25)
+      ..strokeWidth = 1.5
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+
+    canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+
+    // Bright center dot on the line
+    final dotPaint = Paint()
+      ..color = primary.withValues(alpha: 0.5)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(Offset(size.width / 2, y), 3, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SweepLinePainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+// ─────────────────────────────────────────────
+//  SAVE ICON BUTTON
 // ─────────────────────────────────────────────
 
 class _SaveIconButton extends StatelessWidget {
@@ -365,9 +634,7 @@ class _HookBlock extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border(
-          left: BorderSide(color: AppColors.primary, width: 4),
-        ),
+        border: Border(left: BorderSide(color: AppColors.primary, width: 4)),
       ),
       child: Text(
         '"$hook"',

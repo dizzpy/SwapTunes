@@ -13,9 +13,8 @@ import '../widgets/match_card_shimmer.dart';
 
 /// Displays AI-matched creators for a collab listing.
 ///
-/// When arriving from the loading screen with results already loaded,
-/// cards reveal one-by-one with a staggered slide+fade animation
-/// to give an "AI just generated this" feel.
+/// On first load, plays a shimmer-wipe reveal: a glowing line sweeps
+/// top-to-bottom, unveiling each section as it passes.
 class CollabMatchScreen extends StatefulWidget {
   final String collabId;
   final String collabTitle;
@@ -33,99 +32,97 @@ class CollabMatchScreen extends StatefulWidget {
 class _CollabMatchScreenState extends State<CollabMatchScreen>
     with TickerProviderStateMixin {
   bool _revealStarted = false;
-  bool _controllersReady = false;
 
-  // Header animation
-  late AnimationController _headerCtrl;
-  late Animation<double> _headerFade;
-  late Animation<Offset> _headerSlide;
+  // Sweep line
+  late final AnimationController _sweepCtrl;
+  late final Animation<double> _sweepProgress;
 
-  // Per-card animations
-  final List<AnimationController> _cardCtrls = [];
-  final List<Animation<double>> _cardFades = [];
-  final List<Animation<Offset>> _cardSlides = [];
+  // Per-section animations (header + each card)
+  final List<AnimationController> _sectionCtrls = [];
+  final List<Animation<double>> _sectionFades = [];
+  final List<Animation<Offset>> _sectionSlides = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Header controller — always created
-    _headerCtrl = AnimationController(
+    _sweepCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 3200),
     );
-    _headerFade = CurvedAnimation(
-      parent: _headerCtrl,
-      curve: Curves.easeOutCubic,
+    _sweepProgress = CurvedAnimation(
+      parent: _sweepCtrl,
+      curve: Curves.easeInOutCubic,
     );
-    _headerSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _headerCtrl, curve: Curves.easeOutCubic));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final vm = context.read<CollabMatchViewModel>();
 
       if (vm.state == CollabMatchState.idle) {
-        // Arrived directly — need to fetch
         vm.fetchMatches(widget.collabId);
       } else if (vm.state == CollabMatchState.loaded) {
-        // Arrived from loading screen — data ready, build controllers & animate
-        _buildCardControllers(vm.matches.length);
-        _runReveal();
+        _buildSectionControllers(vm.matches.length);
+        _startReveal();
       }
     });
   }
 
-  /// Creates animation controllers for each card. Must be called
-  /// before building the animated list.
-  void _buildCardControllers(int count) {
-    if (_controllersReady) return;
+  void _buildSectionControllers(int cardCount) {
+    if (_sectionCtrls.isNotEmpty) return;
 
-    for (int i = 0; i < count; i++) {
+    // Section 0 = header, then one per card
+    final total = 1 + cardCount;
+
+    for (int i = 0; i < total; i++) {
       final ctrl = AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 550),
+        duration: const Duration(milliseconds: 500),
       );
-      _cardCtrls.add(ctrl);
-      _cardFades.add(CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic));
-      _cardSlides.add(
+      _sectionCtrls.add(ctrl);
+      _sectionFades.add(
+        CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic),
+      );
+      _sectionSlides.add(
         Tween<Offset>(
-          begin: const Offset(0, 0.25),
+          begin: const Offset(0, 0.15),
           end: Offset.zero,
         ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic)),
       );
     }
 
-    _controllersReady = true;
-
-    // Rebuild so the list picks up the new controllers
     if (mounted) setState(() {});
   }
 
-  /// Fires the staggered reveal: header first, then cards one by one.
-  Future<void> _runReveal() async {
+  Future<void> _startReveal() async {
     if (_revealStarted) return;
     _revealStarted = true;
 
-    // Small pause so the screen settles
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
-    _headerCtrl.forward();
 
-    // Cards stagger in
-    for (int i = 0; i < _cardCtrls.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 250));
+    _sweepCtrl.forward();
+
+    // Stagger each section as the sweep passes
+    for (int i = 0; i < _sectionCtrls.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 300));
       if (!mounted) return;
-      _cardCtrls[i].forward();
+      _sectionCtrls[i].forward();
     }
+  }
+
+  Widget _revealSection(int index, Widget child) {
+    if (index >= _sectionFades.length) return child;
+    return SlideTransition(
+      position: _sectionSlides[index],
+      child: FadeTransition(opacity: _sectionFades[index], child: child),
+    );
   }
 
   @override
   void dispose() {
-    _headerCtrl.dispose();
-    for (final c in _cardCtrls) {
+    _sweepCtrl.dispose();
+    for (final c in _sectionCtrls) {
       c.dispose();
     }
     super.dispose();
@@ -135,13 +132,14 @@ class _CollabMatchScreenState extends State<CollabMatchScreen>
   Widget build(BuildContext context) {
     final vm = context.watch<CollabMatchViewModel>();
 
-    // If data just arrived and controllers aren't built yet, build them
+    // Build controllers when data arrives
     if (vm.state == CollabMatchState.loaded &&
         vm.matches.isNotEmpty &&
-        !_controllersReady) {
+        _sectionCtrls.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _buildCardControllers(vm.matches.length);
-        _runReveal();
+        if (!mounted) return;
+        _buildSectionControllers(vm.matches.length);
+        _startReveal();
       });
     }
 
@@ -189,47 +187,110 @@ class _CollabMatchScreenState extends State<CollabMatchScreen>
       return _EmptyState();
     }
 
-    if (vm.state == CollabMatchState.loaded && _controllersReady) {
-      return _buildAnimatedList(vm);
+    if (vm.state == CollabMatchState.loaded && _sectionCtrls.isNotEmpty) {
+      return _buildRevealList(vm);
     }
 
-    // Controllers not ready yet — show nothing briefly
-    // (will rebuild once _buildCardControllers calls setState)
     return const SizedBox.shrink();
   }
 
-  Widget _buildAnimatedList(CollabMatchViewModel vm) {
+  Widget _buildRevealList(CollabMatchViewModel vm) {
     final cards = vm.matches
         .map((m) => MatchCard(match: m, collabTitle: widget.collabTitle))
         .toList();
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+    return Stack(
       children: [
-        // ── Header: slides up + fades in ──
-        SlideTransition(
-          position: _headerSlide,
-          child: FadeTransition(
-            opacity: _headerFade,
-            child: _Header(
-              matchCount: vm.matches.length,
-              collabTitle: widget.collabTitle,
+        // ── Content (behind) ──
+        ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          children: [
+            _revealSection(
+              0,
+              _Header(
+                matchCount: vm.matches.length,
+                collabTitle: widget.collabTitle,
+              ),
             ),
+            const SizedBox(height: 20),
+            for (int i = 0; i < cards.length; i++) ...[
+              _revealSection(i + 1, cards[i]),
+              if (i < cards.length - 1) const SizedBox(height: 16),
+            ],
+          ],
+        ),
+
+        // ── Sweep glow line (on top, ignores touches) ──
+        IgnorePointer(
+          child: AnimatedBuilder(
+            animation: _sweepProgress,
+            builder: (context, _) {
+              return CustomPaint(
+                painter: _SweepLinePainter(
+                  progress: _sweepProgress.value,
+                  primary: AppColors.primary,
+                ),
+                size: Size.infinite,
+              );
+            },
           ),
         ),
-        const SizedBox(height: 20),
-
-        // ── Cards: each one slides up + fades in with staggered delay ──
-        for (int i = 0; i < cards.length; i++) ...[
-          SlideTransition(
-            position: _cardSlides[i],
-            child: FadeTransition(opacity: _cardFades[i], child: cards[i]),
-          ),
-          if (i < cards.length - 1) const SizedBox(height: 16),
-        ],
       ],
     );
   }
+}
+
+// ─────────────────────────────────────────────
+//  SWEEP LINE PAINTER
+// ─────────────────────────────────────────────
+
+class _SweepLinePainter extends CustomPainter {
+  final double progress;
+  final Color primary;
+
+  _SweepLinePainter({required this.progress, required this.primary});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0 || progress >= 1) return;
+
+    final y = size.height * progress;
+
+    // Wide soft glow
+    final glowPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          primary.withValues(alpha: 0.0),
+          primary.withValues(alpha: 0.04),
+          primary.withValues(alpha: 0.08),
+          primary.withValues(alpha: 0.04),
+          primary.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
+      ).createShader(Rect.fromLTWH(0, y - 60, size.width, 120));
+
+    canvas.drawRect(Rect.fromLTWH(0, y - 60, size.width, 120), glowPaint);
+
+    // Sharp line
+    final linePaint = Paint()
+      ..color = primary.withValues(alpha: 0.25)
+      ..strokeWidth = 1.5
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+
+    canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+
+    // Bright center dot
+    final dotPaint = Paint()
+      ..color = primary.withValues(alpha: 0.5)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(Offset(size.width / 2, y), 3, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SweepLinePainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 // ─────────────────────────────────────────────
@@ -266,7 +327,6 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // ── Single centered chip: AI badge + count + collab title ──
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -278,7 +338,6 @@ class _Header extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // AI sparkle icon
               Container(
                 width: 32,
                 height: 32,
@@ -295,8 +354,6 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-
-              // Text block
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,10 +402,7 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-
         const SizedBox(height: 10),
-
-        // ── Feedback row: "Was this helpful?" + thumbs up/down ──
         const _AiFeedbackRow(),
       ],
     );
@@ -356,7 +410,7 @@ class _Header extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-//  AI FEEDBACK ROW (UI only — no logic)
+//  AI FEEDBACK ROW (UI only)
 // ─────────────────────────────────────────────
 
 class _AiFeedbackRow extends StatefulWidget {
@@ -408,13 +462,11 @@ class _AiFeedbackRowState extends State<_AiFeedbackRow> {
                 const SizedBox(width: 10),
                 _FeedbackButton(
                   icon: HugeIcons.strokeRoundedThumbsUp,
-                  isSelected: false,
                   onTap: _onFeedback,
                 ),
                 const SizedBox(width: 4),
                 _FeedbackButton(
                   icon: HugeIcons.strokeRoundedThumbsDown,
-                  isSelected: false,
                   onTap: _onFeedback,
                 ),
               ],
@@ -424,34 +476,20 @@ class _AiFeedbackRowState extends State<_AiFeedbackRow> {
 }
 
 class _FeedbackButton extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final bool isSelected;
+  final dynamic icon;
   final VoidCallback onTap;
 
-  const _FeedbackButton({
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _FeedbackButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Padding(
         padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
         child: HugeIcon(
           icon: icon,
-          color: isSelected
-              ? AppColors.primary
-              : AppColors.textSecondary.withValues(alpha: 0.4),
+          color: AppColors.textSecondary.withValues(alpha: 0.4),
           size: 16,
         ),
       ),
