@@ -7,7 +7,7 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_icon_button.dart';
-import '../../../creator/presentation/screens/song_builder_input_screen.dart';
+import '../../../ai/song_builder/presentation/screens/song_builder_input_screen.dart';
 import '../viewmodels/collab_viewmodel.dart';
 import '../widgets/collab_post_card.dart';
 import '../widgets/tag_chip.dart';

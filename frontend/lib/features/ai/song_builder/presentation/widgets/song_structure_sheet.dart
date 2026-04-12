@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import '../../../../../core/constants/app_strings.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_text_styles.dart';
 import '../../data/models/song_builder_model.dart';
 
 /// Modal bottom sheet displaying the full song structure section by section.
@@ -60,7 +60,7 @@ class SongStructureSheet extends StatelessWidget {
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                   itemCount: result.sections.length,
-                  separatorBuilder: (_, __) => Divider(
+                  separatorBuilder: (_, _) => Divider(
                     height: 1,
                     thickness: 1,
                     color: AppColors.outline.withValues(alpha: 0.1),

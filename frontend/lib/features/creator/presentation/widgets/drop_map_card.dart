@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../data/models/song_builder_model.dart';
+import '../../../ai/song_builder/data/models/song_builder_model.dart';
 
 /// Timeline-style drop map for EDM/Electronic instrumental tracks.
 ///

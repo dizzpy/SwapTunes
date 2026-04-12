@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../../core/network/network_exceptions.dart';
+import '../../../../../core/network/network_exceptions.dart';
 import '../../data/models/collab_match_result.dart';
-import '../../data/repositories/collab_repository.dart';
+import '../../data/repositories/collab_match_repository.dart';
 
 enum CollabMatchState { idle, loading, loaded, error }
 
@@ -11,7 +11,7 @@ enum CollabMatchState { idle, loading, loaded, error }
 /// Keeps [_matches] cached in memory after load so [MessageRecipientSheet]
 /// can read them for auto-suggestions without a second API call.
 class CollabMatchViewModel extends ChangeNotifier {
-  final CollabRepository _repository;
+  final CollabMatchRepository _repository;
   bool _disposed = false;
 
   CollabMatchState _state = CollabMatchState.idle;

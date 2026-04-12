@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_assets.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/widgets/app_icon_button.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_strings.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_text_styles.dart';
+import '../../../../../shared/widgets/app_icon_button.dart';
 import '../viewmodels/collab_match_viewmodel.dart';
 import '../widgets/match_card.dart';
 import '../widgets/match_card_shimmer.dart';

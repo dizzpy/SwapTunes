@@ -1,4 +1,4 @@
-import '../../../creator/data/models/song_builder_model.dart';
+import '../../../ai/song_builder/data/models/song_builder_model.dart';
 
 /// A saved song plan entry from the `saved_song_plans` table.
 class SavedSongPlanModel {

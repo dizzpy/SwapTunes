@@ -2,13 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../collab/data/models/collab_match_result.dart';
-import '../../../collab/presentation/viewmodels/collab_match_viewmodel.dart';
-import '../../../messaging/data/models/chat_conversation_model.dart';
-import '../../../messaging/presentation/screens/single_chat_screen.dart';
+import '../../../../../core/constants/app_strings.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_text_styles.dart';
+import '../../../collab_match/data/models/collab_match_result.dart';
+import '../../../collab_match/presentation/viewmodels/collab_match_viewmodel.dart';
+import '../../../../messaging/data/models/chat_conversation_model.dart';
+import '../../../../messaging/presentation/screens/single_chat_screen.dart';
 import '../viewmodels/song_builder_viewmodel.dart';
 
 /// Bottom sheet shown when creator taps "Send via Message" on the result screen.

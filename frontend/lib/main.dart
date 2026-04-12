@@ -29,11 +29,13 @@ import 'features/profile/data/repositories/profile_repository.dart';
 import 'features/profile/presentation/viewmodels/profile_viewmodel.dart';
 import 'features/collab/data/datasources/collab_remote_datasource.dart';
 import 'features/collab/data/repositories/collab_repository.dart';
-import 'features/collab/presentation/viewmodels/collab_match_viewmodel.dart';
 import 'features/collab/presentation/viewmodels/collab_viewmodel.dart';
-import 'features/creator/data/datasources/song_builder_datasource.dart';
-import 'features/creator/data/repositories/song_builder_repository.dart';
-import 'features/creator/presentation/viewmodels/song_builder_viewmodel.dart';
+import 'features/ai/collab_match/data/datasources/collab_match_datasource.dart';
+import 'features/ai/collab_match/data/repositories/collab_match_repository.dart';
+import 'features/ai/collab_match/presentation/viewmodels/collab_match_viewmodel.dart';
+import 'features/ai/song_builder/data/datasources/song_builder_datasource.dart';
+import 'features/ai/song_builder/data/repositories/song_builder_repository.dart';
+import 'features/ai/song_builder/presentation/viewmodels/song_builder_viewmodel.dart';
 
 /// Entry point for the SwapTunes application.
 ///
@@ -99,6 +101,9 @@ Future<void> main() async {
   final collabRepository = CollabRepository(
     CollabRemoteDatasource(apiClient),
   );
+  final collabMatchRepository = CollabMatchRepository(
+    CollabMatchDatasource(apiClient),
+  );
   final songBuilderRepository = SongBuilderRepository(
     SongBuilderDatasource(apiClient),
   );
@@ -119,7 +124,7 @@ Future<void> main() async {
           create: (_) => CollabViewmodel(collabRepository),
         ),
         ChangeNotifierProvider(
-          create: (_) => CollabMatchViewModel(collabRepository),
+          create: (_) => CollabMatchViewModel(collabMatchRepository),
         ),
         ChangeNotifierProvider(
           create: (_) => SongBuilderViewModel(songBuilderRepository),

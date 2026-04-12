@@ -19,7 +19,7 @@ import '../../../profile/presentation/screens/user_profile_screen.dart';
 import '../../data/models/collab_model.dart';
 import '../viewmodels/collab_viewmodel.dart';
 import '../widgets/tag_chip.dart';
-import 'collab_match_loading_screen.dart';
+import '../../../ai/collab_match/presentation/screens/collab_match_loading_screen.dart';
 import 'new_collaboration_screen.dart';
 
 /// Detail screen for a single collaboration post.
