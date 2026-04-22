@@ -16,11 +16,11 @@ export const songBuilderSchema = z.object({
   genre: z.string().min(1, 'Genre is required'),
   lyrics: z.string().max(500).optional(),
   type: z.enum(['vocal', 'instrumental'], {
-    required_error: 'Please select vocal or instrumental',
-  }),
+    required_error: 'Please select vocal or instrumental'
+  })
 })
 
 export const saveSongPlanSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  data: z.any(),
+  data: z.any()
 })

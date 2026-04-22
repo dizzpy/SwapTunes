@@ -20,6 +20,12 @@ router.post('/deactivate', requireAuth, requireCreator, creatorController.deacti
 router.post('/song-builder', requireAuth, requireCreator, validate(songBuilderSchema), creatorController.songBuilder)
 
 // Save a Song Plan to the database
-router.post('/song-builder/save', requireAuth, requireCreator, validate(saveSongPlanSchema), creatorController.saveSongPlan)
+router.post(
+  '/song-builder/save',
+  requireAuth,
+  requireCreator,
+  validate(saveSongPlanSchema),
+  creatorController.saveSongPlan
+)
 
 export default router

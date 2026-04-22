@@ -95,7 +95,8 @@ export const getMyCollabs = async (creatorId, query) => {
 export const getCreatorsForMatching = async (excludeUserId) => {
   const { data, error } = await supabase
     .from('creator_profiles')
-    .select(`
+    .select(
+      `
       user_id,
       role_title,
       specializations,
@@ -104,7 +105,8 @@ export const getCreatorsForMatching = async (excludeUserId) => {
         avatar_url,
         user_type
       )
-    `)
+    `
+    )
     .neq('user_id', excludeUserId)
 
   if (error) throw { statusCode: 400, code: 'FETCH_CREATORS_FAILED', message: error.message }
@@ -131,7 +133,7 @@ export const findCollabMatches = async (collabId, requestingUserId) => {
         userId: match.userId,
         matchScore: match.matchScore,
         reason: match.reason,
-        profile: creator ?? null,
+        profile: creator ?? null
       }
     })
     .filter((m) => m.profile !== null)
