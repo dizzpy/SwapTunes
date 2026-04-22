@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   # ── Gates: must both pass before any build starts ─────────────
@@ -24,6 +24,15 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          SUPABASE_URL=https://placeholder.supabase.co
+          SUPABASE_ANON_KEY=placeholder
+          SUPABASE_REDIRECT_SCHEME=io.supabase.swaptune
+          SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
+          BACKEND_URL=https://placeholder.dev/api/v1
+          EOF
       - run: flutter analyze
       - run: flutter test
 
@@ -37,19 +46,15 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - run: flutter pub get
-
       - name: Create .env
         run: |
           cat > .env << EOF
@@ -59,10 +64,8 @@ jobs:
           SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
           BACKEND_URL=https://backend.swaptunes.v2.dizzpy.dev/api/v1
           EOF
-
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
-
       - name: Create key.properties
         run: |
           cat > android/key.properties << EOF
@@ -71,19 +74,15 @@ jobs:
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=upload-keystore.jks
           EOF
-
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
       - run: flutter build apk --release
       - run: flutter build appbundle --release
-
       - name: Rename APK
         run: |
           mv build/app/outputs/flutter-apk/app-release.apk \
              build/app/outputs/flutter-apk/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
-
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -103,14 +102,11 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - run: flutter pub get
-
       - name: Create .env
         run: |
           cat > .env << EOF
@@ -120,14 +116,11 @@ jobs:
           SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
           BACKEND_URL=https://backend.swaptunes.v2.dizzpy.dev/api/v1
           EOF
-
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
       - name: Build unsigned IPA
         run: flutter build ipa --no-codesign
-
       - name: Package .ipa
         run: |
           mkdir -p build/ios/ipa/Payload
@@ -135,7 +128,6 @@ jobs:
                 build/ios/ipa/Payload/
           cd build/ios/ipa
           zip -r swaptunes-v${{ steps.version.outputs.VERSION }}.ipa Payload
-
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
@@ -154,12 +146,10 @@ jobs:
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
