@@ -18,6 +18,10 @@ void main() {
 
   setUp(() {
     mockRepo = MockMessagingRepository();
+    // getCachedMessagesStale is called by loadMessages() for stale-while-revalidate.
+    // Default stub returns null (no cache) so tests only need to stub getMessages().
+    when(() => mockRepo.getCachedMessagesStale(any()))
+        .thenAnswer((_) async => null);
     vm = SingleChatViewmodel(
       repository: mockRepo,
       conversationId: 'convo-1',
@@ -129,14 +133,16 @@ void main() {
       expect(vm.messages.first.id, tMessage.id);
     });
 
-    test('failure — placeholder removed and error set', () async {
+    test('failure — placeholder kept with failed status for retry', () async {
       when(() => mockRepo.sendMessage('convo-1', any()))
           .thenThrow(Exception('Send failed'));
 
       await vm.sendMessage('Hello');
 
-      expect(vm.messages, isEmpty);
-      expect(vm.error, isNotNull);
+      // Viewmodel keeps the message visible so the user can retry.
+      expect(vm.messages.length, 1);
+      expect(vm.messages.first.status, MessageStatus.failed);
+      expect(vm.isSending, false);
     });
   });
 
@@ -188,6 +194,8 @@ void main() {
     test('dispose — pending deletes are flushed to API immediately', () async {
       // Use a dedicated VM so tearDown does not attempt a second dispose.
       final testRepo = MockMessagingRepository();
+      when(() => testRepo.getCachedMessagesStale(any()))
+          .thenAnswer((_) async => null);
       when(() => testRepo.getMessages(
             'convo-1',
             before: any(named: 'before'),

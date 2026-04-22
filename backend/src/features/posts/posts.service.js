@@ -80,7 +80,17 @@ export const likePost = async (userId, postId) => {
     .upsert({ post_id: postId, user_id: userId }, { ignoreDuplicates: true })
     .select()
 
-  if (error) throw { statusCode: 400, code: 'LIKE_FAILED', message: error.message }
+  if (error) {
+    const isDuplicate =
+      error.code === '23505' ||
+      String(error.message ?? '')
+        .toLowerCase()
+        .includes('duplicate')
+    if (isDuplicate) {
+      throw { statusCode: 409, code: 'ALREADY_LIKED', message: 'Post already liked' }
+    }
+    throw { statusCode: 400, code: 'LIKE_FAILED', message: error.message }
+  }
 
   // If no row was returned, the like already existed — skip counter + notification.
   if (!data || data.length === 0) return { success: true }

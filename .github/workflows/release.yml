@@ -1,0 +1,187 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # ── Gates: must both pass before any build starts ─────────────
+  backend-lint:
+    name: Gate — Backend Lint & Format
+    uses: ./.github/workflows/_backend-ci.yml
+
+  flutter-test:
+    name: Gate — Flutter Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  # ── Android build ──────────────────────────────────────────────
+  build-android:
+    name: Build — Android (APK + AAB)
+    runs-on: ubuntu-latest
+    needs: [backend-lint, flutter-test]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Create .env
+        run: |
+          cat > .env << EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_REDIRECT_SCHEME=io.supabase.swaptune
+          SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
+          BACKEND_URL=https://backend.swaptunes.v2.dizzpy.dev/api/v1
+          EOF
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - run: flutter build apk --release
+      - run: flutter build appbundle --release
+
+      - name: Rename APK
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-artifacts
+          retention-days: 1
+          path: |
+            frontend/build/app/outputs/flutter-apk/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
+            frontend/build/app/outputs/bundle/release/app-release.aab
+
+  # ── iOS build ──────────────────────────────────────────────────
+  build-ios:
+    name: Build — iOS (unsigned IPA for Sideloadly)
+    runs-on: macos-latest
+    needs: [backend-lint, flutter-test]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Create .env
+        run: |
+          cat > .env << EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_REDIRECT_SCHEME=io.supabase.swaptune
+          SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
+          BACKEND_URL=https://backend.swaptunes.v2.dizzpy.dev/api/v1
+          EOF
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build unsigned IPA
+        run: flutter build ipa --no-codesign
+
+      - name: Package .ipa
+        run: |
+          mkdir -p build/ios/ipa/Payload
+          cp -r build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app \
+                build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r swaptunes-v${{ steps.version.outputs.VERSION }}.ipa Payload
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifact
+          retention-days: 1
+          path: frontend/build/ios/ipa/swaptunes-v${{ steps.version.outputs.VERSION }}.ipa
+
+  # ── GitHub Release ─────────────────────────────────────────────
+  github-release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios]
+    permissions:
+      contents: write
+    steps:
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: SwapTunes v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## SwapTunes v${{ steps.version.outputs.VERSION }}
+
+            ### Android
+            - **APK** — download and sideload directly on any Android device
+            - **AAB** — for Play Store submission
+
+            ### iOS
+            - **IPA** — unsigned build, install via [Sideloadly](https://sideloadly.io)
+              1. Download the `.ipa` file below
+              2. Open Sideloadly and connect your iPhone/iPad via USB
+              3. Drag the `.ipa` into Sideloadly and sign with your Apple ID
+
+            ### Backend
+            Connected to: https://backend.swaptunes.v2.dizzpy.dev
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/android-artifacts/*
+            artifacts/ios-artifact/*
