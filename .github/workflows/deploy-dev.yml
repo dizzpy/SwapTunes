@@ -1,7 +1,5 @@
 name: Deploy — Dev
 
-# Railway auto-deploys from GitHub on push to dev.
-# This workflow only runs CI smoke checks before Railway takes over.
 on:
   push:
     branches: [dev]
@@ -10,32 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ── Backend: lint + format check (gate before Railway deploys) ──
-  backend-ci:
-    name: Backend — Lint & Format
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: ESLint
-        run: npm run lint
-
-      - name: Prettier check
-        run: npx prettier --check "src/**/*.{js,json}"
-
-  # ── (Railway deploys automatically after this CI passes) ────────
-  # No manual deploy step needed — Railway's GitHub integration
-  # watches dev branch and deploys on every push via railway.json.
+  backend-lint:
+    name: Gate — Backend Lint & Format
+    uses: ./.github/workflows/_backend-ci.yml
+  # Railway auto-deploys from dev branch after this passes

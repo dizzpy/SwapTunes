@@ -1,121 +1,34 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-
-jobs:
-  backend:
-    name: Backend Tests
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run backend tests
-        run: npm test -- --runInBand --ci
-
-  frontend:
-    name: Frontend Tests
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.38.3'
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Run frontend tests
-        run: flutter testname: CI
-
-on:
   pull_request:
     branches: [main, dev]
   workflow_dispatch:
 
-
 jobs:
-  # ── Backend: lint + format check ──────────────────────────────
   backend-lint:
-    name: Backend — Lint & Format
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
+    name: Gate — Backend Lint & Format
+    uses: ./.github/workflows/_backend-ci.yml
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: ESLint
-        run: npm run lint
-
-      - name: Prettier check
-        run: npx prettier --check "src/**/*.{js,json}"
-
-  # ── Flutter: analyze ──────────────────────────────────────────
   flutter-analyze:
-    name: Flutter — Analyze
+    name: Flutter — Analyze & Test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+        continue-on-error: true
 
-      - name: Get packages
-        run: flutter pub get
-
-      - name: Dart analyze
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
-        continue-on-error: true # no tests written yet — won't fail CI
-
-  # ── Flutter: build Android debug APK (smoke check) ────────────
   flutter-build-android:
-    name: Flutter — Build Android APK
+    name: Flutter — Build Android APK (smoke check)
     runs-on: ubuntu-latest
     needs: flutter-analyze
     defaults:
@@ -123,19 +36,15 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-
-      - name: Get packages
-        run: flutter pub get
-
+          cache: true
+      - run: flutter pub get
       - name: Create .env file
         run: |
           cat > .env << EOF
@@ -145,6 +54,4 @@ jobs:
           SUPABASE_REDIRECT_URL=io.supabase.swaptune://login-callback
           BACKEND_URL=https://placeholder.dev/api/v1
           EOF
-
-      - name: Build debug APK
-        run: flutter build apk --debug
+      - run: flutter build apk --debug
