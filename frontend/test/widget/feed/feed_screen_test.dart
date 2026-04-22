@@ -96,7 +96,7 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
 class _FakeFeedViewmodel extends ChangeNotifier implements FeedViewmodel {
   final List<String> calls = [];
 
-  List<PostModel> _posts;
+  final List<PostModel> _posts;
   final bool _isLoading;
   final bool _isLoadingMore;
   final String? _feedError;
