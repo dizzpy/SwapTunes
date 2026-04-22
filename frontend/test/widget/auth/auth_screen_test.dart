@@ -14,7 +14,7 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   final bool _sendOtpResult;
 
   _FakeAuthViewmodel({bool sendOtpResult = true})
-      : _sendOtpResult = sendOtpResult;
+    : _sendOtpResult = sendOtpResult;
 
   @override
   bool get isLoading => false;
@@ -79,8 +79,7 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
     String? bio,
     String? avatarUrl,
     required List<String> genres,
-  }) async =>
-      false;
+  }) async => false;
   @override
   Future<String?> launchSpotifyConnect() async => null;
   @override
@@ -119,8 +118,9 @@ void main() {
     expect(find.byType(TextField), findsWidgets);
   });
 
-  testWidgets('tapping Send Magic Link button calls sendMagicLink with email',
-      (tester) async {
+  testWidgets('tapping Send Code button calls sendOtp with email', (
+    tester,
+  ) async {
     final fakeVm = _FakeAuthViewmodel();
     await tester.pumpWidget(_buildSubject(fakeVm));
     await tester.pump();
@@ -129,15 +129,16 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'user@test.com');
     await tester.pump();
 
-    // Tap the magic link button (finds by text)
-    await tester.tap(find.text('Send Magic Link'));
+    // Tap the code button (finds by text)
+    await tester.tap(find.text('Send Code'));
     await tester.pumpAndSettle();
 
-    expect(fakeVm.calls, contains('sendMagicLink:user@test.com'));
+    expect(fakeVm.calls, contains('sendOtp:user@test.com'));
   });
 
-  testWidgets('tapping Continue with Google calls signInWithGoogle',
-      (tester) async {
+  testWidgets('tapping Continue with Google calls signInWithGoogle', (
+    tester,
+  ) async {
     final fakeVm = _FakeAuthViewmodel();
     await tester.pumpWidget(_buildSubject(fakeVm));
     await tester.pump();
@@ -148,8 +149,9 @@ void main() {
     expect(fakeVm.calls, contains('signInWithGoogle'));
   });
 
-  testWidgets('tapping Continue with Spotify calls signInWithSpotify',
-      (tester) async {
+  testWidgets('tapping Continue with Spotify calls signInWithSpotify', (
+    tester,
+  ) async {
     final fakeVm = _FakeAuthViewmodel();
     await tester.pumpWidget(_buildSubject(fakeVm));
     await tester.pump();

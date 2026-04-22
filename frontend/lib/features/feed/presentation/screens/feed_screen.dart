@@ -21,7 +21,9 @@ import '../widgets/post_card.dart';
 import '../widgets/post_input_box.dart';
 
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({super.key});
+  final bool enableNotifications;
+
+  const FeedScreen({super.key, this.enableNotifications = true});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -29,31 +31,33 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final ScrollController _scrollController = ScrollController();
-  late final NotificationViewmodel _notificationVm;
+  NotificationViewmodel? _notificationVm;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    final apiClient = context.read<ApiClient>();
-    final currentUserId = context.read<StorageService>().getUserId() ?? '';
-    _notificationVm = NotificationViewmodel(
-      NotificationRepository(NotificationDatasource(apiClient)),
-      currentUserId,
-    );
+    if (widget.enableNotifications) {
+      final apiClient = context.read<ApiClient>();
+      final currentUserId = context.read<StorageService>().getUserId() ?? '';
+      _notificationVm = NotificationViewmodel(
+        NotificationRepository(NotificationDatasource(apiClient)),
+        currentUserId,
+      );
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FeedViewmodel>().loadFeed();
-      _notificationVm.loadNotifications();
-      _notificationVm.subscribeToNotifications();
+      _notificationVm?.loadNotifications();
+      _notificationVm?.subscribeToNotifications();
     });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _notificationVm.dispose();
+    _notificationVm?.dispose();
     super.dispose();
   }
 
@@ -196,56 +200,63 @@ class _FeedScreenState extends State<FeedScreen> {
               variant: AppIconButtonVariant.filled,
               size: 44,
             ),
-            ListenableBuilder(
-              listenable: _notificationVm,
-              builder: (context, _) {
-                final count = _notificationVm.unreadCount;
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    AppIconButton(
-                      icon: AppAssets.icon.notification,
-                      variant: AppIconButtonVariant.filled,
-                      size: 44,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider.value(
-                            value: _notificationVm,
-                            child: const NotificationsScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (count > 0)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.danger,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          constraints: const BoxConstraints(minWidth: 18),
-                          child: Text(
-                            count > 99 ? '99+' : '$count',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              height: 1.2,
+            if (_notificationVm == null)
+              AppIconButton(
+                icon: AppAssets.icon.notification,
+                variant: AppIconButtonVariant.filled,
+                size: 44,
+              )
+            else
+              ListenableBuilder(
+                listenable: _notificationVm!,
+                builder: (context, _) {
+                  final count = _notificationVm!.unreadCount;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      AppIconButton(
+                        icon: AppAssets.icon.notification,
+                        variant: AppIconButtonVariant.filled,
+                        size: 44,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ChangeNotifierProvider.value(
+                              value: _notificationVm!,
+                              child: const NotificationsScreen(),
                             ),
-                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
-                  ],
-                );
-              },
-            ),
+                      if (count > 0)
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.danger,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            constraints: const BoxConstraints(minWidth: 18),
+                            child: Text(
+                              count > 99 ? '99+' : '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                height: 1.2,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -328,26 +339,29 @@ class _UploadingPostCard extends StatelessWidget {
                         : null,
                   ),
                   const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.authorUsername,
-                        style: AppTextStyles.bodyPrimary,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Publishing...',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.primary,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post.authorFullName,
+                          style: AppTextStyles.bodyPrimary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          '@${post.authorUsername}',
+                          style: AppTextStyles.caption,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              // Caption preview
               if (post.content.isNotEmpty)
                 Text(post.content, style: AppTextStyles.bodySecondary),
               const SizedBox(height: 12),
