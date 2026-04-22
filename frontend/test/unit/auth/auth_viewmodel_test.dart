@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swaptune/core/network/network_exceptions.dart';
 
 import 'package:swaptune/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 
@@ -172,7 +173,7 @@ void main() {
     test('expired token — calls logout and sets unauthenticated', () async {
       when(() => mockRepo.isLoggedIn).thenReturn(true);
       when(() => mockRepo.getCurrentUser())
-          .thenThrow(Exception('Token expired'));
+          .thenThrow(const UnauthorizedException('Token expired'));
       when(() => mockRepo.logout()).thenAnswer((_) async {});
 
       await vm.tryAutoLogin();
@@ -278,7 +279,8 @@ void main() {
           .thenThrow(Exception('Network error'));
       await vm.refreshCurrentUser();
 
-      expect(vm.currentUser, isNull);
+      // Viewmodel intentionally preserves currentUser on transient network errors.
+      expect(vm.currentUser, tUser);
       expect(vm.errorMessage, isNotNull);
     });
   });

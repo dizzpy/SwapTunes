@@ -1,9 +1,13 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:swaptune/features/auth/data/repositories/auth_repository.dart';
+import 'package:swaptune/features/collab/data/repositories/collab_repository.dart';
+import 'package:swaptune/features/creator/data/repositories/creator_repository.dart';
+import 'package:swaptune/features/discover/data/repositories/discover_repository.dart';
 import 'package:swaptune/features/feed/data/datasources/feed_remote_datasource.dart';
 import 'package:swaptune/features/feed/data/repositories/feed_repository.dart';
 import 'package:swaptune/features/messaging/data/datasources/messaging_remote_datasource.dart';
 import 'package:swaptune/features/messaging/data/repositories/messaging_repository.dart';
+import 'package:swaptune/features/notifications/data/repositories/notification_repository.dart';
 import 'package:swaptune/features/profile/data/datasources/profile_remote_datasource.dart';
 import 'package:swaptune/features/profile/data/repositories/profile_repository.dart';
 
@@ -16,6 +20,15 @@ class MockFeedRepository extends Mock implements FeedRepository {}
 class MockProfileRepository extends Mock implements ProfileRepository {}
 
 class MockMessagingRepository extends Mock implements MessagingRepository {}
+
+class MockCreatorRepository extends Mock implements CreatorRepository {}
+
+class MockCollabRepository extends Mock implements CollabRepository {}
+
+class MockDiscoverRepository extends Mock implements DiscoverRepository {}
+
+class MockNotificationRepository extends Mock
+    implements NotificationRepository {}
 
 // ── Datasource mocks (used in integration tests) ──────────────────────────
 

@@ -22,6 +22,18 @@ export const sendMessage = async (userId, conversationId, content) => {
     throw { statusCode: 400, code: 'INVALID', message: 'Message content exceeds 2000 characters' }
   }
 
+  const { data: convo, error: convoError } = await supabase
+    .from('conversations')
+    .select('*')
+    .eq('id', conversationId)
+    .single()
+  if (convoError || !convo) {
+    throw { statusCode: 404, code: 'NOT_FOUND', message: 'Conversation not found' }
+  }
+  if (convo.user_one_id !== userId && convo.user_two_id !== userId) {
+    throw { statusCode: 403, code: 'FORBIDDEN', message: 'Not a participant of this conversation' }
+  }
+
   // Insert message
   const { data: message, error } = await supabase
     .from('messages')
@@ -35,7 +47,6 @@ export const sendMessage = async (userId, conversationId, content) => {
   await supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', conversationId)
 
   // Notify other user
-  const { data: convo } = await supabase.from('conversations').select('*').eq('id', conversationId).single()
   if (convo) {
     const otherId = convo.user_one_id === userId ? convo.user_two_id : convo.user_one_id
     await notificationsService.createNotification({
