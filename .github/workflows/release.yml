@@ -79,18 +79,19 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
       - run: flutter build apk --release
       - run: flutter build appbundle --release
-      - name: Rename APK
+      - name: Rename & collect artifacts
         run: |
+          mkdir -p release-output
           mv build/app/outputs/flutter-apk/app-release.apk \
-             build/app/outputs/flutter-apk/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
+             release-output/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
+          mv build/app/outputs/bundle/release/app-release.aab \
+             release-output/swaptunes-v${{ steps.version.outputs.VERSION }}.aab
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android-artifacts
           retention-days: 1
-          path: |
-            frontend/build/app/outputs/flutter-apk/swaptunes-v${{ steps.version.outputs.VERSION }}.apk
-            frontend/build/app/outputs/bundle/release/app-release.aab
+          path: frontend/release-output/*
 
   # ── iOS build ──────────────────────────────────────────────────
   build-ios:
@@ -150,6 +151,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
+      - name: List artifacts (debug)
+        run: ls -la artifacts/
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -172,6 +176,4 @@ jobs:
             Connected to: https://backend.swaptunes.v2.dizzpy.dev
           draft: false
           prerelease: false
-          files: |
-            artifacts/android-artifacts/*
-            artifacts/ios-artifact/*
+          files: artifacts/*
