@@ -22,6 +22,7 @@ class ApiConstants {
   // ── Users ──────────────────────────────────────────────
   static String userProfile(String username) => '/users/$username';
   static String updateMe() => '/users/me';
+  static String deleteMe() => '/users/me';
   static String followers(String userId) => '/users/$userId/followers';
   static String following(String userId) => '/users/$userId/following';
   static String follow(String userId) => '/users/$userId/follow';

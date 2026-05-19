@@ -77,7 +77,7 @@ export const getUserPosts = async (requesterId, targetUserId, query) => {
 export const likePost = async (userId, postId) => {
   const { data, error } = await supabase
     .from('post_likes')
-    .upsert({ post_id: postId, user_id: userId }, { ignoreDuplicates: true })
+    .upsert({ post_id: postId, user_id: userId }, { onConflict: 'post_id,user_id', ignoreDuplicates: true })
     .select()
 
   if (error) {

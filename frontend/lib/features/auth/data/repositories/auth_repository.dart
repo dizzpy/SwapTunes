@@ -85,7 +85,9 @@ class AuthRepository {
       await _supabaseAuth.handleDeepLink(uri);
       await syncTokenToStorage();
       return true;
-    } catch (_) {
+    } catch (e, st) {
+      // ignore: avoid_print
+      print('[AuthRepository] handleAuthCallback failed: $e\n$st');
       return false;
     }
   }
@@ -130,6 +132,14 @@ class AuthRepository {
 
   /// Clears all locally stored auth data and signs out of Supabase.
   Future<void> logout() async {
+    await _supabaseAuth.signOut();
+    await _storage.clearAll();
+  }
+
+  /// Permanently deletes the user's account on the backend, then clears
+  /// the local session (same cleanup as [logout]).
+  Future<void> deleteAccount() async {
+    await _datasource.deleteAccount();
     await _supabaseAuth.signOut();
     await _storage.clearAll();
   }

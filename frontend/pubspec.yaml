@@ -31,6 +31,7 @@ dependencies:
   onesignal_flutter: ^5.2.7
   path_provider: ^2.1.5
   rename_app: ^1.6.5
+  package_info_plus: ^8.0.0
 
 dev_dependencies:
   flutter_test:

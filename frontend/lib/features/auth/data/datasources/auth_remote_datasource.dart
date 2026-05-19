@@ -48,4 +48,9 @@ class AuthRemoteDatasource {
     final result = await _client.get(ApiConstants.me);
     return result as Map<String, dynamic>;
   }
+
+  /// DELETE /users/me
+  Future<void> deleteAccount() async {
+    await _client.delete(ApiConstants.deleteMe());
+  }
 }

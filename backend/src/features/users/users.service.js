@@ -183,6 +183,21 @@ export const updateProfile = async (userId, data) => {
   return { success: true }
 }
 
+// Delete account service method — removes the user and all related data.
+export const deleteAccount = async (userId) => {
+  // Delete the public users row first. All user-owned data (genres, posts, follows,
+  // playlists, collabs, conversations, messages, notifications, ...) cascades from here.
+  // The auth.users FK has no cascade, so this must happen before deleting the auth user.
+  const { error: deleteErr } = await supabase.from('users').delete().eq('id', userId)
+  if (deleteErr) throw { statusCode: 400, code: 'DELETE_FAILED', message: deleteErr.message }
+
+  // Remove the Supabase auth identity so the email/account is fully released.
+  const { error: authErr } = await supabase.auth.admin.deleteUser(userId)
+  if (authErr) throw { statusCode: 400, code: 'AUTH_DELETE_FAILED', message: authErr.message }
+
+  return { success: true }
+}
+
 // Get followers service method interacting with the database.
 export const getFollowers = async (userId, query) => {
   const { from, to } = getPagination(query.page, query.limit)

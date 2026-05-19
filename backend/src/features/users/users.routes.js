@@ -9,6 +9,9 @@ const router = Router()
 // Self profile update
 router.patch('/me', requireAuth, usersController.updateProfile)
 
+// Self account deletion
+router.delete('/me', requireAuth, usersController.deleteAccount)
+
 // Publicly readable? (depends on privacy, let's keep it under requireAuth for now so we know who is requesting)
 router.get('/:username', requireAuth, usersController.getProfile)
 

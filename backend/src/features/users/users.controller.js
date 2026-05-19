@@ -43,6 +43,16 @@ export const updateProfile = async (req, res, next) => {
   }
 }
 
+// Delete account controller handler.
+export const deleteAccount = async (req, res, next) => {
+  try {
+    await usersService.deleteAccount(req.user.id)
+    success(res, { deleted: true })
+  } catch (err) {
+    next(err)
+  }
+}
+
 // Get followers controller handler.
 export const getFollowers = async (req, res, next) => {
   try {

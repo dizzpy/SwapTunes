@@ -349,10 +349,7 @@ class _PostCardState extends State<PostCard> {
             ),
           ),
         if (hasImage) const SizedBox(height: 10),
-        SizedBox(
-          width: 217,
-          child: Text(widget.caption, style: AppTextStyles.bodySecondary),
-        ),
+        Text(widget.caption, style: AppTextStyles.bodySecondary),
       ],
     );
 

@@ -145,31 +145,28 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
     }
 
     if (_viewmodel.error != null && _viewmodel.conversations.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            _viewmodel.error!,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodySecondary,
-          ),
-        ),
+      return _RefreshableMessage(
+        onRefresh: _viewmodel.loadConversations,
+        message: _viewmodel.error!,
       );
     }
 
     if (_viewmodel.conversations.isEmpty) {
-      return Center(
-        child: Text(
-          AppStrings.messaging.noChatHistory,
-          style: AppTextStyles.bodySecondary,
-        ),
+      return _RefreshableMessage(
+        onRefresh: _viewmodel.loadConversations,
+        message: AppStrings.messaging.noChatHistory,
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-      itemCount: _viewmodel.conversations.length,
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: _viewmodel.loadConversations,
+      color: AppColors.textWhite,
+      backgroundColor: AppColors.cardFront,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+        itemCount: _viewmodel.conversations.length,
+        itemBuilder: (context, index) {
         final conversation = _viewmodel.conversations[index];
         return Dismissible(
           key: Key(conversation.id),
@@ -202,7 +199,44 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
             onReturn: () => _viewmodel.loadConversations(),
           ),
         );
-      },
+        },
+      ),
+    );
+  }
+}
+
+/// A centered message that still supports pull-to-refresh by sitting inside a
+/// scrollable that always accepts the overscroll gesture.
+class _RefreshableMessage extends StatelessWidget {
+  final Future<void> Function() onRefresh;
+  final String message;
+
+  const _RefreshableMessage({required this.onRefresh, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      color: AppColors.textWhite,
+      backgroundColor: AppColors.cardFront,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySecondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

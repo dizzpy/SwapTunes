@@ -467,26 +467,14 @@ class _SettingsStrings {
 
   // Section headers
   final String sectionAccount = 'Account';
-  final String sectionCreator = 'Creator Mode';
   final String sectionNotifications = 'Notifications';
-  final String sectionPrivacy = 'Privacy & Safety';
-  final String sectionMusic = 'Music & Content';
-  final String sectionAppearance = 'Appearance';
-  final String sectionAbout = 'About & Legal';
+  final String sectionAbout = 'About';
   final String sectionDanger = 'Danger Zone';
 
   // Account
-  final String editProfile = 'Edit Profile';
-  final String changePassword = 'Change Password';
-  final String changePasswordSubtitle = 'Update your login credentials';
   final String spotifyTitle = 'Spotify';
-  final String spotifyValue = 'Connected';
-  final String googleTitle = 'Google';
-  final String googleValue = 'Linked';
-
-  // Creator
-  final String creatorProfile = 'Creator Profile';
-  final String creatorProfileSubtitle = 'Manage your specializations & portfolio';
+  final String spotifyConnected = 'Connected';
+  final String spotifyNotConnected = 'Not connected';
 
   // Notifications
   final String pushNotifications = 'Push Notifications';
@@ -497,35 +485,10 @@ class _SettingsStrings {
   final String collabNotifications = 'Collab Requests';
   final String collabSubtitle = 'New matches for your collab posts';
 
-  // Privacy
-  final String privateAccount = 'Private Account';
-  final String privateAccountSubtitle = 'Only followers can see your content';
-  final String whoCanDm = 'Who Can DM Me';
-  final String whoCanDmDefault = 'Everyone';
-  final String blockedUsers = 'Blocked Users';
-  final String mutedUsers = 'Muted Users';
-
-  // Music
-  final String playlistSharing = 'Default Playlist Sharing';
-  final String playlistSharingDefault = 'Public';
-  final String genrePreferences = 'Genre Preferences';
-  final String genrePreferencesSubtitle = 'Update your music taste';
-  final String hideLikedPosts = 'Hide Liked Posts';
-  final String hideLikedPostsSubtitle = "Don't show likes on your profile";
-
-  // Appearance
-  final String theme = 'Theme';
-  final String language = 'Language';
-  final String themeLight = 'Light';
-  final String themeDark = 'Dark';
-  final String themeSystem = 'System';
-
   // About
   final String appVersion = 'App Version';
-  final String appVersionValue = '1.0.0';
-  final String termsOfService = 'Terms of Service';
-  final String privacyPolicy = 'Privacy Policy';
   final String licenses = 'Licenses';
+  final String licenseAppName = 'SwapTunes';
 
   // Danger zone
   final String logout = 'Log Out';
@@ -546,31 +509,8 @@ class _SettingsStrings {
   final String deleteFinalMessage =
       'Your account will be permanently deleted. There is no going back.';
   final String deleteFinalConfirm = 'Delete My Account';
+  final String deleteFailed = 'Could not delete your account. Please try again.';
 
   // Generic
   final String cancel = 'Cancel';
-  final String comingSoon = ' coming soon';
-  final String deleteNotAvailable = 'Account deletion is not available yet.';
-
-  // Picker titles
-  final String themePickerTitle = 'Theme';
-  final String languagePickerTitle = 'Language';
-  final String dmPickerTitle = 'Who can DM me';
-  final String playlistPickerTitle = 'Default Playlist Sharing';
-
-  // DM picker options
-  final String dmEveryone = 'Everyone';
-  final String dmFollowersOnly = 'Followers only';
-  final String dmNoOne = 'No one';
-
-  // Playlist picker options
-  final String playlistPublic = 'Public';
-  final String playlistFollowers = 'Followers only';
-  final String playlistPrivate = 'Private';
-
-  // Languages
-  final List<String> languages = const [
-    'English', 'Spanish', 'French', 'German', 'Portuguese',
-    'Japanese', 'Korean', 'Chinese (Simplified)', 'Arabic', 'Hindi',
-  ];
 }

@@ -34,18 +34,32 @@ class ChatsListViewmodel extends ChangeNotifier {
 
   // ── Data ───────────────────────────────────────────────
 
-  Future<void> loadConversations({bool forceRefresh = false}) async {
+  /// Loads conversations with a stale-while-revalidate strategy:
+  ///
+  /// 1. On first open, renders any cached conversations instantly (no shimmer
+  ///    because the screen only shows it when the list is empty).
+  /// 2. Fetches fresh conversations from the API in the background.
+  /// 3. Updates the UI silently with the fresh data.
+  Future<void> loadConversations() async {
     if (_isLoading) return;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
+    // Phase 1 — show stale cache instantly on first open.
+    if (_conversations.isEmpty) {
+      final stale = await _repository.getCachedConversationsStale();
+      if (stale != null && stale.isNotEmpty) {
+        _conversations = stale;
+        notifyListeners();
+      }
+    }
+
+    // Phase 2 — background refresh from the API.
     try {
-      _conversations = await _repository.getConversations(
-        forceRefresh: forceRefresh,
-      );
+      _conversations = await _repository.getConversations(forceRefresh: true);
     } catch (e) {
-      _error = _parseError(e);
+      if (_conversations.isEmpty) _error = _parseError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -106,7 +120,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_one_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(forceRefresh: true),
+          callback: (_) => loadConversations(),
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.update,
@@ -117,7 +131,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_one_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(forceRefresh: true),
+          callback: (_) => loadConversations(),
         )
         .subscribe((status, _) {
           final reconnecting = status == RealtimeSubscribeStatus.closed ||
@@ -139,7 +153,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_two_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(forceRefresh: true),
+          callback: (_) => loadConversations(),
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.update,
@@ -150,7 +164,7 @@ class ChatsListViewmodel extends ChangeNotifier {
             column: 'user_two_id',
             value: _currentUserId,
           ),
-          callback: (_) => loadConversations(forceRefresh: true),
+          callback: (_) => loadConversations(),
         )
         .subscribe();
   }

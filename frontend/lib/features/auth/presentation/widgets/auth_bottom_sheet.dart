@@ -55,13 +55,20 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
 
   /// Opens the email input UI for OTP authentication.
   void _handleEmailAuth() {
+    final navigator = Navigator.of(context);
+
     Navigator.of(context).pop();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const EmailInput(),
-    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!navigator.mounted) return;
+
+      showModalBottomSheet(
+        context: navigator.context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const EmailInput(),
+      );
+    });
   }
 
   @override

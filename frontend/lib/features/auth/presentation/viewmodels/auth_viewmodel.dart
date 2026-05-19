@@ -201,14 +201,18 @@ class AuthViewmodel extends ChangeNotifier {
   Future<bool> sendOtp(String email) async {
     _setLoading(true);
     try {
+      debugPrint('[AuthViewmodel] sendOtp → calling Supabase for: $email');
       await _repository.sendOtp(email);
+      debugPrint('[AuthViewmodel] sendOtp → Supabase accepted, OTP sent');
       _pendingEmail = email;
       _otpError = null;
       _status = AuthStatus.awaitingOtp;
       _startResendTimer();
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[AuthViewmodel] sendOtp FAILED: $e');
+      debugPrint('$st');
       _setError('Failed to send code: ${e.toString()}');
       return false;
     } finally {
@@ -458,6 +462,18 @@ class AuthViewmodel extends ChangeNotifier {
   /// Clears local state, persisted tokens, and Supabase session.
   Future<void> logout() async {
     await _repository.logout();
+    OnesignalService.logout();
+    _currentUser = null;
+    _status = AuthStatus.unauthenticated;
+    notifyListeners();
+  }
+
+  /// Permanently deletes the user's account, then clears local state.
+  ///
+  /// Throws on backend failure so the caller can surface an error; on
+  /// success the auth listener navigates back to onboarding.
+  Future<void> deleteAccount() async {
+    await _repository.deleteAccount();
     OnesignalService.logout();
     _currentUser = null;
     _status = AuthStatus.unauthenticated;

@@ -132,6 +132,13 @@ class MessagingRepository {
   Future<List<MessageModel>?> getCachedMessagesStale(String conversationId) =>
       _getStaleCachedMessages(conversationId);
 
+  /// Returns cached conversations for the current user regardless of TTL.
+  /// Returns null if no cache entry exists at all.
+  Future<List<ChatConversationModel>?> getCachedConversationsStale() {
+    final userId = _storage.getUserId() ?? '';
+    return _getStaleCachedConversations(userId);
+  }
+
   Future<void> markMessagesRead(String conversationId) =>
       _datasource.markMessagesRead(conversationId);
 

@@ -17,6 +17,8 @@ void main() {
   setUp(() {
     mockRepo = MockMessagingRepository();
     vm = ChatsListViewmodel(mockRepo, 'user-1');
+    when(() => mockRepo.getCachedConversationsStale())
+        .thenAnswer((_) async => null);
   });
 
   tearDown(() => vm.dispose());

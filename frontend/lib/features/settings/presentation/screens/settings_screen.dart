@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_assets.dart';
@@ -26,11 +27,21 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   static final _s = AppStrings.settings;
 
+  // ── Notification preferences ──────────────────────────────────────
+  bool _pushNotifications = true;
+  bool _activityNotifications = true;
+  bool _messageNotifications = true;
+  bool _collabNotifications = true;
+
+  // ── App version ────────────────────────────────────────────────────
+  String _appVersion = '—';
+
   @override
   void initState() {
     super.initState();
     MainLayoutScreen.hideNavBar();
     _loadNotifPrefs();
+    _loadAppVersion();
   }
 
   @override
@@ -48,6 +59,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _collabNotifications = storage.collabNotificationsEnabled;
     });
   }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() => _appVersion = '${info.version} (${info.buildNumber})');
+  }
+
+  // ── Notification toggles ──────────────────────────────────────────
 
   Future<void> _onPushToggled(bool value) async {
     setState(() => _pushNotifications = value);
@@ -73,17 +92,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _collabNotifications = value);
     await context.read<StorageService>().setCollabNotificationsEnabled(value);
   }
-
-  // ── Local UI state ────────────────────────────────────────────────
-  bool _pushNotifications = true;
-  bool _activityNotifications = true;
-  bool _messageNotifications = true;
-  bool _collabNotifications = true;
-  bool _privateAccount = false;
-  bool _hideLikedPosts = false;
-
-  String _selectedTheme = AppStrings.settings.themeSystem;
-  String _selectedLanguage = 'English';
 
   // ── Actions ───────────────────────────────────────────────────────
 
@@ -118,104 +126,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       cancelLabel: _s.cancel,
       isDanger: true,
     );
-    if (secondConfirm == true && mounted) {
-      // TODO: wire up delete account API call
-      AppSnackbar.error(_s.deleteNotAvailable);
+    if (secondConfirm != true || !mounted) return;
+
+    try {
+      await context.read<AuthViewmodel>().deleteAccount();
+    } catch (_) {
+      if (mounted) AppSnackbar.error(_s.deleteFailed);
     }
   }
 
-  void _showComingSoon(String feature) =>
-      AppSnackbar.info(feature + _s.comingSoon);
-
-  // ── Pickers ───────────────────────────────────────────────────────
-
-  void _showThemePicker() => _showOptionSheet(
-    title: _s.themePickerTitle,
-    options: [_s.themeLight, _s.themeDark, _s.themeSystem],
-    selected: _selectedTheme,
-    onSelect: (v) => setState(() => _selectedTheme = v),
+  void _showLicenses() => showLicensePage(
+    context: context,
+    applicationName: _s.licenseAppName,
+    applicationVersion: _appVersion,
   );
-
-  void _showLanguagePicker() => _showOptionSheet(
-    title: _s.languagePickerTitle,
-    options: _s.languages,
-    selected: _selectedLanguage,
-    onSelect: (v) => setState(() => _selectedLanguage = v),
-  );
-
-  void _showDmPrivacyPicker() => _showOptionSheet(
-    title: _s.dmPickerTitle,
-    options: [_s.dmEveryone, _s.dmFollowersOnly, _s.dmNoOne],
-    selected: _s.dmEveryone,
-    onSelect: (_) {},
-  );
-
-  void _showPlaylistPrivacyPicker() => _showOptionSheet(
-    title: _s.playlistPickerTitle,
-    options: [_s.playlistPublic, _s.playlistFollowers, _s.playlistPrivate],
-    selected: _s.playlistPublic,
-    onSelect: (_) {},
-  );
-
-  void _showOptionSheet({
-    required String title,
-    required List<String> options,
-    required String selected,
-    required ValueChanged<String> onSelect,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      backgroundColor: AppColors.cardFront,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.outline,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Text(title, style: AppTextStyles.heading3),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ...options.map(
-              (opt) => ListTile(
-                title: Text(opt, style: AppTextStyles.bodyPrimary),
-                trailing: opt == selected
-                    ? HugeIcon(
-                        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                        color: AppColors.primary,
-                        size: 20,
-                      )
-                    : null,
-                onTap: () {
-                  onSelect(opt);
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ── Build ─────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final spotifyConnected =
+        context.watch<AuthViewmodel>().currentUser?.spotifyConnected ?? false;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -249,30 +181,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: AppAssets.icon.spotify,
                 iconColor: AppColors.success,
                 title: _s.spotifyTitle,
-                value: _s.spotifyValue,
-                onTap: () => _showComingSoon(_s.spotifyTitle),
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.google,
-                iconColor: Colors.blue,
-                title: _s.googleTitle,
-                value: _s.googleValue,
-                onTap: () => _showComingSoon(_s.googleTitle),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── Creator Mode ─────────────────────────────────────────
-          SettingsSection(
-            title: _s.sectionCreator,
-            children: [
-              SettingsTile(
-                icon: AppAssets.icon.starCreator,
-                iconColor: AppColors.warning,
-                title: _s.creatorProfile,
-                subtitle: _s.creatorProfileSubtitle,
-                onTap: () => _showComingSoon(_s.creatorProfile),
+                value: spotifyConnected
+                    ? _s.spotifyConnected
+                    : _s.spotifyNotConnected,
+                showChevron: false,
               ),
             ],
           ),
@@ -313,108 +225,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // ── Privacy & Safety ─────────────────────────────────────
-          SettingsSection(
-            title: _s.sectionPrivacy,
-            children: [
-              SettingsToggleTile(
-                icon: AppAssets.icon.privateEye,
-                title: _s.privateAccount,
-                subtitle: _s.privateAccountSubtitle,
-                value: _privateAccount,
-                onChanged: (v) => setState(() => _privateAccount = v),
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.dmLock,
-                title: _s.whoCanDm,
-                value: _s.whoCanDmDefault,
-                onTap: _showDmPrivacyPicker,
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.blockedUser,
-                title: _s.blockedUsers,
-                onTap: () => _showComingSoon(_s.blockedUsers),
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.mutedUser,
-                title: _s.mutedUsers,
-                onTap: () => _showComingSoon(_s.mutedUsers),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── Music & Content ──────────────────────────────────────
-          SettingsSection(
-            title: _s.sectionMusic,
-            children: [
-              SettingsTile(
-                icon: AppAssets.icon.playlist,
-                title: _s.playlistSharing,
-                value: _s.playlistSharingDefault,
-                onTap: _showPlaylistPrivacyPicker,
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.genreFilter,
-                title: _s.genrePreferences,
-                subtitle: _s.genrePreferencesSubtitle,
-                onTap: () => _showComingSoon(_s.genrePreferences),
-              ),
-              SettingsToggleTile(
-                icon: AppAssets.icon.hideLike,
-                title: _s.hideLikedPosts,
-                subtitle: _s.hideLikedPostsSubtitle,
-                value: _hideLikedPosts,
-                onChanged: (v) => setState(() => _hideLikedPosts = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── Appearance ───────────────────────────────────────────
-          SettingsSection(
-            title: _s.sectionAppearance,
-            children: [
-              SettingsTile(
-                icon: AppAssets.icon.themeMoon,
-                title: _s.theme,
-                value: _selectedTheme,
-                onTap: _showThemePicker,
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.language,
-                title: _s.language,
-                value: _selectedLanguage,
-                onTap: _showLanguagePicker,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // ── About & Legal ────────────────────────────────────────
+          // ── About ────────────────────────────────────────────────
           SettingsSection(
             title: _s.sectionAbout,
             children: [
               SettingsTile(
                 icon: AppAssets.icon.appInfo,
                 title: _s.appVersion,
-                value: _s.appVersionValue,
+                value: _appVersion,
                 showChevron: false,
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.terms,
-                title: _s.termsOfService,
-                onTap: () => _showComingSoon(_s.termsOfService),
-              ),
-              SettingsTile(
-                icon: AppAssets.icon.privacyShield,
-                title: _s.privacyPolicy,
-                onTap: () => _showComingSoon(_s.privacyPolicy),
               ),
               SettingsTile(
                 icon: AppAssets.icon.licenses,
                 title: _s.licenses,
-                onTap: () => _showComingSoon(_s.licenses),
+                onTap: _showLicenses,
               ),
             ],
           ),
