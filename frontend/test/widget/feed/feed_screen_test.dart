@@ -90,6 +90,8 @@ class _FakeAuthViewmodel extends ChangeNotifier implements AuthViewmodel {
   @override
   Future<void> logout() async {}
   @override
+  Future<void> deleteAccount() async {}
+  @override
   void clearError() {}
 }
 

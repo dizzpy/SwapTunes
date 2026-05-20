@@ -71,9 +71,7 @@ export const checkGeminiKeys = async (overrideKey) => {
   return Promise.all(
     keys.map(async ({ label, key }) => {
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=1`
-        )
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=1`)
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
           const msg = body?.error?.message ?? `HTTP ${res.status}`
