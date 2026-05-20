@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/app_haptics.dart';
 import '../../../auth/presentation/widgets/auth_bottom_sheet.dart';
 
 // ─────────────────────────────────────────────
@@ -40,6 +41,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _showAuth() {
     if (!mounted) return;
+    AppHaptics.sheetOpen();
 
     showModalBottomSheet(
       context: context,
@@ -93,7 +95,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               child: PageView(
                 controller: _ctrl,
-                onPageChanged: (i) => setState(() => _page = i),
+                onPageChanged: (i) {
+                  AppHaptics.selection();
+                  setState(() => _page = i);
+                },
                 children: const [_Page1(), _Page2(), _Page3()],
               ),
             ),

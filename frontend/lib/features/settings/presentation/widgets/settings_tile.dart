@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/utils/app_haptics.dart';
+
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -44,7 +46,10 @@ class SettingsTile extends StatelessWidget {
         : AppColors.outline.withValues(alpha: 0.4);
 
     return InkWell(
-      onTap: onTap,
+      onTap: onTap == null ? null : () {
+        AppHaptics.uiTap();
+        onTap!();
+      },
       borderRadius: BorderRadius.circular(AppRadius.md),
       splashColor: AppColors.outline.withValues(alpha: 0.3),
       highlightColor: AppColors.outline.withValues(alpha: 0.1),

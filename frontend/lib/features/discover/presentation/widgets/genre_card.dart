@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_haptics.dart';
 
 /// A visually styled genre card used in the Browse All Genres grid.
 ///
@@ -20,7 +21,10 @@ class GenreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap == null ? null : () {
+        AppHaptics.uiTap();
+        onTap!();
+      },
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.cardFront,

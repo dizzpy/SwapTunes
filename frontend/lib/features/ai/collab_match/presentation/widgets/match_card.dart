@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/app_haptics.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../shared/widgets/app_button.dart';
 import '../../../../messaging/data/models/chat_conversation_model.dart';
@@ -77,6 +78,7 @@ class MatchCard extends StatelessWidget {
                   text: AppStrings.collab.matchViewProfile,
                   height: 44,
                   onPressed: () {
+                    AppHaptics.buttonTap();
                     Navigator.of(context, rootNavigator: true).push(
                       MaterialPageRoute(
                         builder: (_) =>
@@ -92,6 +94,7 @@ class MatchCard extends StatelessWidget {
                   text: AppStrings.collab.messageButton,
                   height: 44,
                   onPressed: () {
+                    AppHaptics.success();
                     final tempConversation = ChatConversationModel(
                       id: '',
                       participantId: match.userId,

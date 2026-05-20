@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -28,6 +29,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
   /// Handles Google sign-in via Supabase OAuth.
   Future<void> _handleGoogleAuth() async {
     if (_isProcessing) return;
+    AppHaptics.buttonTap();
     setState(() => _isProcessing = true);
 
     final auth = context.read<AuthViewmodel>();
@@ -43,6 +45,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
   /// Handles Spotify sign-in via Supabase OAuth.
   Future<void> _handleSpotifyAuth() async {
     if (_isProcessing) return;
+    AppHaptics.buttonTap();
     setState(() => _isProcessing = true);
 
     final auth = context.read<AuthViewmodel>();
@@ -55,6 +58,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
 
   /// Opens the email input UI for OTP authentication.
   void _handleEmailAuth() {
+    AppHaptics.buttonTap();
     final navigator = Navigator.of(context);
 
     Navigator.of(context).pop();

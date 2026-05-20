@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/navigation_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../splash/presentation/screens/splash_screen.dart';
@@ -45,18 +46,21 @@ class _OtpInputState extends State<OtpInput> {
   Future<void> _verifyOtp() async {
     final code = _otpController.text.trim();
     if (code.length != 8) return;
+    AppHaptics.light();
 
     final auth = context.read<AuthViewmodel>();
     final success = await auth.verifyOtp(code);
 
     if (mounted) {
       if (success) {
+        AppHaptics.success();
         // The auth state listener in AuthGate will handle the final navigation,
         // but fetching the profile takes a moment. Immediately show the Splash
         // screen as a loading state while we wait for _tryLoadProfile to finish.
         NavigationService.pushAndRemoveAll(const SplashScreen());
       }
       // If failed, error is already shown via Consumer
+      if (!success) AppHaptics.error();
     }
   }
 

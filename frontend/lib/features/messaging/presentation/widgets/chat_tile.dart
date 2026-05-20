@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../data/models/chat_conversation_model.dart';
 import '../screens/single_chat_screen.dart';
@@ -14,11 +15,14 @@ class ChatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute(
-          builder: (_) => SingleChatScreen(conversation: conversation),
-        ),
-      ).then((_) => onReturn?.call()),
+      onTap: () {
+        AppHaptics.uiTap();
+        Navigator.of(context, rootNavigator: true)
+            .push(MaterialPageRoute(
+              builder: (_) => SingleChatScreen(conversation: conversation),
+            ))
+            .then((_) => onReturn?.call());
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_haptics.dart';
 
 class PlaylistCard extends StatelessWidget {
   final String title;
@@ -24,7 +25,10 @@ class PlaylistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap == null ? null : () {
+        AppHaptics.uiTap();
+        onTap!();
+      },
       child: Container(
         width: 240,
         padding: const EdgeInsets.all(12),
