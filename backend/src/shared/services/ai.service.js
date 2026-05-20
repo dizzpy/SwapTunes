@@ -1,23 +1,95 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+// `fetch` is available globally in Node 18+; no extra import needed.
+
+const MODEL = 'gemini-3-flash-preview'
 
 const parseJsonResponse = (text) => {
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean)
 }
 
-const getModel = () => {
-  if (!process.env.GEMINI_API_KEY) {
+// Ordered, de-duplicated, non-empty list of keys to try.
+// Priority: env primary → env backup → manual app override (last resort).
+const getApiKeys = (overrideKey) => {
+  const candidates = [
+    { label: 'env-primary', key: process.env.GEMINI_API_KEY },
+    { label: 'env-backup', key: process.env.GEMINI_API_KEY_BACKUP_ONE },
+    { label: 'app-manual', key: overrideKey }
+  ]
+  const seen = new Set()
+  return candidates.filter(({ key }) => {
+    if (!key || typeof key !== 'string' || key.trim().length === 0) return false
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+const isKeyFailure = (err) => {
+  const msg = err?.message ?? ''
+  return (
+    msg.includes('429') ||
+    msg.includes('Too Many Requests') ||
+    msg.includes('quota') ||
+    msg.includes('403') ||
+    msg.includes('API_KEY') ||
+    msg.includes('invalid')
+  )
+}
+
+// Tries each available key until one succeeds. If a key fails with a
+// rate-limit / auth-style error, falls through to the next one. Any other
+// error short-circuits and is rethrown immediately.
+const generateContentWithFallback = async (prompt, overrideKey) => {
+  const keys = getApiKeys(overrideKey)
+  if (keys.length === 0) {
     throw { statusCode: 503, code: 'AI_NOT_CONFIGURED', message: 'AI service is not configured. Set GEMINI_API_KEY.' }
   }
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  return genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
+
+  let lastErr
+  for (const { label, key } of keys) {
+    try {
+      const genAI = new GoogleGenerativeAI(key)
+      const model = genAI.getGenerativeModel({ model: MODEL })
+      const result = await model.generateContent(prompt)
+      return { text: result.response.text(), keyUsed: label }
+    } catch (err) {
+      lastErr = err
+      if (!isKeyFailure(err)) throw err
+    }
+  }
+  throw lastErr
+}
+
+// Lightweight per-key probe used by GET /health/ai.
+// Uses a models-list GET — validates the key without generating any content,
+// so it costs zero generation credits.
+export const checkGeminiKeys = async (overrideKey) => {
+  const keys = getApiKeys(overrideKey)
+  if (keys.length === 0) return []
+
+  return Promise.all(
+    keys.map(async ({ label, key }) => {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=1`
+        )
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          const msg = body?.error?.message ?? `HTTP ${res.status}`
+          return { label, ok: false, error: msg }
+        }
+        return { label, ok: true }
+      } catch (err) {
+        return { label, ok: false, error: err?.message ?? 'unknown error' }
+      }
+    })
+  )
 }
 
 // ─── Feature: Collab Match ─────────────────────────────────────────────────
 
-export const matchCreatorsForCollab = async (collab, creators) => {
-  const model = getModel()
-
+export const matchCreatorsForCollab = async (collab, creators, overrideKey) => {
   const prompt = `
 You are a music collaboration assistant for a platform called SwapTunes.
 
@@ -46,8 +118,8 @@ Respond with valid JSON only, no extra text, no markdown:
   `.trim()
 
   try {
-    const result = await model.generateContent(prompt)
-    return parseJsonResponse(result.response.text())
+    const { text } = await generateContentWithFallback(prompt, overrideKey)
+    return parseJsonResponse(text)
   } catch (err) {
     if (err.statusCode) throw err
     const msg = err.message ?? ''
@@ -75,8 +147,7 @@ Respond with valid JSON only, no extra text, no markdown:
 
 // ─── Feature: AI Song Builder ──────────────────────────────────────────────
 
-export const buildSongPlan = async ({ idea, genre, lyrics, type }) => {
-  const model = getModel()
+export const buildSongPlan = async ({ idea, genre, lyrics, type }, overrideKey) => {
   const isEDM = ['EDM', 'Electronic'].includes(genre)
   const isInstrumental = type === 'instrumental'
   const hasLyrics = lyrics && lyrics.trim().length > 0
@@ -224,8 +295,8 @@ Always set isDrop: false for every section — isDrop is only used in EDM tracks
   }
 
   try {
-    const result = await model.generateContent(prompt)
-    return parseJsonResponse(result.response.text())
+    const { text } = await generateContentWithFallback(prompt, overrideKey)
+    return parseJsonResponse(text)
   } catch (err) {
     if (err.statusCode) throw err
     const msg = err.message ?? ''

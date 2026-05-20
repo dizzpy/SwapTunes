@@ -21,6 +21,11 @@ class ApiInterceptor {
       headers['Authorization'] = 'Bearer $token';
     }
 
+    final devGeminiKey = _storage.getDevGeminiKey();
+    if (devGeminiKey != null && devGeminiKey.isNotEmpty) {
+      headers['x-gemini-key'] = devGeminiKey;
+    }
+
     return headers;
   }
 }

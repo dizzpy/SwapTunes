@@ -88,10 +88,40 @@ class StorageService {
   Future<void> setCollabNotificationsEnabled(bool value) =>
       _prefs.setBool(_keyCollabEnabled, value);
 
+  // ── Dev Settings ──────────────────────────────────────
+
+  static const _keyDevBaseUrl = 'dev_base_url';
+  static const _keyDevGeminiKey = 'dev_gemini_key';
+
+  String? getDevBaseUrl() => _prefs.getString(_keyDevBaseUrl);
+
+  Future<void> setDevBaseUrl(String? url) async {
+    if (url == null || url.trim().isEmpty) {
+      await _prefs.remove(_keyDevBaseUrl);
+    } else {
+      await _prefs.setString(_keyDevBaseUrl, url.trim());
+    }
+  }
+
+  String? getDevGeminiKey() => _prefs.getString(_keyDevGeminiKey);
+
+  Future<void> setDevGeminiKey(String? key) async {
+    if (key == null || key.trim().isEmpty) {
+      await _prefs.remove(_keyDevGeminiKey);
+    } else {
+      await _prefs.setString(_keyDevGeminiKey, key.trim());
+    }
+  }
+
   // ── Clear All ──────────────────────────────────────────
 
-  /// Wipes all stored data (used on logout).
+  /// Wipes all stored data (used on logout). Dev Settings (manual base URL +
+  /// Gemini key) are preserved so emergency overrides survive a logout.
   Future<void> clearAll() async {
+    final devBaseUrl = _prefs.getString(_keyDevBaseUrl);
+    final devGeminiKey = _prefs.getString(_keyDevGeminiKey);
     await _prefs.clear();
+    if (devBaseUrl != null) await _prefs.setString(_keyDevBaseUrl, devBaseUrl);
+    if (devGeminiKey != null) await _prefs.setString(_keyDevGeminiKey, devGeminiKey);
   }
 }

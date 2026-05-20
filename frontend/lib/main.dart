@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app.dart';
+import 'core/constants/api_constants.dart';
 import 'core/network/api_client.dart';
 import 'core/services/onesignal_service.dart';
 import 'core/network/api_interceptor.dart';
@@ -56,6 +57,9 @@ Future<void> main() async {
   // Initialize core services
   final storageService = StorageService();
   await storageService.init();
+
+  // Apply any saved Dev Settings base URL override before any HTTP requests fire.
+  ApiConstants.setBaseUrlOverride(storageService.getDevBaseUrl());
 
   // Sync Supabase token to StorageService so the API client uses it
   final currentToken = supabaseAuthService.accessToken;

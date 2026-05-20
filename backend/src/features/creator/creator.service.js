@@ -83,8 +83,8 @@ export const updateCreatorProfile = async (userId, data) => {
 }
 
 // Build a song plan using AI.
-export const buildSong = async ({ idea, genre, lyrics, type }) => {
-  return buildSongPlan({ idea, genre, lyrics, type })
+export const buildSong = async ({ idea, genre, lyrics, type }, overrideKey) => {
+  return buildSongPlan({ idea, genre, lyrics, type }, overrideKey)
 }
 
 // Save a song plan result to the database.

@@ -35,7 +35,8 @@ export const deactivateCreator = async (req, res, next) => {
 export const songBuilder = async (req, res, next) => {
   try {
     const { idea, genre, lyrics, type } = req.validatedBody
-    const result = await creatorService.buildSong({ idea, genre, lyrics, type })
+    const overrideKey = req.headers['x-gemini-key']
+    const result = await creatorService.buildSong({ idea, genre, lyrics, type }, overrideKey)
     success(res, result)
   } catch (err) {
     next(err)

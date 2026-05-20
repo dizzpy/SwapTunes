@@ -3,15 +3,19 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/network/network_exceptions.dart';
 import '../../../../core/services/onesignal_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
+import '../../../../core/widgets/app_input_dialog.dart';
 import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 import '../../../feed/presentation/screens/main_layout_screen.dart';
 import '../widgets/settings_section.dart';
@@ -36,12 +40,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── App version ────────────────────────────────────────────────────
   String _appVersion = '—';
 
+  // ── Dev Settings local state (mirrors StorageService) ─────────────
+  String _devBaseUrl = ApiConstants.baseUrl;
+  bool _devGeminiKeySet = false;
+
   @override
   void initState() {
     super.initState();
     MainLayoutScreen.hideNavBar();
     _loadNotifPrefs();
     _loadAppVersion();
+    _loadDevSettings();
+  }
+
+  void _loadDevSettings() {
+    final storage = context.read<StorageService>();
+    setState(() {
+      _devBaseUrl = ApiConstants.baseUrl;
+      _devGeminiKeySet = (storage.getDevGeminiKey() ?? '').isNotEmpty;
+    });
   }
 
   @override
@@ -132,6 +149,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await context.read<AuthViewmodel>().deleteAccount();
     } catch (_) {
       if (mounted) AppSnackbar.error(_s.deleteFailed);
+    }
+  }
+
+  // ── Dev Settings handlers ─────────────────────────────────────────
+
+  Future<void> _onEditBaseUrl() async {
+    final storage = context.read<StorageService>();
+    final entered = await AppInputDialog.show(
+      context,
+      title: _s.devBaseUrlDialogTitle,
+      message: _s.devBaseUrlDialogMessage,
+      initialValue: storage.getDevBaseUrl() ?? ApiConstants.baseUrl,
+      hintText: _s.devBaseUrlHint,
+      keyboardType: TextInputType.url,
+    );
+    if (entered == null) return;
+
+    await storage.setDevBaseUrl(entered.isEmpty ? null : entered);
+    ApiConstants.setBaseUrlOverride(entered.isEmpty ? null : entered);
+
+    if (!mounted) return;
+    setState(() => _devBaseUrl = ApiConstants.baseUrl);
+    AppSnackbar.success(
+      entered.isEmpty ? _s.devBaseUrlCleared : _s.devBaseUrlSaved,
+    );
+  }
+
+  Future<void> _onEditGeminiKey() async {
+    final storage = context.read<StorageService>();
+    final entered = await AppInputDialog.show(
+      context,
+      title: _s.devGeminiKeyDialogTitle,
+      message: _s.devGeminiKeyDialogMessage,
+      initialValue: storage.getDevGeminiKey() ?? '',
+      hintText: _s.devGeminiKeyHint,
+      obscure: true,
+    );
+    if (entered == null) return;
+
+    await storage.setDevGeminiKey(entered.isEmpty ? null : entered);
+
+    if (!mounted) return;
+    setState(() => _devGeminiKeySet = entered.isNotEmpty);
+    AppSnackbar.success(
+      entered.isEmpty ? _s.devGeminiKeyCleared : _s.devGeminiKeySaved,
+    );
+  }
+
+  Future<void> _onTestBaseUrl() async {
+    final apiClient = context.read<ApiClient>();
+    try {
+      await apiClient.get(ApiConstants.health);
+      if (!mounted) return;
+      AppSnackbar.success('${_s.devTestBaseUrlOk} — ${ApiConstants.baseUrl}');
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e is ApiException ? e.message : e.toString();
+      AppSnackbar.error('${_s.devTestBaseUrlFail}: $msg');
+    }
+  }
+
+  Future<void> _onTestGeminiKeys() async {
+    final apiClient = context.read<ApiClient>();
+    try {
+      final response = await apiClient.get('/health/ai');
+      if (!mounted) return;
+      final keys = (response is Map ? response['keys'] : null) as List? ?? [];
+      if (keys.isEmpty) {
+        AppSnackbar.info(_s.devTestKeysEmpty);
+        return;
+      }
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: AppColors.cardFront,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(_s.devTestKeysResultTitle, style: AppTextStyles.heading3),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final k in keys)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        (k as Map)['ok'] == true
+                            ? Icons.check_circle
+                            : Icons.cancel,
+                        color: k['ok'] == true
+                            ? AppColors.primary
+                            : AppColors.danger,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${k['label']}'
+                          '${k['ok'] == true ? '' : ' — ${k['error'] ?? 'failed'}'}',
+                          style: AppTextStyles.bodyPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: AppTextStyles.bodyPrimary.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e is ApiException ? e.message : e.toString();
+      AppSnackbar.error('${_s.devTestKeysFail}: $msg');
     }
   }
 
@@ -239,6 +383,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: AppAssets.icon.licenses,
                 title: _s.licenses,
                 onTap: _showLicenses,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── Dev Settings ────────────────────────────────────────
+          SettingsSection(
+            title: _s.sectionDev,
+            children: [
+              SettingsTile(
+                icon: AppAssets.icon.globe,
+                title: _s.devBaseUrlTitle,
+                subtitle: _devBaseUrl,
+                onTap: _onEditBaseUrl,
+              ),
+              SettingsTile(
+                icon: AppAssets.icon.lockPassword,
+                title: _s.devGeminiKeyTitle,
+                value: _devGeminiKeySet
+                    ? _s.devGeminiKeyValueSet
+                    : _s.devGeminiKeyValueNotSet,
+                onTap: _onEditGeminiKey,
+              ),
+              SettingsTile(
+                icon: AppAssets.icon.check,
+                title: _s.devTestBaseUrlTitle,
+                subtitle: _s.devTestBaseUrlSubtitle,
+                showChevron: false,
+                onTap: _onTestBaseUrl,
+              ),
+              SettingsTile(
+                icon: AppAssets.icon.check,
+                title: _s.devTestKeysTitle,
+                subtitle: _s.devTestKeysSubtitle,
+                showChevron: false,
+                onTap: _onTestGeminiKeys,
               ),
             ],
           ),

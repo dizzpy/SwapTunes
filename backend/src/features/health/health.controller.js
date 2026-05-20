@@ -1,7 +1,19 @@
 import { supabase } from '../../config/supabase.js'
 import { env } from '../../config/env.js'
+import { checkGeminiKeys } from '../../shared/services/ai.service.js'
 
 const startTime = Date.now()
+
+/**
+ * GET /api/v1/health/ai
+ * Probes each available Gemini key with a tiny request and reports per-key status.
+ * Honors `x-gemini-key` header for testing a manually-entered key from the app.
+ */
+export const getAiHealth = async (req, res) => {
+  const overrideKey = req.headers['x-gemini-key']
+  const keys = await checkGeminiKeys(overrideKey)
+  res.status(200).json({ keys })
+}
 
 /**
  * GET /api/v1/health

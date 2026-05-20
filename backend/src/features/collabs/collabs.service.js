@@ -114,7 +114,7 @@ export const getCreatorsForMatching = async (excludeUserId) => {
 }
 
 // Find the top matching creators for a collab listing using AI.
-export const findCollabMatches = async (collabId, requestingUserId) => {
+export const findCollabMatches = async (collabId, requestingUserId, overrideKey) => {
   const collab = await getCollabById(collabId)
 
   if (collab.creator_id !== requestingUserId) {
@@ -124,7 +124,7 @@ export const findCollabMatches = async (collabId, requestingUserId) => {
   const creators = await getCreatorsForMatching(requestingUserId)
   if (!creators.length) return []
 
-  const aiResult = await matchCreatorsForCollab(collab, creators)
+  const aiResult = await matchCreatorsForCollab(collab, creators, overrideKey)
 
   const enriched = aiResult.matches
     .map((match) => {

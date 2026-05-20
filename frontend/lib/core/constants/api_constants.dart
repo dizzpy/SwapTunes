@@ -7,8 +7,20 @@ class ApiConstants {
   ApiConstants._();
 
   // ── Base ───────────────────────────────────────────────
+  static String? _baseUrlOverride;
+
+  /// Sets a runtime base URL override from Dev Settings. Pass null/empty to
+  /// clear and fall back to the .env value.
+  static void setBaseUrlOverride(String? url) {
+    _baseUrlOverride = (url == null || url.trim().isEmpty) ? null : url.trim();
+  }
+
+  static String? get baseUrlOverride => _baseUrlOverride;
+
   static String get baseUrl =>
-      dotenv.env['BACKEND_URL'] ?? 'http://localhost:3000/api/v1';
+      _baseUrlOverride ??
+      dotenv.env['BACKEND_URL'] ??
+      'http://localhost:3000/api/v1';
 
   // ── Health ─────────────────────────────────────────────
   static const String health = '/health';

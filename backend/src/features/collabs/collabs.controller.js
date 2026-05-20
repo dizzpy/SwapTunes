@@ -75,7 +75,8 @@ export const getUserCollabs = async (req, res, next) => {
 export const getCollabMatches = async (req, res, next) => {
   try {
     const { collabId } = req.params
-    const matches = await collabsService.findCollabMatches(collabId, req.user.id)
+    const overrideKey = req.headers['x-gemini-key']
+    const matches = await collabsService.findCollabMatches(collabId, req.user.id, overrideKey)
     success(res, matches)
   } catch (err) {
     next(err)

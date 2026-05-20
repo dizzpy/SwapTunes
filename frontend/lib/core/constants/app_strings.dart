@@ -469,6 +469,7 @@ class _SettingsStrings {
   final String sectionAccount = 'Account';
   final String sectionNotifications = 'Notifications';
   final String sectionAbout = 'About';
+  final String sectionDev = 'Dev Settings';
   final String sectionDanger = 'Danger Zone';
 
   // Account
@@ -510,6 +511,38 @@ class _SettingsStrings {
       'Your account will be permanently deleted. There is no going back.';
   final String deleteFinalConfirm = 'Delete My Account';
   final String deleteFailed = 'Could not delete your account. Please try again.';
+
+  // Dev Settings — base URL
+  final String devBaseUrlTitle = 'API Base URL';
+  final String devBaseUrlSubtitle = 'Backend endpoint used by all requests';
+  final String devBaseUrlDialogTitle = 'Edit API Base URL';
+  final String devBaseUrlDialogMessage =
+      'Override the backend URL. Clear to fall back to the bundled default.';
+  final String devBaseUrlHint = 'http://192.168.1.10:3000/api/v1';
+  final String devBaseUrlSaved = 'API base URL updated';
+  final String devBaseUrlCleared = 'API base URL reset to default';
+
+  // Dev Settings — Gemini key
+  final String devGeminiKeyTitle = 'Gemini API Key (Emergency)';
+  final String devGeminiKeyValueSet = 'Set';
+  final String devGeminiKeyValueNotSet = 'Not set';
+  final String devGeminiKeyDialogTitle = 'Manual Gemini API Key';
+  final String devGeminiKeyDialogMessage =
+      'Used only if both env keys fail. Clear to remove.';
+  final String devGeminiKeyHint = 'AIza...';
+  final String devGeminiKeySaved = 'Gemini key saved';
+  final String devGeminiKeyCleared = 'Gemini key cleared';
+
+  // Dev Settings — tests
+  final String devTestBaseUrlTitle = 'Test Base URL';
+  final String devTestBaseUrlSubtitle = 'Ping /health on the current URL';
+  final String devTestBaseUrlOk = 'Backend reachable';
+  final String devTestBaseUrlFail = 'Backend unreachable';
+  final String devTestKeysTitle = 'Test Gemini Keys';
+  final String devTestKeysSubtitle = 'Probe each available key';
+  final String devTestKeysFail = 'Key check failed';
+  final String devTestKeysEmpty = 'No keys configured';
+  final String devTestKeysResultTitle = 'Gemini Key Status';
 
   // Generic
   final String cancel = 'Cancel';
